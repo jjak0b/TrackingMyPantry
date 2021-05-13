@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="?attr/dividerHorizontal"
+        android:dividerPadding="8dp"
+        android:orientation="vertical"
+        android:showDividers="beginning|end">
+
+        <LinearLayout
+            android:id="@+id/product_field_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="100">
+
+            <TextView
+                android:id="@+id/product_field_1_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="60"
+                android:gravity="center"
+                android:text="TextView" />
+
+            <EditText
+                android:id="@+id/product_field_1_edit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="40"
+                android:ems="10"
+                android:inputType="numberDecimal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/product_field_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="100">
+
+            <TextView
+                android:id="@+id/product_field_2_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="60"
+                android:gravity="center"
+                android:text="TextView" />
+
+            <EditText
+                android:id="@+id/product_field_2_edit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="40"
+                android:ems="10"
+                android:inputType="date" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/product_field_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="100">
+
+            <TextView
+                android:id="@+id/product_field_3_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="60"
+                android:gravity="center"
+                android:text="TextView" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="40"
+                android:visibility="visible">
+
+                <com.google.android.gms.maps.MapView
+                    android:id="@+id/product_field_3_map"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="60" />
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/product_field_4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="100">
+
+            <TextView
+                android:id="@+id/product_field_4_label"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="60"
+                android:gravity="center"
+                android:text="TextView" />
+
+            <EditText
+                android:id="@+id/product_field_4_edit"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="40"
+                android:ems="10"
+                android:inputType="numberDecimal" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:stretchColumns="1,2">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_column="1"
+                android:text="TextView" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="TextView" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TextView" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="100">
+
+            <EditText
+                android:id="@+id/editTextDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:inputType="date"
+                android:singleLine="true" />
+
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:spinnerMode="dropdown" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/imageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_add" />
+
+                <ImageButton
+                    android:id="@+id/imageButton2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            </LinearLayout>
+
+        </TableRow>
+
+    </TableLayout>
+
+</LinearLayout>
