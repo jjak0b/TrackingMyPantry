@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.jjak0b.android.trackingmypantry.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_registerProductBottomSheetDialogFragment"
+            app:destination="@id/registerProductBottomSheetDialogFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_gallery"
+        android:name="com.jjak0b.android.trackingmypantry.ui.gallery.GalleryFragment"
+        android:label="@string/menu_gallery"
+        tools:layout="@layout/fragment_gallery" />
+
+    <fragment
+        android:id="@+id/nav_slideshow"
+        android:name="com.jjak0b.android.trackingmypantry.ui.slideshow.SlideshowFragment"
+        android:label="@string/menu_slideshow"
+        tools:layout="@layout/fragment_slideshow" />
+
+    <fragment
+        android:id="@+id/nav_auth"
+        android:name="com.jjak0b.android.trackingmypantry.ui.auth.AuthFragment"
+        android:label="@string/action_sign_in"
+        tools:layout="@layout/fragment_auth" >
+        <action
+            android:id="@+id/action_nav_auth_to_nav_signin"
+            app:destination="@id/nav_signin" />
+        <action
+            android:id="@+id/action_nav_auth_to_nav_signup"
+            app:destination="@id/nav_signup" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_signin"
+        android:name="com.jjak0b.android.trackingmypantry.ui.auth.LoginFragment"
+        android:label="@string/action_sign_in"
+        tools:layout="@layout/fragment_login"/>
+    <fragment
+        android:id="@+id/nav_signup"
+        android:name="com.jjak0b.android.trackingmypantry.ui.auth.RegisterFragment"
+        android:label="@string/action_register"
+        tools:layout="@layout/fragment_regiter"/>
+
+    <fragment
+        android:id="@+id/registerProductFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.RegisterProductFragment"
+        android:label="register_product_fragment"
+        tools:layout="@layout/register_product_fragment">
+        <action
+            android:id="@+id/action_registerProductFragment_to_suggestedProductListDialogFragment"
+            app:destination="@id/suggestedProductListDialogFragment" />
+        <argument
+            android:name="barcode"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+    <dialog
+        android:id="@+id/registerProductBottomSheetDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.RegisterNewProductBottomSheetDialogFragment"
+        android:label="fragment_bottom_sheet_register_product"
+        tools:layout="@layout/fragment_bottom_sheet_register_new_product">
+        <action
+            android:id="@+id/action_registerProductBottomSheetDialogFragment_to_registerProductFragment"
+            app:destination="@id/registerProductFragment"
+            app:popUpTo="@id/registerProductBottomSheetDialogFragment"
+            app:popUpToInclusive="true" />
+    </dialog>
+    <dialog
+        android:id="@+id/suggestedProductListDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.SuggestedProductListDialogFragment"
+        android:label="fragment_suggested_product_list_dialog_list_dialog"
+        tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" />
+
+</navigation>
