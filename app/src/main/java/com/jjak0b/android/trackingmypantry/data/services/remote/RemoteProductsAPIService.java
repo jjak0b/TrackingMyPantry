@@ -1,8 +1,7 @@
 package com.jjak0b.android.trackingmypantry.data.services.remote;
 
-import com.google.gson.annotations.Expose;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
+import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 
 import java.util.List;
@@ -19,7 +18,7 @@ import retrofit2.http.Query;
 public interface RemoteProductsAPIService {
 
     @GET("products")
-    Call<List<Product>> getProducts(
+    Call<ProductsList> getProducts(
             @Header("Authorization") String authorization,
             @Query("barcode") String barcode
     );
@@ -41,17 +40,5 @@ public interface RemoteProductsAPIService {
             @Header("Authorization") String authorization,
             @Body Vote vote
     );
-
-    class ProductsList {
-        @Expose
-        String token;
-
-        @Expose
-        List<Product> products;
-
-        public String getToken() { return token; }
-
-        public List<Product> getProducts() { return products; }
-    }
 
 }

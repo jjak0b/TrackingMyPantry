@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +30,9 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     // TODO: Customize parameter argument names
     private static final String ARG_ITEM_COUNT = "item_count";
 
+    private RegisterProductViewModel mViewModel;
+    private ProductListAdapter listAdapter;
+
     // TODO: Customize parameters
     public static SuggestedProductListDialogFragment newInstance(int itemCount) {
         final SuggestedProductListDialogFragment fragment = new SuggestedProductListDialogFragment();
@@ -48,49 +52,15 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff() );
+
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new SuggestedProductAdapter(getArguments().getInt(ARG_ITEM_COUNT)));
-    }
+        recyclerView.setAdapter( listAdapter );
 
-    private class ViewHolder extends RecyclerView.ViewHolder {
-
-        final TextView title;
-        final TextView description;
-
-        ViewHolder(LayoutInflater inflater, ViewGroup parent) {
-            // TODO: Customize the item layout
-            super(inflater.inflate(R.layout.fragment_suggested_product_list_dialog_list_dialog_item, parent, false));
-            title = itemView.findViewById(R.id.cardTitle);
-            description = itemView.findViewById(R.id.cardDescription);
-        }
-    }
-
-    private class SuggestedProductAdapter extends RecyclerView.Adapter<ViewHolder> {
-
-        private final int mItemCount;
-
-        SuggestedProductAdapter(int itemCount) {
-            mItemCount = itemCount;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new ViewHolder(LayoutInflater.from(parent.getContext()), parent);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            holder.title.setText(String.valueOf(position));
-            holder.description.setText(String.valueOf(position));
-        }
-
-        @Override
-        public int getItemCount() {
-            return mItemCount;
-        }
-
+        mViewModel.getProducts().observe( getViewLifecycleOwner(), products ->  listAdapter.submitList( products ) );
     }
 
 }

@@ -9,4 +9,8 @@ public class Vote extends TokenizedItem {
 
     @Expose
     String productId;
+
+    Vote( ) {
+
+    }
 }
