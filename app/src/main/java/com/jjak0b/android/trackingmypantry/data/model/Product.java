@@ -38,4 +38,19 @@ public class Product {
         this.description = p.description;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 }
