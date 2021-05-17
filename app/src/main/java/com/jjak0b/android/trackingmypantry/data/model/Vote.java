@@ -10,7 +10,9 @@ public class Vote extends TokenizedItem {
     @Expose
     String productId;
 
-    Vote( ) {
-
+    public Vote( String token, String productId, int rating ) {
+        super(token);
+        this.productId = productId;
+        this.rating = rating;
     }
 }

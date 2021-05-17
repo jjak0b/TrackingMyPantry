@@ -65,7 +65,7 @@ public class LoginRepository {
     }
 
     public boolean isLoggedIn() {
-        return mLoggedInUser != null;
+        return mLoggedInUser.getValue() != null && mLoggedInUser.getValue().getAccessToken() != null;
     }
 
     public MutableLiveData<LoginCredentials> getLoggedInUser() {

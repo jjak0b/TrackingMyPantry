@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.home;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -27,7 +27,7 @@ import com.jjak0b.android.trackingmypantry.R;
  *     RegisterProductMenuItemListDialogFragment.newInstance(30).show(getSupportFragmentManager(), "dialog");
  * </pre>
  */
-public class RegisterNewProductBottomSheetDialogFragment extends BottomSheetDialogFragment {
+public class MenuRegisterProductBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
     final int BARCODE_SCAN_REQUEST = 2;
 
@@ -61,10 +61,6 @@ public class RegisterNewProductBottomSheetDialogFragment extends BottomSheetDial
     void navigateToRegisterProductForm( Bundle args ) {
         NavHostFragment.findNavController(this)
                 .navigate( R.id.action_registerProductBottomSheetDialogFragment_to_registerProductFragment, args );
-    }
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     @Override

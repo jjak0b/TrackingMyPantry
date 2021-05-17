@@ -45,36 +45,26 @@ public class RegisterProductFragment extends Fragment {
         final EditText editBarcode = view.findViewById(R.id.editTextBarcode);
         final Button submitBarcodeBtn = view.findViewById( R.id.submitBarcode );
 
-
-        editBarcode.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                mViewModel.setBarcode( s.toString() );
-            }
+        submitBarcodeBtn.setOnClickListener(v -> {
+            mViewModel.setBarcode( editBarcode.getText().toString() );
         });
-
-        submitBarcodeBtn.setOnClickListener(v -> openBottomSheetDialog(view) );
 
         mViewModel.getBarcode().observe( getViewLifecycleOwner(), value -> {
             editBarcode.setText( value );
         });
 
+        mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
+            if( products != null && !products.isEmpty() ) {
+                openBottomSheetDialog(view);
+            }
+        });
 
         Bundle args = getArguments();
         if( args != null ) {
             String barcode = args.getString(ARG_BARCODE);
-            if (barcode != null) mViewModel.setBarcode(args.getString(ARG_BARCODE));
+            if (barcode != null) mViewModel.setBarcode(barcode);
         }
+
     }
 
 

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.jjak0b.android.trackingmypantry.R;
@@ -27,21 +28,8 @@ import com.jjak0b.android.trackingmypantry.R;
  */
 public class SuggestedProductListDialogFragment extends BottomSheetDialogFragment {
 
-    // TODO: Customize parameter argument names
-    private static final String ARG_ITEM_COUNT = "item_count";
-
     private RegisterProductViewModel mViewModel;
     private ProductListAdapter listAdapter;
-
-    // TODO: Customize parameters
-    public static SuggestedProductListDialogFragment newInstance(int itemCount) {
-        final SuggestedProductListDialogFragment fragment = new SuggestedProductListDialogFragment();
-        final Bundle args = new Bundle();
-        args.putInt(ARG_ITEM_COUNT, itemCount);
-        fragment.setArguments(args);
-
-        return fragment;
-    }
 
     @Nullable
     @Override
@@ -56,11 +44,17 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff() );
 
+        final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+
+        loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        mViewModel.getProducts().observe( getViewLifecycleOwner(), products ->  listAdapter.submitList( products ) );
+        mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
+            listAdapter.submitList( products );
+            loadingBar.setVisibility( View.GONE );
+        });
     }
 
 }

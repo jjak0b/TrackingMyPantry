@@ -66,7 +66,7 @@
     </fragment>
     <dialog
         android:id="@+id/registerProductBottomSheetDialogFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.RegisterNewProductBottomSheetDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.home.MenuRegisterProductBottomSheetDialogFragment"
         android:label="fragment_bottom_sheet_register_product"
         tools:layout="@layout/fragment_bottom_sheet_register_new_product">
         <action
