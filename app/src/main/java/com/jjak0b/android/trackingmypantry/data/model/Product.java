@@ -7,16 +7,16 @@ import org.jetbrains.annotations.Nullable;
 
 public class Product {
     @Expose
-    String id;
+    private String id;
 
     @Expose
-    String barcode;
+    private String barcode;
 
     @Expose
-    String name;
+    private String name;
 
     @Expose
-    String description;
+    private String description;
 
     public Product(@NotNull String barcode, @NotNull String name, @Nullable String description ) {
         this.barcode = barcode;
@@ -52,5 +52,64 @@ public class Product {
 
     public String getDescription() {
         return description;
+    }
+
+    public static class Builder {
+
+        private String name;
+        private String description;
+        private String barcode;
+        private String productId;
+
+        public Builder from( Product p ) {
+            if( p != null ) {
+                setName(p.getName());
+                setDescription(p.getDescription());
+                setBarcode(p.getBarcode());
+                setProductId(p.getId());
+            }
+            return this;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getBarcode() {
+            return barcode;
+        }
+
+        public String getProductId() {
+            return productId;
+        }
+
+        public Builder setName(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder setProductId(String id) {
+            this.productId = id;
+            return this;
+        }
+
+        public Builder setBarcode(String barcode) {
+            this.barcode =  barcode;
+            return this;
+        }
+
+        public Product build() {
+            Product item = new Product( productId, barcode, name, description );
+            return item;
+        }
     }
 }

@@ -52,5 +52,7 @@
     <!-- product suggestions -->
     <string name="suggested_products_list_header">Found matches</string>
     <string name="suggested_products_list_description">Select the product that you think best matches your product. Go back if you prefer to enter it manually</string>
+    <string name="register_product_name">Product name</string>
+    <string name="register_product_description">Product description</string>
     <string name="barcode">Barcode</string>
 </resources>

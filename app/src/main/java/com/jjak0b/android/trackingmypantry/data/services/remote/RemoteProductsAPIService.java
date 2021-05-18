@@ -30,13 +30,13 @@ public interface RemoteProductsAPIService {
     );
 
     @DELETE("products/{id}")
-    Call removeProduct(
+    Call<Void> removeProduct(
             @Header("Authorization") String authorization,
             @Path("id") String productId
     );
 
     @POST("votes")
-    Call voteProduct(
+    Call<Void> voteProduct(
             @Header("Authorization") String authorization,
             @Body Vote vote
     );

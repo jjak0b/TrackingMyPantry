@@ -15,7 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.jjak0b.android.trackingmypantry.R;
 
@@ -42,7 +41,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff() );
+        listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff(), mViewModel );
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);

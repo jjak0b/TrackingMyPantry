@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -10,8 +11,11 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> {
 
-    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback) {
+    private RegisterProductViewModel viewModel;
+
+    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback, @NonNull RegisterProductViewModel viewModel ) {
         super(diffCallback);
+        this.viewModel = viewModel;
     }
 
     @NonNull
@@ -23,7 +27,7 @@ public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product current = getItem(position);
-        holder.bind(current);
+        holder.bind(current, viewModel);
     }
 
     static class ProductDiff extends DiffUtil.ItemCallback<Product> {

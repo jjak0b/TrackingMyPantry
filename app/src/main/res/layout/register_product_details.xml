@@ -7,23 +7,24 @@
     android:showDividers="beginning|end">
 
     <EditText
-        android:id="@+id/editTextTextPersonName"
+        android:id="@+id/editProductName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
         android:ems="15"
-        android:inputType="textPersonName"
-        android:text="Name" />
+        android:hint="@string/register_product_name"
+        android:inputType="textPersonName" />
 
     <EditText
-        android:id="@+id/editTextTextMultiLine"
+        android:id="@+id/editProductDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
         android:ems="15"
         android:gravity="start|top"
+        android:hint="@string/register_product_description"
         android:inputType="textMultiLine|textImeMultiLine"
         android:lines="3"
         android:maxLines="5"

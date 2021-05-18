@@ -16,16 +16,19 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
     private TextView title;
     private TextView description;
 
-    public ProductViewHolder(@NonNull View itemView) {
+    public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
-
         title = itemView.findViewById(R.id.cardTitle);
         description = itemView.findViewById(R.id.cardDescription);
     }
 
-    public void bind(Product product){
+    public void bind(Product product, RegisterProductViewModel viewModel){
         title.setText( product.getName());
         description.setText(product.getDescription());
+
+        this.itemView.setOnClickListener( v -> {
+            viewModel.setProduct( product );
+        });
     }
 
     static ProductViewHolder create(ViewGroup parent) {

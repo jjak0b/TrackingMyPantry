@@ -1,9 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
-import androidx.core.app.BundleCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -20,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 public class RegisterProductFragment extends Fragment {
 
@@ -44,6 +44,46 @@ public class RegisterProductFragment extends Fragment {
 
         final EditText editBarcode = view.findViewById(R.id.editTextBarcode);
         final Button submitBarcodeBtn = view.findViewById( R.id.submitBarcode );
+        final EditText editName = view.findViewById( R.id.editProductName );
+        final EditText editDescription = view.findViewById( R.id.editProductDescription );
+        final Button submitProductBtn = view.findViewById( R.id.submitRegisterProductBtn );
+        final View productForm = view.findViewById(R.id.productForm);
+
+        LiveData<Product.Builder> productBuilder = mViewModel.getProductBuilder();
+        productBuilder.observe(getViewLifecycleOwner(), builder -> {
+            closeBottomSheetDialog(view);
+
+            editBarcode.setText( builder.getBarcode() );
+            editName.setText( builder.getName() );
+            editDescription.setText( builder.getDescription() );
+
+            editBarcode.addTextChangedListener(new FieldTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    productForm.setVisibility( View.GONE );
+                }
+            });
+
+            editName.addTextChangedListener(new FieldTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    builder.setName(s.toString());
+                }
+            });
+
+            editDescription.addTextChangedListener(new FieldTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+                    builder.setDescription(s.toString());
+                }
+            });
+
+            submitProductBtn.setOnClickListener(v -> {
+                Product product = builder.build();
+            });
+
+            productForm.setVisibility( View.VISIBLE );
+        });
 
         submitBarcodeBtn.setOnClickListener(v -> {
             mViewModel.setBarcode( editBarcode.getText().toString() );
@@ -55,6 +95,7 @@ public class RegisterProductFragment extends Fragment {
 
         mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
             if( products != null && !products.isEmpty() ) {
+                productForm.setVisibility( View.GONE );
                 openBottomSheetDialog(view);
             }
         });
@@ -77,4 +118,17 @@ public class RegisterProductFragment extends Fragment {
 
     }
 
+    private void closeBottomSheetDialog(View view) {
+        Navigation.findNavController(view)
+                .popBackStack(R.id.registerProductFragment, false);
+    }
+
+    private abstract class FieldTextWatcher implements TextWatcher {
+
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+        public abstract void afterTextChanged(Editable s);
+    }
 }

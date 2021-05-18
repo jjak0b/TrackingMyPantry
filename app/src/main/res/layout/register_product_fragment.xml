@@ -34,9 +34,11 @@
                 android:text="Button" />
 
             <LinearLayout
+                android:id="@+id/productForm"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:visibility="gone">
 
                 <include
                     layout="@layout/register_product_details"
@@ -47,10 +49,11 @@
                     layout="@layout/register_product_instances"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
 
                 <Button
-                    android:id="@+id/submitRegisterBtn"
+                    android:id="@+id/submitRegisterProductBtn"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Button" />

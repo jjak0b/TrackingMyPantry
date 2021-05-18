@@ -77,12 +77,17 @@ public class PantryRepository {
         remoteDataSource.voteProduct(new Vote(requestToken.getValue(), productId, rating ), new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-
+                if( response.isSuccessful() ) {
+                    Log.d(TAG, "vote product '" + productId + "' complete " +  response.toString() );
+                }
+                else {
+                    Log.e(TAG, "failed to vote product '" + productId + "'" + response.toString() );
+                }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-
+                Log.e(TAG, "Unable to vote '" + productId + "'" + t );
             }
         });
     }

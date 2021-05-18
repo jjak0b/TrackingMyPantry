@@ -22,7 +22,7 @@
             android:weightSum="100">
 
             <TextView
-                android:id="@+id/product_field_1_label"
+                android:id="@+id/product_cost_label"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="60"
@@ -30,7 +30,7 @@
                 android:text="TextView" />
 
             <EditText
-                android:id="@+id/product_field_1_edit"
+                android:id="@+id/product_cost_edit"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="40"
@@ -47,7 +47,7 @@
             android:weightSum="100">
 
             <TextView
-                android:id="@+id/product_field_2_label"
+                android:id="@+id/product_boughtDate_label"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="60"
@@ -55,7 +55,7 @@
                 android:text="TextView" />
 
             <EditText
-                android:id="@+id/product_field_2_edit"
+                android:id="@+id/product_boughtDate_edit"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="40"
@@ -72,7 +72,7 @@
             android:weightSum="100">
 
             <TextView
-                android:id="@+id/product_field_3_label"
+                android:id="@+id/product_boughtPlace_label"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="60"
@@ -86,7 +86,7 @@
                 android:visibility="visible">
 
                 <com.google.android.gms.maps.MapView
-                    android:id="@+id/product_field_3_map"
+                    android:id="@+id/product_boughtPlace_map"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="60" />
