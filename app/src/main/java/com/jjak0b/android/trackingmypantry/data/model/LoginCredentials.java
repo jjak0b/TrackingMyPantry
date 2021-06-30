@@ -4,6 +4,9 @@ import com.google.gson.annotations.Expose;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Data class that captures user information for logged in users retrieved from LoginRepository
  */
@@ -18,10 +21,10 @@ public class LoginCredentials {
     @Expose(serialize = false, deserialize = true)
     private String accessToken;
 
+    private Date tokenExpireDate;
+
     public LoginCredentials(@NotNull LoginCredentials credentials, @NotNull String accessToken ) {
-        this.email = credentials.email;
-        this.password = credentials.password;
-        this.accessToken = accessToken;
+        this( credentials.email, credentials.password, accessToken );
     }
 
     public LoginCredentials(@NotNull String email, @NotNull String password) {
@@ -30,9 +33,13 @@ public class LoginCredentials {
     }
 
     public LoginCredentials(@NotNull String email, @NotNull String password, @NotNull String accessToken ) {
-        this.email = email;
-        this.password = password;
+        this( email, password );
         this.accessToken = accessToken;
+    }
+
+    public LoginCredentials(@NotNull LoginCredentials credentials, @NotNull String accessToken, @NotNull Date tokenExpireDate) {
+        this( credentials, accessToken );
+        this.tokenExpireDate = tokenExpireDate;
     }
 
     public String getEmail() {
@@ -46,6 +53,14 @@ public class LoginCredentials {
 
     public String getAccessToken() {
         return accessToken;
+    }
+
+    public Date getTokenExpireDate() {
+        return tokenExpireDate;
+    }
+
+    public boolean isAccessTokenExpired() {
+        return tokenExpireDate == null || tokenExpireDate.before( Calendar.getInstance().getTime() );
     }
 
     @Override

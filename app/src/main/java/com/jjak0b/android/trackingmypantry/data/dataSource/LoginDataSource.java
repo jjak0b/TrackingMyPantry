@@ -7,11 +7,10 @@ import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteAuthAPIService;
 
+
 import org.jetbrains.annotations.NotNull;
 
-import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.

@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
+import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
@@ -16,6 +17,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import java.util.ArrayList;
 import java.util.List;
 
+import java9.util.concurrent.CompletableFuture;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -44,18 +46,27 @@ public class PantryRepository {
 
     public void updateMatchingProducts( String barcode ) {
         if( barcode == null ) {
-            requestToken.setValue( null );
-            matchingProductList.setValue( new ArrayList<>(0) );
+            requestToken.postValue( null );
+            matchingProductList.postValue( new ArrayList<>(0) );
+            Log.e(TAG, "null barcode" );
             return;
         }
-
+        Log.e(TAG, "not null barcode" );
         remoteDataSource.getProducts(barcode, new Callback<ProductsList>() {
             @Override
             public void onResponse(Call<ProductsList> call, Response<ProductsList> response) {
                 if( response.isSuccessful() ) {
-                    requestToken.setValue( response.body().getToken() );
-                    matchingProductList.setValue( response.body().getProducts() );
+                    try {
+                        Log.d(TAG, "Fetch products raw " + response.raw().body().string() );
+
+                    }
+                    catch ( Exception e ) {
+                        Log.e(TAG, "Fetch products raw e" + e );
+                    }
+
                     Log.d(TAG, "Fetch products complete " +  response.toString() + " " + new GsonBuilder().setPrettyPrinting().create().toJson( response.body() ) );
+                    requestToken.postValue( response.body().getToken() );
+                    matchingProductList.postValue( response.body().getProducts() );
                 }
                 else {
                     Log.e(TAG, "Fetch products error" +  response.toString() );
@@ -90,5 +101,33 @@ public class PantryRepository {
                 Log.e(TAG, "Unable to vote '" + productId + "'" + t );
             }
         });
+    }
+
+    public CompletableFuture<Void> addProduct( Product p ) {
+        // TODO: pass ProductBundle to add Product details to remote and and product instances details to local
+
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        remoteDataSource.postProduct(new CreateProduct( p, requestToken.getValue() ), new Callback<CreateProduct>() {
+            @Override
+            public void onResponse(Call<CreateProduct> call, Response<CreateProduct> response) {
+                if( response.isSuccessful() ) {
+                    Log.d(TAG, "post product complete " +  response.toString() + " " + new GsonBuilder().setPrettyPrinting().create().toJson( response.body() ) );
+                    completableFuture.complete(null);
+                }
+                else {
+                    Log.e(TAG, "post product error" +  response.toString() );
+                    completableFuture.completeExceptionally( new IllegalStateException(response.toString()) );
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CreateProduct> call, Throwable t) {
+                Log.e(TAG, "Unable to post product " + t );
+                completableFuture.completeExceptionally(t);
+            }
+        });
+
+        return completableFuture;
     }
 }

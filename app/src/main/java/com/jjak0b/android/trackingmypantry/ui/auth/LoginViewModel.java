@@ -11,6 +11,7 @@ import android.util.Patterns;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.LoginRepository;
 import com.jjak0b.android.trackingmypantry.data.Result;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.R;
@@ -55,8 +56,8 @@ public class LoginViewModel extends AndroidViewModel {
                         loginUIResult.setValue(new LoginResult( new LoggedInUserView( loggedUser.getEmail() ) ) );
                     }
                     else {
-                        Result.Error<LoginRepository.AuthResultState, LoginRepository.AuthResultState> error
-                                = (Result.Error<LoginRepository.AuthResultState, LoginRepository.AuthResultState>) result;
+                        Result.Error<AuthResultState, AuthResultState> error
+                                = (Result.Error<AuthResultState, AuthResultState>) result;
                         switch (error.getError()) {
                             case UNAUTHORIZED:
                                 loginUIResult.setValue(new LoginResult( R.string.signIn_failed ) );
@@ -79,8 +80,8 @@ public class LoginViewModel extends AndroidViewModel {
                         loginUIResult.setValue(new LoginResult( new LoggedInUserView(newUser.getUsername()) ) );
                     }
                     else {
-                        Result.Error<LoginRepository.AuthResultState, LoginRepository.AuthResultState> error
-                                = (Result.Error<LoginRepository.AuthResultState, LoginRepository.AuthResultState>) result;
+                        Result.Error<AuthResultState, AuthResultState> error
+                                = (Result.Error<AuthResultState, AuthResultState>) result;
                         switch (error.getError()) {
                             case UNAUTHORIZED:
                                 loginUIResult.setValue(new LoginResult( R.string.signUp_failed ) );

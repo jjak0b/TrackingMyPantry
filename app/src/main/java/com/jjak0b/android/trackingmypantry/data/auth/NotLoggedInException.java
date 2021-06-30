@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.data;
+package com.jjak0b.android.trackingmypantry.data.auth;
 
 import androidx.annotation.NonNull;
 

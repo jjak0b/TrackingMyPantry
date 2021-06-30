@@ -24,7 +24,7 @@ public interface RemoteProductsAPIService {
     );
 
     @POST("products")
-    Call<ProductsList> addProduct(
+    Call<CreateProduct> postProduct(
             @Header("Authorization") String authorization,
             @Body CreateProduct product
     );

@@ -5,6 +5,8 @@ import com.google.gson.annotations.Expose;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Date;
+
 public class Product {
     @Expose
     private String id;
@@ -17,6 +19,16 @@ public class Product {
 
     @Expose
     private String description;
+
+    @Expose
+    // img url
+    private String img;
+
+    @Expose
+    private Date createdAt;
+
+    @Expose
+    private Date updatedAt;
 
     public Product(@NotNull String barcode, @NotNull String name, @Nullable String description ) {
         this.barcode = barcode;

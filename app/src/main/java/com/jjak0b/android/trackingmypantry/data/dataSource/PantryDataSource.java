@@ -1,22 +1,21 @@
 package com.jjak0b.android.trackingmypantry.data.dataSource;
 
+import android.util.Log;
+
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.NotLoggedInException;
-import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
+import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
+import com.jjak0b.android.trackingmypantry.data.Result;
+import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
-import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteAuthAPIService;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteProductsAPIService;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-import retrofit2.Call;
+import java9.util.function.Consumer;
 import retrofit2.Callback;
 
 public class PantryDataSource {
@@ -40,27 +39,59 @@ public class PantryDataSource {
     }
 
     public void getProducts(@NotNull String barcode, Callback<ProductsList> cb ) {
-        if( authRepository.isLoggedIn() ) {
-            service.getProducts(
-                    "Bearer " + authRepository.getLoggedInUser().getValue().getAccessToken(),
-                    barcode
-            ).enqueue( cb );
-        }
-        else{
-            cb.onFailure( null, new NotLoggedInException() );
-        }
+        authRepository.requireAuthorization()
+                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+                    @Override
+                    public void accept(Result<String, AuthResultState> resultAuth ) {
+                        if( resultAuth instanceof Result.Success ){
+                            service.getProducts(
+                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
+                                    barcode
+                            ).enqueue( cb );
+                        }
+                        else {
+                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
+                            cb.onFailure( null, new AuthException( error.getError() ) );
+                        }
+                    }
+                });
     }
 
     public void voteProduct( @NotNull Vote vote, Callback<Void> cb ) {
-        if( authRepository.isLoggedIn() ) {
-            service.voteProduct(
-                    "Bearer " + authRepository.getLoggedInUser().getValue().getAccessToken(),
-                    vote
-            ).enqueue( cb );
-        }
-        else{
-            cb.onFailure( null, new NotLoggedInException() );
-        }
+        authRepository.requireAuthorization()
+                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+                    @Override
+                    public void accept(Result<String, AuthResultState> resultAuth ) {
+                        if( resultAuth instanceof Result.Success ){
+                            service.voteProduct(
+                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
+                                    vote
+                            ).enqueue( cb );
+                        }
+                        else {
+                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
+                            cb.onFailure( null, new AuthException( error.getError() ) );
+                        }
+                    }
+                });
+    }
 
+    public void postProduct( @NotNull CreateProduct product, Callback<CreateProduct> cb ) {
+        authRepository.requireAuthorization()
+                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+                    @Override
+                    public void accept(Result<String, AuthResultState> resultAuth ) {
+                        if( resultAuth instanceof Result.Success ){
+                            service.postProduct(
+                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
+                                    product
+                            ).enqueue( cb );
+                        }
+                        else {
+                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
+                            cb.onFailure( null, new AuthException( error.getError() ) );
+                        }
+                    }
+                });
     }
 }

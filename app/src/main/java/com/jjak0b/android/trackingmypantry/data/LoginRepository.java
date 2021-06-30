@@ -8,16 +8,16 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.gson.GsonBuilder;
 
 import com.hadilq.liveevent.LiveEvent;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
 
 
+import java.util.Calendar;
 import java9.util.concurrent.CompletableFuture;
 import java9.util.function.Consumer;
-import java9.util.function.Function;
-import java9.util.function.Supplier;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -27,12 +27,6 @@ import retrofit2.Response;
  * maintains an in-memory cache of login status and user credentials information.
  */
 public class LoginRepository {
-
-    public enum AuthResultState {
-        AUTHORIZED,
-        UNAUTHORIZED,
-        FAILED
-    }
 
     private static final String TAG = "LoginRepository";
 
@@ -68,6 +62,50 @@ public class LoginRepository {
         return mLoggedInUser.getValue() != null && mLoggedInUser.getValue().getAccessToken() != null;
     }
 
+    /**
+     * Provide the access token based on current credentials of the logged in user.
+     * If an existing access token has been expired then will sign in again renewing the access token and provide the new one;
+     * the access token will be provided in Result.Success instance.
+     * Otherwise if there is no logged in user or any error happen during sign in operation will be reported as Result.Error instance
+     * @return a completable with the access Token operation result
+     */
+    public CompletableFuture<Result<String, AuthResultState>> requireAuthorization() {
+
+        CompletableFuture<Result<String, AuthResultState>> futureAuthorization = new CompletableFuture<>();
+
+        StringBuilder authBuilder = new StringBuilder()
+                .append( "Bearer ");
+        if( isLoggedIn() ){
+            LoginCredentials credentials = getLoggedInUser().getValue();
+            if( credentials.isAccessTokenExpired() ){
+                signIn(credentials)
+                        .thenAccept(new Consumer<Result<AuthResultState, AuthResultState>>() {
+                            @Override
+                            public void accept(Result<AuthResultState, AuthResultState> result) {
+                                if( result instanceof Result.Success ) {
+                                    authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
+                                    futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
+                                }
+                                else {
+                                    Result.Error<AuthResultState, AuthResultState> error
+                                            = (Result.Error<AuthResultState, AuthResultState>) result;
+                                    futureAuthorization.complete( new Result.Error<>(error.getError()) );
+                                }
+                            }
+                        });
+            }
+            else {
+                authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
+                futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
+            }
+        }
+        else {
+            futureAuthorization.complete( new Result.Error<>( AuthResultState.UNAUTHORIZED ) );
+        }
+
+        return futureAuthorization;
+    }
+
     public MutableLiveData<LoginCredentials> getLoggedInUser() {
         return this.mLoggedInUser;
     }
@@ -97,7 +135,12 @@ public class LoginRepository {
                 if( response.isSuccessful() ) {
                     if( response.body() != null ) {
                         Log.d(TAG, "Login Success: " + response.toString() );
-                        setLoggedInUser( new LoginCredentials( credentials, response.body().getAccessToken() ) );
+
+                        // set expire date pf the access token after 7 days from now
+                        Calendar cal = Calendar.getInstance();
+                        cal.add(Calendar.DATE, 7 );
+
+                        setLoggedInUser( new LoginCredentials( credentials, response.body().getAccessToken(), cal.getTime() ) );
                         future.complete( new Result.Success<>( AuthResultState.AUTHORIZED ) );
                     }
                     else {
