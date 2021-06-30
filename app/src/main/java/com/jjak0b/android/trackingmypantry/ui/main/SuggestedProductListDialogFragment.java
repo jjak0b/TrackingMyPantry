@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +51,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
+        Log.e( "TEST2", getViewLifecycleOwner().toString() );
         mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
             listAdapter.submitList( products );
             loadingBar.setVisibility( View.GONE );

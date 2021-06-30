@@ -15,4 +15,13 @@ public class Vote extends TokenizedItem {
         this.productId = productId;
         this.rating = rating;
     }
+
+    @Override
+    public String toString() {
+        return "Vote{" +
+                "rating=" + rating +
+                ", productId='" + productId + '\'' +
+                ", token='" + token + '\'' +
+                '}';
+    }
 }

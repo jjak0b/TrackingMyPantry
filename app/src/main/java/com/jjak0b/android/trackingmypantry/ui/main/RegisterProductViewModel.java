@@ -1,16 +1,18 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 import java.util.List;
 import java.util.Objects;
+
+import java9.util.concurrent.CompletableFuture;
 
 public class RegisterProductViewModel extends ViewModel {
 
@@ -59,11 +61,26 @@ public class RegisterProductViewModel extends ViewModel {
             for (Product p : Objects.requireNonNull(matchingProductsList.getValue())) {
                 if (product.getId().equals( p.getId() ) ) {
                     pantryRepository.voteProduct(p.getId(), 1);
-                } else {
-                    pantryRepository.voteProduct(p.getId(), -1);
                 }
+                // Note: API allow only 1 vote per product list
+                // else {
+                //      pantryRepository.voteProduct(p.getId(), -1);
+                //}
             }
         }
+    }
+
+    public CompletableFuture<Void> registerProduct() {
+        Product p = productBuilder.getValue()
+                .build();
+
+
+
+        return pantryRepository.addProduct(new Product.Builder()
+                .from(p)
+                .setProductId(null)
+                .build()
+        );
     }
 
     public LiveData<Product> getProduct() {

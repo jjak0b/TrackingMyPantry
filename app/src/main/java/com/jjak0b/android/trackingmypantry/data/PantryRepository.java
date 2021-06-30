@@ -108,6 +108,7 @@ public class PantryRepository {
 
         CompletableFuture<Void> completableFuture = new CompletableFuture<>();
 
+        Log.d( TAG, "posting product" + p );
         remoteDataSource.postProduct(new CreateProduct( p, requestToken.getValue() ), new Callback<CreateProduct>() {
             @Override
             public void onResponse(Call<CreateProduct> call, Response<CreateProduct> response) {

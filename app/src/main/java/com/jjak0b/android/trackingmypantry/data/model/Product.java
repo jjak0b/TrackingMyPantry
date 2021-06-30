@@ -37,10 +37,14 @@ public class Product {
     }
 
     public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description) {
+        this( barcode, name, description );
         this.id = id;
-        this.barcode = barcode;
-        this.name = name;
-        this.description = description;
+    }
+
+    public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description, @Nullable String img ) {
+        this( barcode, name, description );
+        this.id = id;
+        this.img = img;
     }
 
     public Product( @NotNull Product p) {
@@ -48,6 +52,7 @@ public class Product {
         this.barcode = p.barcode;
         this.name = p.name;
         this.description = p.description;
+        this.img = p.img;
     }
 
     public String getId() {
@@ -66,12 +71,28 @@ public class Product {
         return description;
     }
 
+    public String getImg(){ return img; }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id='" + id + '\'' +
+                ", barcode='" + barcode + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", img='" + img + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
+
     public static class Builder {
 
         private String name;
         private String description;
         private String barcode;
         private String productId;
+        private String img;
 
         public Builder from( Product p ) {
             if( p != null ) {
@@ -79,6 +100,7 @@ public class Product {
                 setDescription(p.getDescription());
                 setBarcode(p.getBarcode());
                 setProductId(p.getId());
+                setImg( p.getImg() );
             }
             return this;
         }
@@ -97,6 +119,10 @@ public class Product {
 
         public String getProductId() {
             return productId;
+        }
+
+        public String getImg() {
+            return img;
         }
 
         public Builder setName(String name) {
@@ -119,8 +145,13 @@ public class Product {
             return this;
         }
 
+        public Builder setImg(String img) {
+            this.img = img;
+            return this;
+        }
+
         public Product build() {
-            Product item = new Product( productId, barcode, name, description );
+            Product item = new Product( productId, barcode, name, description, img );
             return item;
         }
     }
