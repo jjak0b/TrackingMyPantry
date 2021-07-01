@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 public class LoginFragment extends LoginFormFragment {
 
@@ -40,7 +41,7 @@ public class LoginFragment extends LoginFormFragment {
         final Button submitButton = view.findViewById(R.id.btnSubmitLogin);
         final ProgressBar loadingProgressBar = view.findViewById(R.id.loading);
 
-        InputFilter[] inputFilters = new InputFilter[]{ filterWhitespaces() };
+        InputFilter[] inputFilters = new InputFilter[]{ InputUtil.filterWhitespaces() };
         emailEditText.setFilters( inputFilters );
         passwordEditText.setFilters( inputFilters );
 

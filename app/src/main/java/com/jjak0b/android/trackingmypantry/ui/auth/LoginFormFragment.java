@@ -67,24 +67,6 @@ public class LoginFormFragment extends Fragment {
         });*/
     }
 
-    // ignore enter First space on edittext
-    public InputFilter filterWhitespaces() {
-        return new InputFilter() {
-            public CharSequence filter(CharSequence source, int start, int end,
-                                       Spanned dest, int dstart, int dend) {
-                StringBuilder builder = new StringBuilder();
-
-                for (int i = start; i < end; i++) {
-                    if (!Character.isWhitespace(source.charAt(i))) {
-                        builder.append( source.charAt( i ) );
-                    }
-                }
-
-                return builder;
-            }
-        };
-    }
-
     protected void registerFormStateUpdate(
             EditText emailEditText,
             EditText passwordEditText,
