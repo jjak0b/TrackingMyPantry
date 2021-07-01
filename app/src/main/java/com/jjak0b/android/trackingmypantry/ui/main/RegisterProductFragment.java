@@ -121,7 +121,12 @@ public class RegisterProductFragment extends Fragment {
             }
 
             if( builder.getImg() != null ) {
-                photoPreviewBtn.setImageBitmap( ImageUtil.convert( builder.getImg() ) );
+                try {
+                    photoPreviewBtn.setImageBitmap( ImageUtil.convert( builder.getImg() ) );
+                }
+                catch ( IllegalArgumentException exception ) {
+                    photoPreviewBtn.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
+                }
             }
             else {
                 photoPreviewBtn.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
