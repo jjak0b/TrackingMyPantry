@@ -70,6 +70,8 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui:2.3.5'
     implementation 'com.gordonwong:material-sheet-fab:1.2.1'
     implementation 'com.alespero:expandable-cardview:0.8'
+    implementation "com.hootsuite.android:nachos:1.1.1"
+
     // test
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

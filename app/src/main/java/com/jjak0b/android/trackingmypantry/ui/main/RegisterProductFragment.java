@@ -1,16 +1,14 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
+import java.util.List;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
-
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -24,16 +22,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
+import com.hootsuite.nachos.NachoTextView;
+import com.hootsuite.nachos.chip.ChipInfo;
+import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
+import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 
 public class RegisterProductFragment extends Fragment {
 
@@ -86,6 +87,9 @@ public class RegisterProductFragment extends Fragment {
         final View productForm = view.findViewById(R.id.productForm);
         photoPreviewBtn = view.findViewById(R.id.photoPreviewBtn);
         final ViewGroup sectionTakePhoto = view.findViewById(R.id.sectionTakePhoto);
+        final NachoTextView chipsInput = view.findViewById(R.id.chips_input);
+
+        chipsInput.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
 
         submitBarcodeBtn.setOnClickListener(v -> {
             mViewModel.setBarcode( editBarcode.getText().toString() );
@@ -170,6 +174,24 @@ public class RegisterProductFragment extends Fragment {
             });
 
             productForm.setVisibility( View.VISIBLE );
+
+            // TODO: check product id in DB and get current tags
+            // test tags
+            ProductTag[] tagsAdded = {
+                    new ProductTag( 4, "Food" ),
+                    new ProductTag( 2, "Fruit" )
+            };
+            ProductTag[] suggestions = {
+                    new ProductTag( 1, "Vegetables"),
+                    new ProductTag( 2, "Fruit" ),
+                    new ProductTag( 3, "Drink" ),
+                    new ProductTag( 4, "Food" )
+            };
+
+            List<ChipInfo> chipsAdded = ChipTagUtil.newInstanceFrom( tagsAdded );
+            ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, suggestions );
+            chipsInput.setAdapter( adapter );
+            chipsInput.setTextWithChips( chipsAdded );
 
             closeBottomSheetDialog(view);
         });
