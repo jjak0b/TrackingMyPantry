@@ -14,8 +14,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-
+import androidx.navigation.fragment.NavHostFragment;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -53,6 +54,12 @@ public class RegisterProductFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d( "RegisterProductFragment", "onDestroyView");
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -63,8 +70,11 @@ public class RegisterProductFragment extends Fragment {
         if( args != null ) {
             String barcode = args.getString(ARG_BARCODE);
             if (barcode != null) {
-                Log.e( "RegisterProductFragment", "barcode "  + barcode);
-                mViewModel.setBarcode(barcode);
+                if( !barcode.equals( mViewModel.getBarcode().getValue() ) ) {
+                    Log.e("RegisterProductFragment", "barcode " + barcode);
+                    // mViewModel.setBarcode(null);
+                    mViewModel.setBarcode(barcode);
+                }
             }
         }
 
@@ -91,10 +101,9 @@ public class RegisterProductFragment extends Fragment {
             if( products != null && !products.isEmpty() ) {
                 productForm.setVisibility( View.GONE );
                 openBottomSheetDialog(view);
-                Log.e( "test", "OPEN bottom sheet");
+                Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
             }
         });
-
 
         boolean hasFeatureCamera = getContext().getPackageManager()
                 .hasSystemFeature( PackageManager.FEATURE_CAMERA_ANY );
@@ -106,7 +115,6 @@ public class RegisterProductFragment extends Fragment {
         LiveData<Product.Builder> productBuilder = mViewModel.getProductBuilder();
 
         productBuilder.observe(getViewLifecycleOwner(), builder -> {
-            closeBottomSheetDialog(view);
 
             if( hasFeatureCamera  ) {
                 photoPreviewBtn.setOnClickListener(v -> {
@@ -171,6 +179,8 @@ public class RegisterProductFragment extends Fragment {
             });
 
             productForm.setVisibility( View.VISIBLE );
+
+            closeBottomSheetDialog(view);
         });
 
     }
@@ -193,22 +203,28 @@ public class RegisterProductFragment extends Fragment {
     private void openBottomSheetDialog(View view) {
         Bundle bottomSheetBundle = new Bundle();
         bottomSheetBundle.putString( ARG_BARCODE, mViewModel.getBarcode().getValue() );
+        NavController navController = NavHostFragment.findNavController( this );
+        Log.e( "RegiserPoductFragment" , "OPENING");
+        Log.e( "RegiserPoductFragment" , "CD: " + navController.getCurrentDestination());
 
-        if( Navigation.findNavController(view)
+        if( navController
                 .getCurrentDestination()
                 .getId() == R.id.registerProductFragment )
         {
-            Navigation.findNavController(view)
+            navController
                     .navigate( R.id.action_registerProductFragment_to_suggestedProductListDialogFragment, bottomSheetBundle );
         }
     }
 
     private void closeBottomSheetDialog(View view) {
-        if( Navigation.findNavController(view)
+        NavController navController = NavHostFragment.findNavController( this );
+        Log.e( "RegiserPoductFragment" , "CLOSING");
+        Log.e( "RegiserPoductFragment" , "CD: " + navController.getCurrentDestination());
+        if( navController
                 .getCurrentDestination()
                 .getId() == R.id.suggestedProductListDialogFragment )
         {
-            Navigation.findNavController(view)
+            navController
                     .popBackStack(R.id.suggestedProductListDialogFragment, true);
         }
     }

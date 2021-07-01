@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -39,6 +41,13 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // getViewModelStore().clear();
+        Log.d( "SugdProductListDialogF", "Cleared  onDestroyView");
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
@@ -51,8 +60,9 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        Log.e( "TEST2", getViewLifecycleOwner().toString() );
         mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
+            Log.e( "TEST2", "submitting new list" );
+            loadingBar.setVisibility( View.VISIBLE );
             listAdapter.submitList( products );
             loadingBar.setVisibility( View.GONE );
         });
