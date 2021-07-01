@@ -96,15 +96,6 @@ public class RegisterProductFragment extends Fragment {
             editBarcode.setText( value );
         });
 
-        mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
-            Log.e( "RegisterProductFragment", "updated products");
-            if( products != null && !products.isEmpty() ) {
-                productForm.setVisibility( View.GONE );
-                openBottomSheetDialog(view);
-                Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
-            }
-        });
-
         boolean hasFeatureCamera = getContext().getPackageManager()
                 .hasSystemFeature( PackageManager.FEATURE_CAMERA_ANY );
         if( !hasFeatureCamera ){
@@ -183,6 +174,27 @@ public class RegisterProductFragment extends Fragment {
             closeBottomSheetDialog(view);
         });
 
+        mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
+            Log.e( "RegisterProductFragment", "updated products");
+            if( products != null && !products.isEmpty() ) {
+                productForm.setVisibility( View.GONE );
+                openBottomSheetDialog(view);
+                Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
+            }
+        });
+        /* if using this order instead:
+            setBarcode
+            getProducts().observe
+            -> open
+            productBuilder.observe
+            -> close
+
+            the close operation will be done so the virtual stack will be on "registerProductFragment"
+            But visually there is still the "suggestedProductListDialog" on the screen ( navigation library bug ? ).
+            So if a product will be selected won't popTo "registerProductFragment" because "Navigation" think is already at destination
+            and if the back button will be pressed then Navigation will popOff the real "registerProductFragment".
+            Investigate
+         */
     }
 
     @Override
