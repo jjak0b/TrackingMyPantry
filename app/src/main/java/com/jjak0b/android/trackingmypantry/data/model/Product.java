@@ -1,5 +1,10 @@
 package com.jjak0b.android.trackingmypantry.data.model;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 
 import org.jetbrains.annotations.NotNull;
@@ -7,8 +12,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
+@Entity(
+    tableName = "products"
+)
 public class Product {
+    @PrimaryKey
     @Expose
+    @NotNull
+    @ColumnInfo( name = "id")
     private String id;
 
     @Expose
@@ -30,17 +41,30 @@ public class Product {
     @Expose
     private Date updatedAt;
 
+    public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description, @Nullable String img, @NotNull Date createdAt, @NotNull Date updatedAt ) {
+        this.id = id;
+        this.barcode = barcode;
+        this.name = name;
+        this.description = description;
+        this.img = img;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    @Ignore
     public Product(@NotNull String barcode, @NotNull String name, @Nullable String description ) {
         this.barcode = barcode;
         this.name = name;
         this.description = description;
     }
 
+    @Ignore
     public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description) {
         this( barcode, name, description );
         this.id = id;
     }
 
+    @Ignore
     public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description, @Nullable String img ) {
         this( barcode, name, description );
         this.id = id;
@@ -72,6 +96,42 @@ public class Product {
     }
 
     public String getImg(){ return img; }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @Override
     public String toString() {

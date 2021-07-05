@@ -1,9 +1,11 @@
 package com.jjak0b.android.trackingmypantry.data;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.room.Room;
 
 import com.google.gson.GsonBuilder;
 import com.hadilq.liveevent.LiveEvent;
@@ -13,6 +15,7 @@ import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
+import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +33,18 @@ public class PantryRepository {
     private PantryDataSource remoteDataSource;
     private MutableLiveData<List<Product>> matchingProductList;
     private MutableLiveData<String> requestToken;
+    private PantryDB pantryDB;
 
-    PantryRepository() {
+    PantryRepository(final Context context) {
         remoteDataSource = new PantryDataSource( LoginRepository.getInstance() );
         matchingProductList = new MutableLiveData<>();
         requestToken = new MutableLiveData<>();
+        pantryDB = PantryDB.getInstance( context );
     }
 
-    public static PantryRepository getInstance() {
+    public static PantryRepository getInstance( Context context ) {
         if( instance == null ) {
-            instance = new PantryRepository();
+            instance = new PantryRepository( context );
         }
         return instance;
     }

@@ -1,5 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
+import android.app.Application;
+
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -14,7 +17,7 @@ import java.util.Objects;
 
 import java9.util.concurrent.CompletableFuture;
 
-public class RegisterProductViewModel extends ViewModel {
+public class RegisterProductViewModel extends AndroidViewModel {
 
     private MutableLiveData<String> barcode;
 
@@ -26,8 +29,9 @@ public class RegisterProductViewModel extends ViewModel {
 
     private MutableLiveData<Product.Builder> productBuilder;
 
-    public RegisterProductViewModel() {
-        pantryRepository = PantryRepository.getInstance();
+    public RegisterProductViewModel(Application application) {
+        super(application);
+        pantryRepository = PantryRepository.getInstance(application);
         barcode = new MutableLiveData<>();
         product = new MutableLiveData<>();
         productBuilder = new MutableLiveData<>();
