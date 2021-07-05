@@ -32,7 +32,7 @@ public class LoginViewModel extends AndroidViewModel {
         super(application);
         Log.d( TAG, "new login vm instance");
         this.loginRepository = LoginRepository.getInstance(LoginDataSource.getInstance());
-        this.loginFormState = new MutableLiveData<>();
+        this.loginFormState = new MutableLiveData<>( new LoginFormState(false) );
         this.loginUIResult = new LiveEvent<>();
     }
 
@@ -41,6 +41,10 @@ public class LoginViewModel extends AndroidViewModel {
     LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
 
     LiveData<LoginCredentials> getLoggedUser() { return loginRepository.getLoggedInUser(); }
+
+    public boolean isAuthDataValid() {
+        return getLoginFormState().getValue().isDataValid();
+    }
 
     public CompletableFuture<Void> login(
             String email,

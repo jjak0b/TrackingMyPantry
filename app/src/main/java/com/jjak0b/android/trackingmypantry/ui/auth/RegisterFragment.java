@@ -65,15 +65,18 @@ public class RegisterFragment extends LoginFormFragment {
         passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    register(
-                            loadingProgressBar,
-                            usernameEditText.getText().toString(),
-                            emailEditText.getText().toString(),
-                            passwordEditText.getText().toString()
-                    );
+                if( formViewModel.isAuthDataValid() ) {
+                    if (actionId == EditorInfo.IME_ACTION_GO) {
+                        register(
+                                loadingProgressBar,
+                                usernameEditText.getText().toString(),
+                                emailEditText.getText().toString(),
+                                passwordEditText.getText().toString()
+                        );
+                        return false;
+                    }
                 }
-                return false;
+                return true;
             }
         });
 
