@@ -38,8 +38,18 @@ public class PantryDataSource {
         return instance;
     }
 
+    /**
+     *
+     * @param barcode
+     * @param cb callback to be called when error has been occurred. it will be:
+     *           - onSuccess: will provide the result
+     *           - onFailed: will provide:
+     *              - a {@link AuthException} if an error happened during authentication
+     *
+     */
     public void getProducts(@NotNull String barcode, Callback<ProductsList> cb ) {
-        authRepository.requireAuthorization()
+
+        authRepository.requireAuthorization(false)
                 .thenAccept(new Consumer<Result<String, AuthResultState>>() {
                     @Override
                     public void accept(Result<String, AuthResultState> resultAuth ) {
@@ -58,7 +68,7 @@ public class PantryDataSource {
     }
 
     public void voteProduct( @NotNull Vote vote, Callback<Void> cb ) {
-        authRepository.requireAuthorization()
+        authRepository.requireAuthorization(false)
                 .thenAccept(new Consumer<Result<String, AuthResultState>>() {
                     @Override
                     public void accept(Result<String, AuthResultState> resultAuth ) {
@@ -77,7 +87,7 @@ public class PantryDataSource {
     }
 
     public void postProduct( @NotNull CreateProduct product, Callback<CreateProduct> cb ) {
-        authRepository.requireAuthorization()
+        authRepository.requireAuthorization(false)
                 .thenAccept(new Consumer<Result<String, AuthResultState>>() {
                     @Override
                     public void accept(Result<String, AuthResultState> resultAuth ) {

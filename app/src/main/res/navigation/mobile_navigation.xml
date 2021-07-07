@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/nav_pantries">
 
     <fragment
-        android:id="@+id/nav_home"
-        android:name="com.jjak0b.android.trackingmypantry.ui.home.HomeFragment"
+        android:id="@+id/nav_pantries"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.PantriesFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_productinpantries_list" >
         <action
-            android:id="@+id/action_nav_home_to_registerProductBottomSheetDialogFragment"
+            android:id="@+id/action_nav_pantries_to_registerProductBottomSheetDialogFragment"
             app:destination="@id/registerProductBottomSheetDialogFragment" />
     </fragment>
 
@@ -66,7 +66,7 @@
     </fragment>
     <dialog
         android:id="@+id/registerProductBottomSheetDialogFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.home.MenuRegisterProductBottomSheetDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.MenuRegisterProductBottomSheetDialogFragment"
         android:label="fragment_bottom_sheet_register_product"
         tools:layout="@layout/fragment_bottom_sheet_register_new_product">
         <action

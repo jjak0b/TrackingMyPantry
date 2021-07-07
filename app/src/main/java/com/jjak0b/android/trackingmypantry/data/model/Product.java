@@ -6,11 +6,11 @@ import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
-
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
+import java.util.Objects;
 
 @Entity(
     tableName = "products"
@@ -144,6 +144,21 @@ public class Product {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        else if( obj != null && obj instanceof Product ){
+            Product o = (Product)obj;
+            return Objects.equals( id, o.id)
+            && Objects.equals( id, o.id)
+            && Objects.equals( barcode, o.barcode)
+            && Objects.equals( name, o.name)
+            && Objects.equals( description, o.description)
+            && Objects.equals( img, o.img);
+        }
+        return super.equals( obj );
     }
 
     public static class Builder {

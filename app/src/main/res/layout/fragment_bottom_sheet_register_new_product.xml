@@ -8,7 +8,7 @@
     android:orientation="vertical"
     android:paddingTop="@dimen/list_item_spacing_half"
     android:paddingBottom="@dimen/list_item_spacing_half"
-    tools:context=".ui.home.MenuRegisterProductBottomSheetDialogFragment">
+    tools:context=".ui.pantries.MenuRegisterProductBottomSheetDialogFragment">
 
     <LinearLayout
         android:id="@+id/linearLayout2"

@@ -9,7 +9,7 @@
             android:icon="@drawable/ic_baseline_login"
             android:title="@string/menu_signin" />
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/nav_pantries"
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_home" />
         <item

@@ -24,7 +24,7 @@
                 android:ems="13"
                 android:hint="@string/barcode"
                 android:imeOptions="actionNext"
-                android:inputType="text" />
+                android:inputType="number" />
 
             <Button
                 android:id="@+id/submitBarcode"

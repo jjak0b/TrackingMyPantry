@@ -1,12 +1,16 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -15,6 +19,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.ListAdapter;
+
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -27,18 +33,26 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
 import com.hootsuite.nachos.NachoTextView;
+import com.hootsuite.nachos.chip.Chip;
 import com.hootsuite.nachos.chip.ChipInfo;
+import com.hootsuite.nachos.chip.ChipSpan;
+import com.hootsuite.nachos.chip.ChipSpanChipCreator;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
+import com.hootsuite.nachos.tokenizer.SpanChipTokenizer;
 import com.jjak0b.android.trackingmypantry.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 
 public class RegisterProductFragment extends Fragment {
 
     private RegisterProductViewModel mViewModel;
+    static final String TAG = RegisterProductFragment.class.getName();
     final String ARG_BARCODE = "barcode";
     final int REQUEST_IMAGE_CAPTURE = 1;
     final int BITMAP_SIZE = 256;
@@ -90,6 +104,11 @@ public class RegisterProductFragment extends Fragment {
         final NachoTextView chipsInput = view.findViewById(R.id.chips_input);
 
         chipsInput.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
+        ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(
+                getContext(),
+                android.R.layout.simple_dropdown_item_1line
+        );
+        chipsInput.setAdapter( adapter );
 
         submitBarcodeBtn.setOnClickListener(v -> {
             mViewModel.setBarcode( editBarcode.getText().toString() );
@@ -105,7 +124,6 @@ public class RegisterProductFragment extends Fragment {
         if( !hasFeatureCamera ){
             sectionTakePhoto.setVisibility( View.GONE );
         }
-
 
         LiveData<Product.Builder> productBuilder = mViewModel.getProductBuilder();
 
@@ -160,7 +178,11 @@ public class RegisterProductFragment extends Fragment {
                 }
             });
 
+            // submit product
             submitProductBtn.setOnClickListener(v -> {
+
+                mViewModel.setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
+
                 mViewModel.registerProduct()
                         .thenAccept(aVoid -> {
                             Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
@@ -168,32 +190,42 @@ public class RegisterProductFragment extends Fragment {
                                     .popBackStack(R.id.registerProductFragment, true);
                         })
                         .exceptionally(throwable -> {
-                            Toast.makeText(getContext(), "Unable to register", Toast.LENGTH_SHORT ).show();
+                            if( throwable.getCause() instanceof AuthException ){
+                                AuthException authException = (AuthException) throwable.getCause();
+                                switch ( authException.getState() ){
+                                    case UNAUTHORIZED:
+                                        Toast.makeText(getContext(), "Error: You need to login first", Toast.LENGTH_SHORT ).show();
+                                        break;
+                                    case FAILED:
+                                        Toast.makeText(getContext(), "Error: Unable to authenticate", Toast.LENGTH_SHORT ).show();
+                                        break;
+                                }
+                            }
+                            else{
+                                Toast.makeText(getContext(), "Unable to register due an error", Toast.LENGTH_SHORT ).show();
+                                Log.e( TAG, "Unable to add product due to an error", throwable );
+                            }
+
                             return null;
                         });
             });
 
             productForm.setVisibility( View.VISIBLE );
 
-            // TODO: check product id in DB and get current tags
-            // test tags
-            ProductTag[] tagsAdded = {
-                    new ProductTag( 4, "Food" ),
-                    new ProductTag( 2, "Fruit" )
-            };
-            ProductTag[] suggestions = {
-                    new ProductTag( 1, "Vegetables"),
-                    new ProductTag( 2, "Fruit" ),
-                    new ProductTag( 3, "Drink" ),
-                    new ProductTag( 4, "Food" )
-            };
 
-            List<ChipInfo> chipsAdded = ChipTagUtil.newInstanceFrom( tagsAdded );
-            ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_dropdown_item_1line, suggestions );
-            chipsInput.setAdapter( adapter );
-            chipsInput.setTextWithChips( chipsAdded );
+            // TODO: check product id in DB and get current tags
 
             closeBottomSheetDialog(view);
+        });
+
+
+        mViewModel.getAssignedTags().observe( getViewLifecycleOwner(), productTags -> {
+            chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( productTags ) );
+        });
+
+        mViewModel.getSuggestionTags().observe( getViewLifecycleOwner(), productTags -> {
+            adapter.clear();
+            adapter.addAll( productTags );
         });
 
         mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {

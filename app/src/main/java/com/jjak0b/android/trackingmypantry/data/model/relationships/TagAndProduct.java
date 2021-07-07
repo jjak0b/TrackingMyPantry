@@ -35,25 +35,6 @@ class TagWithProducts {
 }
 
 @Entity(
-        tableName = "productWithTags"
-)
-class ProductWithTags {
-    @Embedded
-    public Product product;
-
-    @Relation(
-            parentColumn = "id",
-            entityColumn = "id",
-            associateBy =  @Junction(
-                    value = TagAndProduct.class,
-                    parentColumn = "product_id",
-                    entityColumn = "tag_id"
-            )
-    )
-    public List<ProductTag> tags;
-}
-
-@Entity(
         tableName = "assignedTags",
         primaryKeys = {"product_id", "tag_id"},
         foreignKeys = {
@@ -75,5 +56,15 @@ public class TagAndProduct {
     public String fk_productId;
 
     @ColumnInfo(name = "tag_id", index = true )
-    public int fk_tagId;
+    public long fk_tagId;
+
+    public TagAndProduct(@NotNull String fk_productId, long fk_tagId) {
+        this.fk_productId = fk_productId;
+        this.fk_tagId = fk_tagId;
+    }
+
+    public TagAndProduct(@NotNull Product p, @NotNull ProductTag t ) {
+        this.fk_productId = p.getId();
+        this.fk_tagId = t.getId();
+    }
 }

@@ -65,11 +65,11 @@ public class LoginRepository {
     /**
      * Provide the access token based on current credentials of the logged in user.
      * If an existing access token has been expired then will sign in again renewing the access token and provide the new one;
-     * the access token will be provided in Result.Success instance.
-     * Otherwise if there is no logged in user or any error happen during sign in operation will be reported as Result.Error instance
+     * the access token will be provided in {@link Result.Success} instance.
+     * Otherwise if there is no logged in user or any error happen during sign in operation will be reported as {@link Result.Error} instance
      * @return a completable with the access Token operation result
      */
-    public CompletableFuture<Result<String, AuthResultState>> requireAuthorization() {
+    public CompletableFuture<Result<String, AuthResultState>> requireAuthorization( boolean forceRefresh ) {
 
         CompletableFuture<Result<String, AuthResultState>> futureAuthorization = new CompletableFuture<>();
 
@@ -77,16 +77,16 @@ public class LoginRepository {
                 .append( "Bearer ");
         if( isLoggedIn() ){
             LoginCredentials credentials = getLoggedInUser().getValue();
-            if( credentials.isAccessTokenExpired() ){
+            if( forceRefresh || credentials.isAccessTokenExpired() ){
                 signIn(credentials)
                         .thenAccept(new Consumer<Result<AuthResultState, AuthResultState>>() {
                             @Override
                             public void accept(Result<AuthResultState, AuthResultState> result) {
-                                if( result instanceof Result.Success ) {
+                                if( result instanceof Result.Success ) { // Authorize
                                     authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
                                     futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
                                 }
-                                else {
+                                else { // Error occurred
                                     Result.Error<AuthResultState, AuthResultState> error
                                             = (Result.Error<AuthResultState, AuthResultState>) result;
                                     futureAuthorization.complete( new Result.Error<>(error.getError()) );
@@ -94,12 +94,12 @@ public class LoginRepository {
                             }
                         });
             }
-            else {
+            else { // AUTHORIZED: by cached token
                 authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
                 futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
             }
         }
-        else {
+        else { // UNAUTHORIZED: missing credentials
             futureAuthorization.complete( new Result.Error<>( AuthResultState.UNAUTHORIZED ) );
         }
 

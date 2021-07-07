@@ -42,6 +42,10 @@ public abstract class PantryDB extends RoomDatabase {
 
     static final ExecutorService databaseWriteExecutor = Executors.newFixedThreadPool(nTHREADS);
 
+    public static ExecutorService getDBWriteExecutor(){
+        return databaseWriteExecutor;
+    }
+
     private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback() {
 
         @Override
