@@ -24,8 +24,9 @@
     <string name="invalid_password">Invalid password</string>
     <string name="signIn_failed">"Login failed using the provided credentials"</string>
     <string name="signUp_failed">"Unable to sign up using the provided credentials, change username or email"</string>
-    <string name="login_failed_network">"Unable to login due to a network error"</string>
+    <string name="auth_failed_network">"Unable to authenticate due to a network error"</string>
     <string name="operation_failed_network">"Unable to complete the operation due to a network error"</string>
+    <string name="operation_failed_unknown">"Unable to complete the operation due to an expected error"</string>
 
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>

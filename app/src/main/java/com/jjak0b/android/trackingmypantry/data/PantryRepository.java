@@ -1,18 +1,21 @@
 package com.jjak0b.android.trackingmypantry.data;
 
 import android.content.Context;
+import android.os.Looper;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.room.Room;
 
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
-import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
-import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
@@ -22,14 +25,11 @@ import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.util.ArrayList;
 import java.util.List;
-
-import java9.util.concurrent.CompletableFuture;
-import java9.util.function.Supplier;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class PantryRepository {
 
@@ -41,13 +41,17 @@ public class PantryRepository {
     private LiveData<List<Product>> matchingProductListLocal;
     private MutableLiveData<String> requestToken;
     private PantryDB pantryDB;
-
-
+    private static final int nTHREADS = 2;
+    private static final ListeningExecutorService executor =
+            MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
+    private static Executor mainExecutor;
     PantryRepository(final Context context) {
         remoteDataSource = new PantryDataSource( LoginRepository.getInstance() );
         matchingProductList = new MediatorLiveData<>();
         requestToken = new MutableLiveData<>();
         pantryDB = PantryDB.getInstance( context );
+        if( mainExecutor == null )
+            mainExecutor = ContextCompat.getMainExecutor( context );
     }
 
     public static PantryRepository getInstance( Context context ) {
@@ -57,46 +61,47 @@ public class PantryRepository {
         return instance;
     }
 
+    private ListeningExecutorService getExecutor(){
+        return executor;
+    }
+
     public void updateMatchingProducts( String barcode ) {
         if( barcode == null ) {
             requestToken.postValue( null );
+            Log.e(TAG, "reset request token" );
             matchingProductList.postValue( new ArrayList<>(0) );
-            Log.e(TAG, "null barcode" );
+            Log.e(TAG, "reset product list" );
             return;
         }
-        Log.e(TAG, "not null barcode" );
-        remoteDataSource.getProducts(barcode, new Callback<ProductsList>() {
-            @Override
-            public void onResponse(Call<ProductsList> call, Response<ProductsList> response) {
-                if( response.isSuccessful() ) {
-                    try {
-                        Log.d(TAG, "Fetch products raw " + response.raw().body().string() );
+        Log.e(TAG, "request product list by " + barcode );
+        Futures.addCallback(
+                remoteDataSource.getProducts(barcode),
+                new FutureCallback<ProductsList>() {
+                    @Override
+                    public void onSuccess(@NullableDecl ProductsList result) {
+                        try {
+                            Log.d(TAG, "updateMatchingProducts: " + new GsonBuilder()
+                                    .setPrettyPrinting().create().toJson( result ) );
+                        }
+                        catch ( Exception e ) {
+                            Log.w(TAG, "updateMatchingProducts raw error" + e );
+                        }
+
+                        requestToken.postValue( result.getToken() );
+                        matchingProductList.postValue( result.getProducts() );
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.e(TAG, "updateMatchingProducts " +  t );
+
+                        // provide local products
+                        updateMatchingProductsUsingLocal( barcode );
 
                     }
-                    catch ( Exception e ) {
-                        Log.e(TAG, "Fetch products raw e" + e );
-                    }
-
-                    Log.d(TAG, "Fetch products complete " +  response.toString() + " " + new GsonBuilder().setPrettyPrinting().create().toJson( response.body() ) );
-                    requestToken.postValue( response.body().getToken() );
-                    matchingProductList.postValue( response.body().getProducts() );
-                }
-                else {
-                    Log.e(TAG, "Fetch products error" +  response.toString() );
-
-                    // provide local products
-                    updateMatchingProductsUsingLocal( barcode );
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ProductsList> call, Throwable t) {
-                Log.e(TAG, "Unable to fetch " + t );
-
-                // provide local products
-                updateMatchingProductsUsingLocal( barcode );
-            }
-        });
+                },
+                mainExecutor
+        );
     }
 
     private void updateMatchingProductsUsingLocal( String barcode ) {
@@ -122,23 +127,25 @@ public class PantryRepository {
         return pantryDB.getProductDao().getAllTags();
     }
 
-    public void voteProduct( String productId, int rating ) {
-        remoteDataSource.voteProduct(new Vote(requestToken.getValue(), productId, rating ), new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if( response.isSuccessful() ) {
-                    Log.d(TAG, "vote product '" + productId + "' complete " +  response.toString() );
-                }
-                else {
-                    Log.e(TAG, "failed to vote product '" + productId + "'" + response.toString() );
-                }
-            }
+    public ListenableFuture voteProduct( String productId, int rating ) {
+        Vote vote = new Vote(requestToken.getValue(), productId, rating );
+        ListenableFuture future = remoteDataSource.voteProduct( vote );
+        Futures.addCallback(
+                future,
+                new FutureCallback<Object>() {
+                    @Override
+                    public void onSuccess(@NullableDecl Object result) {
+                        Log.d( TAG, "Voted " + vote );
+                    }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e(TAG, "Unable to vote '" + productId + "'" + t );
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.e( TAG, "Failed to vote " + vote, t );
+                    }
+                },
+                MoreExecutors.directExecutor()
+        );
+        return future;
     }
 
     public LiveData<List<Product>> getProducts( /*TODO: pass Filter*/){
@@ -150,6 +157,11 @@ public class PantryRepository {
                 .getProductWithTags( productId );
     }
 
+    /**
+     * Blocking call
+     * @param p
+     * @param tags
+     */
     private void addProductLocal( Product p, List<ProductTag> tags ){
         pantryDB.getProductDao().insertProductAndAssignedTags( p, tags );
     }
@@ -159,80 +171,49 @@ public class PantryRepository {
      * if product's id is null will be considered as a new product and will post it on remote
      * @param p
      * @param tags
-     * @return a {@link CompletableFuture} that on Exceptionally will provide a {@link Throwable}
      * with cause
-     * an {@link IllegalStateException} if a server error happens
      *
      */
-    public CompletableFuture<Void> addProduct(final Product p, List<ProductTag> tags ) {
+    public ListenableFuture addProduct(final Product p, List<ProductTag> tags ) {
         // TODO: pass ProductBundle to add Product details to remote and and product instances details to local
 
-        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-
-        Log.d( TAG, "posting product" + p );
+        Log.d( TAG, "addProduct: " + p );
 
         boolean fetchProductFromResponse = p.getId() == null;
+        ListenableFuture beforeLocal;
 
         if( !fetchProductFromResponse ){
-            Log.d( TAG, "posting product to local" + p );
-            try{
-                PantryDB.getDBWriteExecutor().execute(() -> {
-                    try {
-                        addProductLocal(p, tags);
-                        completableFuture.complete(null);
-                    }
-                    catch (Exception e){
-                        completableFuture.completeExceptionally(e);
-                    }
-                });
-            }
-            catch ( Exception e ){
-                completableFuture.completeExceptionally(e);
-            }
+            beforeLocal = Futures.immediateFuture( p );
         }
         else {
-            remoteDataSource.postProduct(new CreateProduct(p, requestToken.getValue()), new Callback<CreateProduct>() {
-                @Override
-                public void onResponse(Call<CreateProduct> call, Response<CreateProduct> response) {
-                    if (response.isSuccessful()) {
-                        Log.d(TAG, "post product complete " + response.toString() + " " + new GsonBuilder().setPrettyPrinting().create().toJson(response.body()));
-
-                        // fetch data with generated from remote
-                        Product fetchedP = new Product.Builder()
-                                .from(p)
-                                .build();
-
-                        Log.d(TAG, "posting product to local after fetch " + p);
-                        try {
-                            PantryDB.getDBWriteExecutor().execute(() -> {
-                                try {
-                                    addProductLocal(fetchedP, tags);
-                                    completableFuture.complete(null);
-                                }
-                                catch (Exception e){
-                                    completableFuture.completeExceptionally(e);
-                                }
-                            });
+            beforeLocal = Futures.transform(
+                    remoteDataSource.postProduct(new CreateProduct(p, requestToken.getValue())),
+                    new Function<CreateProduct, Product>() {
+                        @NullableDecl
+                        @Override
+                        public Product apply(@NullableDecl CreateProduct input) {
+                            Product p = new Product.Builder()
+                                    .from(input)
+                                    .build();
+                            Log.d( TAG, "addProduct - fetched product from remote: " + p );
+                            return p;
                         }
-                        catch (Exception e) {
-                            completableFuture.completeExceptionally(e);
-                        }
-                    }
-                    else {
-                        Log.e(TAG, "post product error" + response.toString());
-                        completableFuture.completeExceptionally(new IllegalStateException(response.toString()));
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<CreateProduct> call, Throwable t) {
-                    Log.e(TAG, "Unable to post product " + t);
-                    // the error may be network related or auth related
-                    completableFuture.completeExceptionally(t);
-                }
-            });
+                    },
+                    getExecutor()
+            );
         }
 
-        return completableFuture;
+        return Futures.transform(
+                beforeLocal,
+                new Function<Product, Void>() {
+                    @Override
+                    public Void apply(@NullableDecl Product input) {
+                        Log.d( TAG, "addProduct - adding product to local" + input );
+                        addProductLocal(input, tags);
+                        return null;
+                    }
+                },
+                pantryDB.getDBWriteExecutor()
+        );
     }
 }

@@ -1,8 +1,10 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import android.app.Activity;
@@ -34,6 +36,9 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.chip.Chip;
 import com.hootsuite.nachos.chip.ChipInfo;
@@ -48,6 +53,11 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
+
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+
+import java9.util.function.BiConsumer;
+import retrofit2.HttpException;
 
 public class RegisterProductFragment extends Fragment {
 
@@ -117,6 +127,11 @@ public class RegisterProductFragment extends Fragment {
         mViewModel.getBarcode().observe( getViewLifecycleOwner(), value -> {
             Log.e( "RegisterProductFragment", "updated barcode "  + value);
             editBarcode.setText( value );
+            mViewModel.setProduct(
+                    new Product.Builder()
+                            .setBarcode( value )
+                            .build()
+            );
         });
 
         boolean hasFeatureCamera = getContext().getPackageManager()
@@ -183,31 +198,42 @@ public class RegisterProductFragment extends Fragment {
 
                 mViewModel.setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
 
-                mViewModel.registerProduct()
-                        .thenAccept(aVoid -> {
-                            Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
-                            Navigation.findNavController(view)
-                                    .popBackStack(R.id.registerProductFragment, true);
-                        })
-                        .exceptionally(throwable -> {
-                            if( throwable.getCause() instanceof AuthException ){
-                                AuthException authException = (AuthException) throwable.getCause();
-                                switch ( authException.getState() ){
-                                    case UNAUTHORIZED:
-                                        Toast.makeText(getContext(), "Error: You need to login first", Toast.LENGTH_SHORT ).show();
-                                        break;
-                                    case FAILED:
-                                        Toast.makeText(getContext(), "Error: Unable to authenticate", Toast.LENGTH_SHORT ).show();
-                                        break;
-                                }
-                            }
-                            else{
-                                Toast.makeText(getContext(), "Unable to register due an error", Toast.LENGTH_SHORT ).show();
-                                Log.e( TAG, "Unable to add product due to an error", throwable );
+                Futures.addCallback(
+                        mViewModel.registerProduct(),
+                        new FutureCallback<Object>() {
+                            @Override
+                            public void onSuccess(@NullableDecl Object result) {
+                                Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
+                                Navigation.findNavController(view)
+                                        .popBackStack(R.id.registerProductFragment, true);
                             }
 
-                            return null;
-                        });
+                            @Override
+                            public void onFailure(Throwable t) {
+                                if( t instanceof AuthException ){
+                                    Log.e( TAG, "Authentication Error", t );
+                                    Toast.makeText(getContext(), "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
+                                            .show();
+                                }
+                                else if( t instanceof HttpException ){
+                                    Log.e( TAG, "Server Error", t );
+                                    Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
+                                            .show();
+                                }
+                                else if( t instanceof IOException ){
+                                    Log.e( TAG, "Network Error", t );
+                                    Toast.makeText(getContext(), "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
+                                            .show();
+                                }
+                                else {
+                                    Log.e( TAG, "Unexpected Error", t );
+                                    Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
+                                            .show();
+                                }
+                            }
+                        },
+                        ContextCompat.getMainExecutor( getContext() )
+                );
             });
 
             productForm.setVisibility( View.VISIBLE );

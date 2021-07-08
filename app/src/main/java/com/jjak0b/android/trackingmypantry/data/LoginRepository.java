@@ -2,12 +2,17 @@ package com.jjak0b.android.trackingmypantry.data;
 
 import android.util.Log;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.gson.GsonBuilder;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import com.hadilq.liveevent.LiveEvent;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
@@ -15,12 +20,9 @@ import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
 
 
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.util.Calendar;
-import java9.util.concurrent.CompletableFuture;
-import java9.util.function.Consumer;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.concurrent.Executors;
 
 /**
  * Class that requests authentication and user information from the remote data source and
@@ -40,6 +42,10 @@ public class LoginRepository {
     private MutableLiveData<LoginCredentials> mLoggedInUser;
     private LiveEvent<AuthResultState> mAuthResultState;
 
+    private static final int nTHREADS = 2;
+    private static final ListeningExecutorService executor =
+            MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
+
     // private constructor : singleton access
     private LoginRepository(LoginDataSource dataSource) {
         this.dataSource = dataSource;
@@ -58,6 +64,10 @@ public class LoginRepository {
         return instance;
     }
 
+    private ListeningExecutorService getExecutor(){
+        return executor;
+    }
+
     public boolean isLoggedIn() {
         return mLoggedInUser.getValue() != null && mLoggedInUser.getValue().getAccessToken() != null;
     }
@@ -65,45 +75,44 @@ public class LoginRepository {
     /**
      * Provide the access token based on current credentials of the logged in user.
      * If an existing access token has been expired then will sign in again renewing the access token and provide the new one;
-     * the access token will be provided in {@link Result.Success} instance.
-     * Otherwise if there is no logged in user or any error happen during sign in operation will be reported as {@link Result.Error} instance
-     * @return a completable with the access Token operation result
+     * the access token will be provided as {@link ListenableFuture} result.
+     * Otherwise if there is no logged in user or any error happen during sign in operation will be reported as {@link Exception}
+     * if any error occurs then the following exceptions will be provided:
+     * <ul>
+     *     <li>{@link AuthException} if there are no auth credentials to request the access token</li>
+     *     <li>{@link AuthException} if there are no auth credentials to request the access token</li>
+     *     <li>{@link AuthException} if there are no auth credentials to request the access token</li>
+     * </ul>
+     * @return a future with the access Token
      */
-    public CompletableFuture<Result<String, AuthResultState>> requireAuthorization( boolean forceRefresh ) {
-
-        CompletableFuture<Result<String, AuthResultState>> futureAuthorization = new CompletableFuture<>();
+    public ListenableFuture<String> requireAuthorization(boolean forceRefresh ) {
 
         StringBuilder authBuilder = new StringBuilder()
                 .append( "Bearer ");
         if( isLoggedIn() ){
             LoginCredentials credentials = getLoggedInUser().getValue();
             if( forceRefresh || credentials.isAccessTokenExpired() ){
-                signIn(credentials)
-                        .thenAccept(new Consumer<Result<AuthResultState, AuthResultState>>() {
+                return Futures.transform(
+                        signIn(credentials),
+                        new Function<String, String>() {
+                            @NullableDecl
                             @Override
-                            public void accept(Result<AuthResultState, AuthResultState> result) {
-                                if( result instanceof Result.Success ) { // Authorize
-                                    authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
-                                    futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
-                                }
-                                else { // Error occurred
-                                    Result.Error<AuthResultState, AuthResultState> error
-                                            = (Result.Error<AuthResultState, AuthResultState>) result;
-                                    futureAuthorization.complete( new Result.Error<>(error.getError()) );
-                                }
+                            public String apply(@NullableDecl String accessToken) {
+                                authBuilder.append( accessToken );
+                                return authBuilder.toString();
                             }
-                        });
+                        },
+                        MoreExecutors.directExecutor()
+                );
             }
             else { // AUTHORIZED: by cached token
                 authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
-                futureAuthorization.complete( new Result.Success<>( authBuilder.toString() ) );
+                return Futures.immediateFuture( authBuilder.toString() );
             }
         }
         else { // UNAUTHORIZED: missing credentials
-            futureAuthorization.complete( new Result.Error<>( AuthResultState.UNAUTHORIZED ) );
+            return Futures.immediateFailedFuture( new AuthException( AuthResultState.UNAUTHORIZED ) );
         }
-
-        return futureAuthorization;
     }
 
     public MutableLiveData<LoginCredentials> getLoggedInUser() {
@@ -115,78 +124,71 @@ public class LoginRepository {
             logout();
         }
         else {
-            this.mLoggedInUser.setValue( user );
+            Log.d( TAG, "setting new User " + user );
+            this.mLoggedInUser.postValue( user );
             // If user credentials will be cached in local storage, it is recommended it be encrypted
             // @see https://developer.android.com/training/articles/keystore
         }
     }
 
     public void logout() {
-        mLoggedInUser.setValue( null );
+        mLoggedInUser.postValue( null );
     }
 
-    public CompletableFuture<Result<AuthResultState, AuthResultState>> signIn(LoginCredentials credentials) {
-
-        CompletableFuture<Result<AuthResultState, AuthResultState>> future = new CompletableFuture<>();
-
-        dataSource.login(credentials, new Callback<AuthLoginResponse>() {
-            @Override
-            public void onResponse(Call<AuthLoginResponse> call, Response<AuthLoginResponse> response) {
-                if( response.isSuccessful() ) {
-                    if( response.body() != null ) {
-                        Log.d(TAG, "Login Success: " + response.toString() );
-
+    public ListenableFuture<String> signIn(LoginCredentials credentials) {
+        Log.d( TAG, "Signing in using " + credentials);
+        ListenableFuture<AuthLoginResponse> future = dataSource.login(credentials);
+        Futures.addCallback(
+                future,
+                new FutureCallback<AuthLoginResponse>() {
+                    @Override
+                    public void onSuccess(@NullableDecl AuthLoginResponse result) {
                         // set expire date pf the access token after 7 days from now
                         Calendar cal = Calendar.getInstance();
                         cal.add(Calendar.DATE, 7 );
-
-                        setLoggedInUser( new LoginCredentials( credentials, response.body().getAccessToken(), cal.getTime() ) );
-                        future.complete( new Result.Success<>( AuthResultState.AUTHORIZED ) );
+                        LoginCredentials c = new LoginCredentials( credentials, result.getAccessToken(), cal.getTime() );
+                        setLoggedInUser( c );
                     }
-                    else {
-                        Log.e(TAG, "Login body parsing Failed: " + response.toString() );
-                        future.complete(  new Result.Error<>( AuthResultState.FAILED ) );
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.e( TAG, "SignIn try Failed", t );
                     }
-                }
-                else {
-                    Log.e( TAG, "Login Failed, reason: " + response.toString() );
-                    future.complete( new Result.Error<>( AuthResultState.UNAUTHORIZED ) );
-                }
-            }
+                },
+                getExecutor()
+        );
 
-            @Override
-            public void onFailure(Call<AuthLoginResponse> call, Throwable t) {
-                Log.e( TAG, "Login try Failed, reason: " + t );
-                future.complete( new Result.Error<>( AuthResultState.FAILED ) );
-            }
-        });
-
-        return future;
+        return Futures.transform(
+                future,
+                new Function<AuthLoginResponse, String>() {
+                    @NullableDecl
+                    @Override
+                    public String apply(@NullableDecl AuthLoginResponse input) {
+                        return input.getAccessToken();
+                    }
+                },
+                getExecutor()
+        );
     }
 
-    public CompletableFuture<Result<AuthResultState, AuthResultState>> signUp(RegisterCredentials credentials ) {
-        CompletableFuture<Result<AuthResultState, AuthResultState>> future = new CompletableFuture<>();
+    public ListenableFuture<RegisterCredentials> signUp(RegisterCredentials credentials ) {
+        Log.d( TAG, "Signing up using " + credentials);
+        ListenableFuture<RegisterCredentials> future = dataSource.register(credentials);
+        Futures.addCallback(
+                future,
+                new FutureCallback<RegisterCredentials>() {
+                    @Override
+                    public void onSuccess(@NullableDecl RegisterCredentials result) {
 
-        dataSource.register(credentials, new Callback<RegisterCredentials>() {
-            @Override
-            public void onResponse(Call<RegisterCredentials> call, Response<RegisterCredentials> response) {
-                if( response.isSuccessful() ) {
-                    Log.d(TAG, "Register Success: " + response.toString()  );
-                    future.complete( new Result.Success<>( AuthResultState.AUTHORIZED ) );
-                }
-                else {
-                    Log.e( TAG, "Register Failed, reason: " + response.toString() );
-                    future.complete( new Result.Error<>( AuthResultState.UNAUTHORIZED ) );
-                }
-            }
+                    }
 
-            @Override
-            public void onFailure(Call<RegisterCredentials> call, Throwable t) {
-                Log.e( TAG, "Login try Failed, reason: " + t );
-                future.complete( new Result.Error<>( AuthResultState.FAILED ) );
-            }
-        });
-
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.e( TAG, "SignUp try Failed", t );
+                    }
+                },
+                getExecutor()
+        );
         return future;
     }
 }

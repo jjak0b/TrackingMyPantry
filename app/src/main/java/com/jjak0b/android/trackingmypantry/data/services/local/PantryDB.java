@@ -9,6 +9,8 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
@@ -40,9 +42,10 @@ public abstract class PantryDB extends RoomDatabase {
     private static final int nTHREADS = 4;
     private static final String DB_NAME = "PantryDB";
 
-    static final ExecutorService databaseWriteExecutor = Executors.newFixedThreadPool(nTHREADS);
+    static final ListeningExecutorService databaseWriteExecutor =
+            MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
 
-    public static ExecutorService getDBWriteExecutor(){
+    public ListeningExecutorService getDBWriteExecutor(){
         return databaseWriteExecutor;
     }
 

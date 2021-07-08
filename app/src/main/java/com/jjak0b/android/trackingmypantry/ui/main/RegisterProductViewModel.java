@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
@@ -17,8 +18,6 @@ import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithT
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import java9.util.concurrent.CompletableFuture;
 
 public class RegisterProductViewModel extends AndroidViewModel {
 
@@ -114,7 +113,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         }
     }
 
-    public CompletableFuture<Void> registerProduct() {
+    public ListenableFuture registerProduct() {
         Product p = new Product.Builder()
                 .from(
                         productBuilder.getValue()

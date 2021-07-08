@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.dataSource;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 
 import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
@@ -10,7 +11,7 @@ import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteAuthAPISer
 
 import org.jetbrains.annotations.NotNull;
 
-import retrofit2.Callback;
+import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.
@@ -33,13 +34,21 @@ public class LoginDataSource {
         return instance;
     }
 
-    public void register(@NotNull RegisterCredentials credentials, Callback<RegisterCredentials> cb ) {
-        service.createUser( credentials )
-                .enqueue(cb);
+    /**
+     * @see GuavaCallAdapterFactory provided exception and results in callback
+     * @param credentials
+     * @return
+     */
+    public ListenableFuture<RegisterCredentials> register(@NotNull RegisterCredentials credentials) {
+        return service.createUser( credentials );
     }
 
-    public void login(@NotNull LoginCredentials credentials, Callback<AuthLoginResponse> cb ) {
-        service.getAccessToken( credentials )
-                .enqueue(cb);
+    /**
+     * @see GuavaCallAdapterFactory provided exception and results in callback
+     * @param credentials
+     * @return
+     */
+    public ListenableFuture<AuthLoginResponse> login(@NotNull LoginCredentials credentials ) {
+        return service.getAccessToken( credentials );
     }
 }

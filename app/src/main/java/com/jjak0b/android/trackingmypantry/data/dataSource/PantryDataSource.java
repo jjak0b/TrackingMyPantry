@@ -1,22 +1,20 @@
 package com.jjak0b.android.trackingmypantry.data.dataSource;
 
-import android.util.Log;
-
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
-import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
-import com.jjak0b.android.trackingmypantry.data.Result;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteProductsAPIService;
 
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.jetbrains.annotations.NotNull;
 
-import java9.util.function.Consumer;
-import retrofit2.Callback;
+import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 
 public class PantryDataSource {
 
@@ -30,6 +28,7 @@ public class PantryDataSource {
         this.authRepository = repository;
     }
 
+
     public static PantryDataSource getInstance() {
         if( instance == null ) {
             instance = new PantryDataSource(LoginRepository.getInstance());
@@ -39,69 +38,81 @@ public class PantryDataSource {
     }
 
     /**
-     *
      * @param barcode
-     * @param cb callback to be called when error has been occurred. it will be:
-     *           - onSuccess: will provide the result
-     *           - onFailed: will provide:
-     *              - a {@link AuthException} if an error happened during authentication
-     *
+     * @implNote see
+     * <ul>
+     *     <li> {@linkplain LoginRepository#requireAuthorization(boolean)} for exception </li>
+     *     <li> {@linkplain GuavaCallAdapterFactory} for exceptions</li>
+     * </ul>
+     * @return
      */
-    public void getProducts(@NotNull String barcode, Callback<ProductsList> cb ) {
-
-        authRepository.requireAuthorization(false)
-                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+    public ListenableFuture<ProductsList> getProducts(@NotNull String barcode ) {
+        return Futures.transformAsync(
+                authRepository.requireAuthorization(false),
+                new AsyncFunction<String, ProductsList>() {
+                    @NullableDecl
                     @Override
-                    public void accept(Result<String, AuthResultState> resultAuth ) {
-                        if( resultAuth instanceof Result.Success ){
-                            service.getProducts(
-                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
-                                    barcode
-                            ).enqueue( cb );
-                        }
-                        else {
-                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
-                            cb.onFailure( null, new AuthException( error.getError() ) );
-                        }
+                    public ListenableFuture<ProductsList> apply(@NullableDecl String authorization) {
+                        return service.getProducts(
+                                authorization,
+                                barcode
+                        );
                     }
-                });
+                },
+                MoreExecutors.directExecutor()
+        );
     }
 
-    public void voteProduct( @NotNull Vote vote, Callback<Void> cb ) {
-        authRepository.requireAuthorization(false)
-                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+    /**
+     * @implNote see
+     * <ul>
+     *     <li> {@linkplain LoginRepository#requireAuthorization(boolean)} for exception </li>
+     *     <li> {@linkplain GuavaCallAdapterFactory} for exceptions</li>
+     * </ul>
+     * @param vote
+     * @return
+     */
+    public ListenableFuture voteProduct(@NotNull Vote vote ) {
+        return Futures.transformAsync(
+                authRepository.requireAuthorization(false),
+                new AsyncFunction<String, Void>() {
+                    @NullableDecl
                     @Override
-                    public void accept(Result<String, AuthResultState> resultAuth ) {
-                        if( resultAuth instanceof Result.Success ){
-                            service.voteProduct(
-                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
-                                    vote
-                            ).enqueue( cb );
-                        }
-                        else {
-                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
-                            cb.onFailure( null, new AuthException( error.getError() ) );
-                        }
+                    public ListenableFuture<Void> apply(@NullableDecl String authorization) {
+                        return service.voteProduct(
+                                authorization,
+                                vote
+                        );
                     }
-                });
+                },
+                MoreExecutors.directExecutor()
+        );
     }
 
-    public void postProduct( @NotNull CreateProduct product, Callback<CreateProduct> cb ) {
-        authRepository.requireAuthorization(false)
-                .thenAccept(new Consumer<Result<String, AuthResultState>>() {
+    /**
+     * @implNote see
+     * <ul>
+     *     <li> {@linkplain LoginRepository#requireAuthorization(boolean)} for exception </li>
+     *     <li> {@linkplain GuavaCallAdapterFactory} for exceptions</li>
+     * </ul>
+     * @param product
+     * @return
+     */
+    public ListenableFuture<CreateProduct> postProduct(@NotNull CreateProduct product ) {
+
+        return Futures.transformAsync(
+                authRepository.requireAuthorization(false),
+                new AsyncFunction<String, CreateProduct>() {
+                    @NullableDecl
                     @Override
-                    public void accept(Result<String, AuthResultState> resultAuth ) {
-                        if( resultAuth instanceof Result.Success ){
-                            service.postProduct(
-                                    ((Result.Success<String, AuthResultState>) resultAuth).getData(),
-                                    product
-                            ).enqueue( cb );
-                        }
-                        else {
-                            Result.Error<String, AuthResultState> error = (Result.Error<String, AuthResultState>) resultAuth;
-                            cb.onFailure( null, new AuthException( error.getError() ) );
-                        }
+                    public ListenableFuture<CreateProduct> apply(@NullableDecl String authorization) {
+                        return service.postProduct(
+                                authorization,
+                                product
+                        );
                     }
-                });
+                },
+                MoreExecutors.directExecutor()
+        );
     }
 }

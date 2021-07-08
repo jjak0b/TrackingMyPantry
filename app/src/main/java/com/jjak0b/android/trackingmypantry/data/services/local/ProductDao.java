@@ -10,6 +10,7 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
@@ -47,7 +48,7 @@ public abstract class ProductDao {
     abstract long[] insertTags(List<ProductTag> tags);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract void insertAssignedTags(List<TagAndProduct> assignedTags );
+    abstract ListenableFuture<Void> insertAssignedTags(List<TagAndProduct> assignedTags );
 
     @Transaction
     @Query( "SELECT * FROM products WHERE id = (:product_id)")

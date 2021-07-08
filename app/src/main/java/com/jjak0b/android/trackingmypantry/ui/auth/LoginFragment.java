@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.auth;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
@@ -90,12 +91,16 @@ public class LoginFragment extends LoginFormFragment {
     private void login(  ProgressBar loadingProgressBar, String email, String password ) {
         loadingProgressBar.setVisibility(View.VISIBLE);
 
+
         formViewModel.login(
                 email,
                 password
-        ).thenAccept( aVoid -> {
-            loadingProgressBar.setVisibility(View.GONE);
-        });
+        ).addListener(
+                () -> {
+                    loadingProgressBar.setVisibility(View.GONE);
+                },
+                ContextCompat.getMainExecutor( getContext() )
+        );
     }
 
     private void updateUiWithUser(LoggedInUserView model) {

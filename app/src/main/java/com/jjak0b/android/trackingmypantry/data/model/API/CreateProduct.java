@@ -16,7 +16,7 @@ public class CreateProduct extends Product {
     public CreateProduct( @NotNull Product product, @NotNull String token) {
         super( product );
 
-        this.test = true;
+        this.test = true; // TODO: remove on release
         this.token = token;
     }
 }

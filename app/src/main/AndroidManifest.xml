@@ -19,8 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TrackingMyPantry"
         android:usesCleartextTraffic="true">
-        <activity android:name=".BarcodeScannerActivity">
-        </activity>
+        <activity android:name=".BarcodeScannerActivity"></activity>
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

@@ -8,6 +8,10 @@ import android.app.Application;
 import android.util.Log;
 import android.util.Patterns;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.LoginRepository;
 import com.jjak0b.android.trackingmypantry.data.Result;
@@ -17,7 +21,10 @@ import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
 
-import java9.util.concurrent.CompletableFuture;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+
+import java.io.IOException;
+import retrofit2.HttpException;
 
 public class LoginViewModel extends AndroidViewModel {
 
@@ -46,56 +53,75 @@ public class LoginViewModel extends AndroidViewModel {
         return getLoginFormState().getValue().isDataValid();
     }
 
-    public CompletableFuture<Void> login(
+    public ListenableFuture login(
             String email,
             String password
     ) {
 
         LoginCredentials user = new LoginCredentials(email, password);
 
-        return loginRepository.signIn(user)
-                .thenAccept(result -> {
-                    if( result instanceof Result.Success ) {
-                        LoginCredentials loggedUser = loginRepository.getLoggedInUser().getValue();
-                        loginUIResult.setValue(new LoginResult( new LoggedInUserView( loggedUser.getEmail() ) ) );
+        ListenableFuture future = loginRepository.signIn(user);
+        Futures.addCallback(
+                future,
+                new FutureCallback<String>() {
+                    @Override
+                    public void onSuccess(@NullableDecl String result) {
+                        loginUIResult.postValue(new LoginResult( new LoggedInUserView( user.getEmail() ) ) );
                     }
-                    else {
-                        Result.Error<AuthResultState, AuthResultState> error
-                                = (Result.Error<AuthResultState, AuthResultState>) result;
-                        switch (error.getError()) {
-                            case UNAUTHORIZED:
-                                loginUIResult.setValue(new LoginResult( R.string.signIn_failed ) );
-                                break;
-                            case FAILED:
-                                loginUIResult.setValue(new LoginResult( R.string.operation_failed_network ) );
-                                break;
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        if( t instanceof HttpException) {
+                            Log.w( TAG, "Server/Authentication Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.signIn_failed ) );
+                        }
+                        else if( t instanceof IOException) {
+                            Log.w( TAG, "Network Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_network ) );
+                        }
+                        else {
+                            Log.e( TAG, "Unexpected Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_unknown ) );
                         }
                     }
-                });
+                },
+                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
+        );
+        return future;
     }
 
-    public CompletableFuture<Void> register( String username, String email, String password ) {
+    public ListenableFuture register( String username, String email, String password ) {
 
         RegisterCredentials newUser = new RegisterCredentials( username, email, password );
 
-        return loginRepository.signUp(newUser)
-                .thenAccept( result -> {
-                    if( result instanceof Result.Success ) {
-                        loginUIResult.setValue(new LoginResult( new LoggedInUserView(newUser.getUsername()) ) );
+        ListenableFuture future = loginRepository.signUp(newUser);
+        Futures.addCallback(
+                future,
+                new FutureCallback<RegisterCredentials>() {
+                    @Override
+                    public void onSuccess(@NullableDecl RegisterCredentials result) {
+                        loginUIResult.postValue(new LoginResult( new LoggedInUserView( result.getUsername() ) ) );
                     }
-                    else {
-                        Result.Error<AuthResultState, AuthResultState> error
-                                = (Result.Error<AuthResultState, AuthResultState>) result;
-                        switch (error.getError()) {
-                            case UNAUTHORIZED:
-                                loginUIResult.setValue(new LoginResult( R.string.signUp_failed ) );
-                                break;
-                            case FAILED:
-                                loginUIResult.setValue(new LoginResult( R.string.operation_failed_network ) );
-                                break;
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        if( t instanceof HttpException) {
+                            Log.w( TAG, "Server/Authentication Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.signUp_failed ) );
+                        }
+                        else if( t instanceof IOException) {
+                            Log.w( TAG, "Network Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_network ) );
+                        }
+                        else {
+                            Log.e( TAG, "Unexpected Error", t );
+                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_unknown ) );
                         }
                     }
-                });
+                },
+                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
+        );
+        return future;
     }
 
     public void updateFormState(String username, String email, String password) {
