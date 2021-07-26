@@ -21,9 +21,9 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
 
     public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
-        title = itemView.findViewById(R.id.cardTitle);
-        description = itemView.findViewById(R.id.cardDescription);
-        image = itemView.findViewById(R.id.cardThumbnail);
+        title = (TextView) itemView.findViewById(R.id.cardTitle);
+        description = (TextView) itemView.findViewById(R.id.cardDescription);
+        image = (ImageView) itemView.findViewById(R.id.cardThumbnail);
     }
 
     public void bind(Product product, RegisterProductViewModel viewModel){

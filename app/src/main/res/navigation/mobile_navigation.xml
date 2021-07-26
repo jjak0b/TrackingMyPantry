@@ -55,14 +55,23 @@
         android:id="@+id/registerProductFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.main.RegisterProductFragment"
         android:label="register_product_fragment"
-        tools:layout="@layout/register_product_fragment">
-        <action
-            android:id="@+id/action_registerProductFragment_to_suggestedProductListDialogFragment"
-            app:destination="@id/suggestedProductListDialogFragment" />
+        tools:layout="@layout/fragment_register_product">
         <argument
             android:name="barcode"
             app:argType="string"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_registerProductFragment_to_registerProductInstancesFragment"
+            app:destination="@id/registerProductInstancesFragment" />
+        <action
+            android:id="@+id/action_registerProductFragment_to_sectionProductDetailsFragment"
+            app:destination="@id/sectionProductDetailsFragment" />
+        <action
+            android:id="@+id/action_registerProductFragment_to_sectionProductPurchaseDetailsFragment"
+            app:destination="@id/sectionProductPurchaseDetailsFragment" />
+        <action
+            android:id="@+id/action_registerProductFragment_to_suggestedProductListDialogFragment"
+            app:destination="@id/suggestedProductListDialogFragment" />
     </fragment>
     <dialog
         android:id="@+id/registerProductBottomSheetDialogFragment"
@@ -80,5 +89,22 @@
         android:name="com.jjak0b.android.trackingmypantry.ui.main.SuggestedProductListDialogFragment"
         android:label="fragment_suggested_product_list_dialog_list_dialog"
         tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" />
+
+    <fragment
+        android:id="@+id/sectionProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductDetailsFragment"
+        android:label="section_product_details_fragment"
+        tools:layout="@layout/fragment_section_product_details">
+    </fragment>
+    <fragment
+        android:id="@+id/registerProductInstancesFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductInstanceDetailsFragment"
+        android:label="fragment_section_product_instance_details"
+        tools:layout="@layout/fragment_section_product_instance_details" />
+    <fragment
+        android:id="@+id/sectionProductPurchaseDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductPurchaseDetailsFragment"
+        android:label="fragment_section_product_purchase_details"
+        tools:layout="@layout/fragment_section_product_purchase_details" />
 
 </navigation>

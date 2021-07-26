@@ -10,85 +10,123 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_height="match_parent"
+        android:padding="16dp"
         android:weightSum="12">
 
-        <LinearLayout
+        <EditText
+            android:id="@+id/editTextBarcode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="16dp"
             android:layout_weight="4"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:hint="@string/barcode"
+            android:imeOptions="actionNext"
+            android:inputType="number" />
 
-            <EditText
-                android:id="@+id/editProductName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="8dp"
-                android:hint="@string/register_product_name"
-                android:inputType="textPersonName" />
-
-            <EditText
-                android:id="@+id/editProductDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="8dp"
-                android:gravity="start|top"
-                android:hint="@string/register_product_description"
-                android:inputType="textMultiLine|textImeMultiLine"
-                android:lines="3"
-                android:maxLines="5"
-                android:nestedScrollingEnabled="true" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/sectionTakePhoto"
+        <ImageButton
+            android:id="@+id/submitBarcode"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
             android:layout_weight="8"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:weightSum="1">
-
-                <ImageButton
-                    android:id="@+id/photoPreviewBtn"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.9"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@drawable/ic_menu_camera" />
-
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.1"
-                    android:text="@string/register_product_take_photo"
-                    android:textAlignment="center" />
-            </LinearLayout>
-
-        </LinearLayout>
+            android:src="@android:drawable/stat_notify_sync" />
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/productForm"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <com.hootsuite.nachos.NachoTextView
-            android:id="@+id/chips_input"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:completionThreshold="0" />
+            android:orientation="horizontal"
+            android:weightSum="12">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/editProductName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:hint="@string/register_product_name"
+                    android:inputType="textPersonName" />
+
+                <EditText
+                    android:id="@+id/editProductDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
+                    android:hint="@string/register_product_description"
+                    android:inputType="textMultiLine|textImeMultiLine"
+                    android:lines="3"
+                    android:maxLines="5"
+                    android:nestedScrollingEnabled="true" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/sectionTakePhoto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="8"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:weightSum="1">
+
+                    <ImageButton
+                        android:id="@+id/photoPreviewBtn"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="0.9"
+                        android:scaleType="fitCenter"
+                        app:srcCompat="@drawable/ic_menu_camera" />
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.1"
+                        android:text="@string/register_product_take_photo"
+                        android:textAlignment="center" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="16dp">
+
+            <com.hootsuite.nachos.NachoTextView
+                android:id="@+id/chips_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:completionThreshold="0"
+                android:hint="@string/register_product_tags" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

@@ -51,6 +51,12 @@
     <string name="menu_register_product_action_digit">Digit barcode</string>
 
     <!-- product register form -->
+    <string name="product_expire_date">Expire date</string>
+    <string name="product_pantry_name">Pantry name</string>
+    <string name="product_cost">Cost</string>
+    <string name="product_purchase_date">Purchase date</string>
+    <string name="product_purchase_location">Purchase location</string>
+    <string name="product_quantity">Quantity</string>
 
     <!-- product suggestions -->
     <string name="suggested_products_list_header">Found matches</string>
@@ -58,7 +64,12 @@
     <string name="register_product_name">Product name</string>
     <string name="register_product_description">Product description</string>
     <string name="register_product_take_photo">Take a photo of the product</string>
+    <string name="register_product_tags">Assign custom tags</string>
     <string name="barcode">Barcode</string>
     <string name="title_productinpantries_list">ProductsInPantries</string>
     <string name="title_productinpantries_detail">ProductInPantries Detail</string>
+    <string name="title_activity_product_details">ProductDetailsActivity</string>
+    <string name="tab_product_details">Product details</string>
+    <string name="tab_product_instance_details">Articles details</string>
+    <string name="tab_product_purchase_details">Purchase details</string>
 </resources>
