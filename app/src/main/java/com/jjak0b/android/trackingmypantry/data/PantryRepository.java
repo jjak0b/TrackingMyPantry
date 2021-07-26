@@ -19,6 +19,7 @@ import com.google.gson.GsonBuilder;
 import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
+import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
@@ -215,5 +216,9 @@ public class PantryRepository {
                 },
                 pantryDB.getDBWriteExecutor()
         );
+    }
+
+    public LiveData<List<Pantry>> getPantries(){
+        return pantryDB.getPantryDao().getAll();
     }
 }

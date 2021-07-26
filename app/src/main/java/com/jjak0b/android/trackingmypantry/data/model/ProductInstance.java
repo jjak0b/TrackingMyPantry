@@ -37,7 +37,7 @@ public class ProductInstance {
     String productId;
 
     @ColumnInfo( name = "pantry_id")
-    int pantryId;
+    long pantryId;
 
     @Embedded(prefix = "purchaseInfo")
     PurchaseInfo purchaseInfo;
@@ -62,11 +62,11 @@ public class ProductInstance {
         this.productId = productId;
     }
 
-    public int getPantryId() {
+    public long getPantryId() {
         return pantryId;
     }
 
-    public void setPantryId(int pantryId) {
+    public void setPantryId(long pantryId) {
         this.pantryId = pantryId;
     }
 

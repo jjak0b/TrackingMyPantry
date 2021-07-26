@@ -5,6 +5,8 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.util.Objects;
+
 @Entity(
         tableName = "pantries",
         indices = {@Index(value = {"name"}, unique = true)}
@@ -15,6 +17,15 @@ public class Pantry {
     long id;
 
     String name;
+
+    public static Pantry creteDummy(long id){
+        return new Pantry(id, null);
+    }
+
+    public Pantry( long id, String name ){
+        this.id = id;
+        this.name = name;
+    }
 
     public long getId() {
         return id;
@@ -30,5 +41,13 @@ public class Pantry {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Pantry pantry = (Pantry) o;
+        return id == pantry.id;
     }
 }

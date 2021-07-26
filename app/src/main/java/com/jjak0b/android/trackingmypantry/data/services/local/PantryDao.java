@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.services.local;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.ColumnInfo;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -18,7 +19,7 @@ import java.util.List;
 public interface PantryDao {
 
     @Query( "SELECT * FROM pantries" )
-    List<Pantry> getAll();
+    LiveData<List<Pantry>> getAll();
 
     @Update(
             entity = ProductInstance.class,

@@ -18,6 +18,7 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_product_quantity"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:imeOptions="actionNext"
@@ -38,8 +39,10 @@
             android:id="@+id/editTextDate_register_product_expire_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:editable="false"
             android:imeOptions="actionNext"
-            android:inputType="date" />
+            android:inputType="none"
+            android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -53,10 +56,11 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
         <AutoCompleteTextView
+            android:id="@+id/product_pantry_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="none"
-        />
+            android:completionThreshold="0"
+            android:inputType="text" />
 
     </com.google.android.material.textfield.TextInputLayout>
 </LinearLayout>

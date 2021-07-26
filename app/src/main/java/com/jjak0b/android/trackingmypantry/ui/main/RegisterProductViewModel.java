@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
 import android.app.Application;
+import android.os.Bundle;
 import android.util.Log;
 
 import androidx.arch.core.util.Function;
@@ -12,12 +13,18 @@ import androidx.lifecycle.Transformations;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +45,12 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     private MutableLiveData<List<ProductTag>> assignedTags;
 
+    private MutableLiveData<ProductInstance> productInstance;
+
+    private MutableLiveData<Integer> productInstancesCount;
+
+    private MutableLiveData<PurchaseInfo> productPurchaseInfo;
+
     public RegisterProductViewModel(Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
@@ -53,7 +66,6 @@ public class RegisterProductViewModel extends AndroidViewModel {
                     }
                 }
         );
-
         assignedTags = (MutableLiveData<List<ProductTag>>) Transformations.map(
                 localProduct,
                 new Function<ProductWithTags, List<ProductTag>>() {
@@ -66,6 +78,9 @@ public class RegisterProductViewModel extends AndroidViewModel {
                     }
                 }
         );
+        productInstancesCount = new MutableLiveData<>(1);
+        productInstance = new MutableLiveData<>(null);
+        productPurchaseInfo = new MutableLiveData<>();
     }
 
     public void setBarcode(String barcode) {
@@ -79,6 +94,41 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     public LiveData<String> getBarcode() { return barcode; }
 
+    public void resetProductInstance(){
+        ProductInstance pi = new ProductInstance();
+        pi.setExpiryDate( new Date() );
+        pi.setPantryId( -1 );
+        setArticlesCount( 1 );
+        productInstance.setValue( pi );
+    }
+
+    public void resetPurchaseInfo(){
+        productPurchaseInfo.setValue( new PurchaseInfo(
+                0f,
+                Calendar.getInstance().getTime(),
+                null
+        ));
+    }
+
+    public LiveData<List<Pantry>> getAvailablePantries(){
+        return pantryRepository.getPantries();
+    }
+
+    public LiveData<ProductInstance> getProductInstance(){
+        return productInstance;
+    }
+
+    public LiveData<Integer> getArticlesCount(){
+        return productInstancesCount;
+    }
+
+    public void setArticlesCount( @NotNull Integer count ){
+        if( !productInstancesCount.getValue().equals( count ) )
+            productInstancesCount.setValue( count );
+    }
+    public MutableLiveData<PurchaseInfo> getProductPurchaseInfo() {
+        return productPurchaseInfo;
+    }
 
     public LiveData<List<Product>> getProducts() {
         return matchingProductsList;
