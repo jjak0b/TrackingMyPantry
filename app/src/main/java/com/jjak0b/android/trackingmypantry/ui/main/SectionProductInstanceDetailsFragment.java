@@ -20,6 +20,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 
@@ -54,6 +55,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
         mViewModel = new ViewModelProvider(requireActivity())
                 .get(RegisterProductViewModel.class);
 
+        TextInputLayout expireDateInputLayout = view.findViewById( R.id.product_expire_date );
         TextInputEditText expireDateInput = view.findViewById(R.id.editTextDate_register_product_expire_date);
         TextInputEditText quantityInput = view.findViewById(R.id.input_product_quantity);
         AutoCompleteTextView pantryAutoCompleteSelector = view.findViewById( R.id.product_pantry_selector);
@@ -61,6 +63,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
         ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), R.layout.support_simple_spinner_dropdown_item);
         pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
+
 
         quantityInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -114,7 +117,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                 }
             });
 
-            expireDateInput.setOnClickListener(new View.OnClickListener() {
+            View.OnClickListener showDatePickerOnClick = new View.OnClickListener() {
                 @Override
                 public void onClick(View v){
                     // date picker dialog
@@ -137,7 +140,9 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                     );
                     picker.show();
                 }
-            });
+            };
+            expireDateInputLayout.setEndIconOnClickListener(showDatePickerOnClick);
+            expireDateInput.setOnClickListener(showDatePickerOnClick);
 
             if( productInstance != null ){
                 if( productInstance.getPantryId() > 0 ){

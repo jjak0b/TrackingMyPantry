@@ -37,6 +37,8 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     private LiveData<List<Product>> matchingProductsList;
 
+    private LiveEvent<List<Product>> onUpdateMatchingProductsList;
+
     private LiveData<ProductWithTags> localProduct;
 
     private Product originalProduct;
@@ -56,13 +58,22 @@ public class RegisterProductViewModel extends AndroidViewModel {
         pantryRepository = PantryRepository.getInstance(application);
         barcode = new MutableLiveData<>();
         productBuilder = new MutableLiveData<>();
+        onUpdateMatchingProductsList = new LiveEvent<>();
+
         matchingProductsList = pantryRepository.getMatchingProducts();
+        onUpdateMatchingProductsList.addSource( matchingProductsList, products -> {
+            onUpdateMatchingProductsList.setValue( products );
+        });
+
         localProduct = Transformations.switchMap(
                 this.productBuilder,
                 new Function<Product.Builder, LiveData<ProductWithTags>>() {
                     @Override
                     public LiveData<ProductWithTags> apply(Product.Builder input) {
-                        return pantryRepository.getProductWithTags( input.getProductId());
+                        if( input != null )
+                            return pantryRepository.getProductWithTags( input.getProductId() );
+                        else
+                            return new MutableLiveData<>( null );
                     }
                 }
         );
@@ -80,7 +91,15 @@ public class RegisterProductViewModel extends AndroidViewModel {
         );
         productInstancesCount = new MutableLiveData<>(1);
         productInstance = new MutableLiveData<>(null);
-        productPurchaseInfo = new MutableLiveData<>();
+        productPurchaseInfo = new MutableLiveData<>(null);
+    }
+
+    @Override
+    protected void onCleared() {
+        resetProductDetails();
+        resetProductInstance();
+        resetPurchaseInfo();
+        super.onCleared();
     }
 
     public void setBarcode(String barcode) {
@@ -93,6 +112,11 @@ public class RegisterProductViewModel extends AndroidViewModel {
     }
 
     public LiveData<String> getBarcode() { return barcode; }
+
+    public void resetProductDetails(){
+        setBarcode(null);
+        setProduct(null);
+    }
 
     public void resetProductInstance(){
         ProductInstance pi = new ProductInstance();
@@ -130,6 +154,10 @@ public class RegisterProductViewModel extends AndroidViewModel {
         return productPurchaseInfo;
     }
 
+    public LiveData<List<Product>> onUpdateMatchingProductsList() {
+        return onUpdateMatchingProductsList;
+    }
+
     public LiveData<List<Product>> getProducts() {
         return matchingProductsList;
     }
@@ -149,8 +177,11 @@ public class RegisterProductViewModel extends AndroidViewModel {
     public void setProduct(Product product) {
 
         this.originalProduct = product;
-        Product.Builder productBuilder = new Product.Builder()
-                .from( product );
+        Product.Builder productBuilder = null;
+
+        if( product != null )
+            productBuilder = new Product.Builder()
+                    .from( product );
         this.productBuilder.setValue( productBuilder );
 
         if( product != null && product.getId() != null ) {

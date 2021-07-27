@@ -1,8 +1,10 @@
 package com.jjak0b.android.trackingmypantry.ui.util;
 
 import android.app.Activity;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -33,5 +35,14 @@ public class InputUtil {
             InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+
+    public static abstract class FieldTextWatcher implements TextWatcher {
+
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+        public abstract void afterTextChanged(Editable s);
     }
 }

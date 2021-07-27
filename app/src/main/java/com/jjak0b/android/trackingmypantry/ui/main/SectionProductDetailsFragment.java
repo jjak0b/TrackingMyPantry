@@ -21,27 +21,33 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
+import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
 import com.jjak0b.android.trackingmypantry.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 public class SectionProductDetailsFragment extends Fragment {
 
     private RegisterProductViewModel mViewModel;
     static final String TAG = SectionProductDetailsFragment.class.getName();
     final String ARG_BARCODE = "barcode";
+    final int REQUEST_BARCODE_SCAN = 2;
     final int REQUEST_IMAGE_CAPTURE = 1;
     final int BITMAP_SIZE = 256;
-    private ImageButton photoPreviewBtn;
+    private ImageView photoPreview;
     private final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
 
     @Override
@@ -75,14 +81,14 @@ public class SectionProductDetailsFragment extends Fragment {
             }
         }
 
+        final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
-        final ImageButton submitBarcodeBtn = (ImageButton) view.findViewById( R.id.submitBarcode );
         final EditText editName = (EditText) view.findViewById( R.id.editProductName );
         final EditText editDescription = (EditText) view.findViewById( R.id.editProductDescription );
-        // final Button submitProductBtn = (Button) view.findViewById( R.id.submitRegisterProductBtn );
         final View productForm = view.findViewById(R.id.productForm);
-        photoPreviewBtn = (ImageButton) view.findViewById(R.id.photoPreviewBtn);
-        final ViewGroup sectionTakePhoto = (ViewGroup) view.findViewById(R.id.sectionTakePhoto);
+        final ImageButton photoPreviewBtn = (ImageButton) view.findViewById(R.id.photoPreviewBtn);
+        photoPreview = (ImageView) view.findViewById(R.id.photoPreview);
+        final View sectionTakePhoto = (View) view.findViewById(R.id.photoPreviewBtn);
         final NachoTextView chipsInput = (NachoTextView) view.findViewById(R.id.chips_input);
 
         chipsInput.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
@@ -92,78 +98,114 @@ public class SectionProductDetailsFragment extends Fragment {
         );
         chipsInput.setAdapter( adapter );
 
-        submitBarcodeBtn.setOnClickListener(v -> {
+        editBarcode.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                mViewModel.setBarcode( editBarcode.getText().toString() );
+                return true;
+            }
+            return false;
+        });
+
+        barcodeInputLayout.setStartIconOnClickListener(v -> {
             mViewModel.setBarcode( editBarcode.getText().toString() );
         });
 
         mViewModel.getBarcode().observe( getViewLifecycleOwner(), value -> {
             Log.e( "RegisterProductFragment", "updated barcode "  + value);
             editBarcode.setText( value );
-            mViewModel.setProduct(
-                    new Product.Builder()
-                            .setBarcode( value )
-                            .build()
-            );
         });
 
         boolean hasFeatureCamera = getContext().getPackageManager()
                 .hasSystemFeature( PackageManager.FEATURE_CAMERA_ANY );
+
         if( !hasFeatureCamera ){
             sectionTakePhoto.setVisibility( View.GONE );
+        }
+        else{
+            photoPreviewBtn.setOnClickListener(v -> {
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                try {
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                } catch (ActivityNotFoundException e) {
+                    // TODO: display error state to the user: no available app to use to get a picture
+                    Toast.makeText(getContext(), "Unable to take a photo", Toast.LENGTH_LONG ).show();
+                }
+            });
+
+            barcodeInputLayout.setEndIconOnClickListener( v -> {
+                Intent scanIntent = new Intent(getActivity(), BarcodeScannerActivity.class);
+
+                try {
+                    this.startActivityForResult(scanIntent, REQUEST_BARCODE_SCAN);
+                }
+                catch (ActivityNotFoundException e) {
+                    // TODO: display error state to the user: no available app to scan
+                    Toast.makeText(getContext(), "Unable to scan barcode", Toast.LENGTH_LONG ).show();
+                }
+            });
         }
 
         LiveData<Product.Builder> productBuilder = mViewModel.getProductBuilder();
 
+        // needs this to unregister watcher on new builder update
+        // the indexes are for: editBarcode, editName, editDescription
+        InputUtil.FieldTextWatcher[] registeredTextWatchers = new InputUtil.FieldTextWatcher[3];
+
         productBuilder.observe(getViewLifecycleOwner(), builder -> {
 
-            if( hasFeatureCamera  ) {
-                photoPreviewBtn.setOnClickListener(v -> {
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    try {
-                        startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                    } catch (ActivityNotFoundException e) {
-                        // TODO: display error state to the user: no available app to use to get a picture
-                        Toast.makeText(getContext(), "Unable to take a photo", Toast.LENGTH_LONG ).show();
-                    }
-                });
+            editBarcode.removeTextChangedListener( registeredTextWatchers[ 0 ] );
+            editName.removeTextChangedListener( registeredTextWatchers[ 1 ] );
+            editDescription.removeTextChangedListener( registeredTextWatchers[ 2 ] );
+
+            if( builder == null ){
+                productForm.setVisibility( View.GONE );
+                return;
             }
 
-            if( builder.getImg() != null ) {
-                try {
-                    photoPreviewBtn.setImageBitmap( ImageUtil.convert( builder.getImg() ) );
-                }
-                catch ( IllegalArgumentException exception ) {
-                    photoPreviewBtn.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
-                }
-            }
-            else {
-                photoPreviewBtn.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
-            }
-
-            editBarcode.setText( builder.getBarcode() );
+            if( builder.getBarcode() != null )
+                editBarcode.setText( builder.getBarcode() );
             editName.setText( builder.getName() );
             editDescription.setText( builder.getDescription() );
 
-            editBarcode.addTextChangedListener(new FieldTextWatcher() {
+            if( builder.getImg() != null ) {
+                try {
+                    photoPreview.setImageBitmap( ImageUtil.convert( builder.getImg() ) );
+                }
+                catch ( IllegalArgumentException exception ) {
+                    photoPreview.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
+                }
+            }
+            else {
+                photoPreview.setImageResource( RESOURCE_DEFAULT_PRODUCT_IMG );
+            }
+
+            registeredTextWatchers[ 0 ] = new InputUtil.FieldTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
-                    productForm.setVisibility( View.GONE );
+                    if( !s.toString().equals( builder.getBarcode() )){
+                        mViewModel.setProduct( null );
+                        productForm.setVisibility( View.GONE );
+                    }
                 }
-            });
+            };
 
-            editName.addTextChangedListener(new FieldTextWatcher() {
+            registeredTextWatchers[ 1 ] = new InputUtil.FieldTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
                     builder.setName(s.toString());
                 }
-            });
+            };
 
-            editDescription.addTextChangedListener(new FieldTextWatcher() {
+            registeredTextWatchers[ 2 ] = new InputUtil.FieldTextWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
                     builder.setDescription(s.toString());
                 }
-            });
+            };
+
+            editBarcode.addTextChangedListener( registeredTextWatchers[ 0 ] );
+            editName.addTextChangedListener( registeredTextWatchers[ 1 ] );
+            editDescription.addTextChangedListener( registeredTextWatchers[ 2 ] );
 /*
             // submit product
             submitProductBtn.setOnClickListener(v -> {
@@ -212,7 +254,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
 
             // TODO: check product id in DB and get current tags
-
+            // close the dialog because user select a product
             closeBottomSheetDialog(view);
         });
 
@@ -226,10 +268,9 @@ public class SectionProductDetailsFragment extends Fragment {
             adapter.addAll( productTags );
         });
 
-        mViewModel.getProducts().observe(getViewLifecycleOwner(), products -> {
+        mViewModel.onUpdateMatchingProductsList().observe(getViewLifecycleOwner(), products -> {
             Log.e( "RegisterProductFragment", "updated products");
             if( products != null && !products.isEmpty() ) {
-                productForm.setVisibility( View.GONE );
                 openBottomSheetDialog(view);
                 Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
             }
@@ -251,15 +292,22 @@ public class SectionProductDetailsFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK ) {
             Bundle extras = data.getExtras();
 
             Bitmap imageBitmap = (Bitmap) extras.get("data");
             if( imageBitmap != null ){
                 imageBitmap = Bitmap.createScaledBitmap(imageBitmap, BITMAP_SIZE, BITMAP_SIZE, false);
-                photoPreviewBtn.setImageBitmap( imageBitmap );
+                photoPreview.setImageBitmap( imageBitmap );
                 mViewModel.getProductBuilder().getValue()
                         .setImg( ImageUtil.convert( imageBitmap ) );
+            }
+        }
+        else if( requestCode == REQUEST_BARCODE_SCAN ){
+            if( resultCode == Activity.RESULT_OK ) {
+                String barcode = data.getStringExtra(BarcodeScannerActivity.BARCODE);
+                mViewModel.setBarcode( barcode );
             }
         }
     }
@@ -291,14 +339,5 @@ public class SectionProductDetailsFragment extends Fragment {
             navController
                     .popBackStack(R.id.suggestedProductListDialogFragment, true);
         }
-    }
-
-    private abstract class FieldTextWatcher implements TextWatcher {
-
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
-        public abstract void afterTextChanged(Editable s);
     }
 }

@@ -25,10 +25,14 @@ public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
             R.string.tab_product_purchase_details
     };
     private final Context mContext;
+    private RegisterProductViewModel vm;
+    private int pageCount;
 
-    public ProductInfoSectionsPagerAdapter(Context context, FragmentManager fm) {
+    public ProductInfoSectionsPagerAdapter(Context context, FragmentManager fm, RegisterProductViewModel vm ) {
         super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT );
         mContext = context;
+        this.vm = vm;
+        this.pageCount = 1;
     }
 
     @Override
@@ -54,8 +58,18 @@ public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
     }
 
 
+    public void enableTabs( boolean shouldEnable ){
+        if( !shouldEnable ){
+            pageCount = 1;
+        }
+        else{
+            pageCount = TAB_TITLES.length;
+        }
+        this.notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
-        return TAB_TITLES.length;
+        return pageCount;
     }
 }

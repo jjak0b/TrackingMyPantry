@@ -1,88 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <LinearLayout
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_cost"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="100">
+        android:layout_marginBottom="@dimen/text_margin"
+        android:hint="@string/product_cost">
 
-        <TextView
-            android:id="@+id/product_cost_label"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextCost"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="60"
-            android:gravity="center"
-            android:text="@string/product_cost" />
-
-        <EditText
-            android:id="@+id/product_cost_edit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="40"
-            android:ems="10"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
             android:inputType="numberDecimal" />
-    </LinearLayout>
 
-    <LinearLayout
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_purchase_date"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="100">
+        android:layout_marginBottom="@dimen/text_margin"
+        android:hint="@string/product_purchase_date"
+        app:endIconDrawable="@android:drawable/ic_menu_today"
+        app:endIconMode="custom">
 
-        <TextView
-            android:id="@+id/product_boughtDate_label"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextPurchaseDate"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="60"
-            android:gravity="center"
-            android:text="@string/product_purchase_date" />
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="none" />
 
-        <EditText
-            android:id="@+id/product_boughtDate_edit"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="40"
-            android:ems="10"
-            android:inputType="date" />
-    </LinearLayout>
 
-    <LinearLayout
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_purchase_location"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="100">
+        android:layout_marginBottom="@dimen/text_margin"
+        android:hint="@string/product_purchase_location"
+        app:endIconDrawable="@android:drawable/ic_dialog_map"
+        app:endIconMode="custom">
 
-        <TextView
-            android:id="@+id/product_boughtPlace_label"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextLocation"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="60"
-            android:gravity="center"
-            android:text="@string/product_purchase_location" />
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="40"
-            android:visibility="visible">
-
-            <com.google.android.gms.maps.MapView
-                android:id="@+id/product_boughtPlace_map"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="60" />
-        </FrameLayout>
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="text" />
 
 
-    </LinearLayout>
+    </com.google.android.material.textfield.TextInputLayout>
+
 </LinearLayout>

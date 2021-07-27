@@ -28,12 +28,13 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_expire_date"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/text_margin"
         android:hint="@string/product_expire_date"
-        app:startIconDrawable="@android:drawable/ic_menu_agenda"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        app:endIconDrawable="@android:drawable/ic_menu_today"
+        app:endIconMode="custom">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextDate_register_product_expire_date"
