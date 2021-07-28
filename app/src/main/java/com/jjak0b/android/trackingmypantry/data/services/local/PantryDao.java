@@ -1,15 +1,13 @@
 package com.jjak0b.android.trackingmypantry.data.services.local;
 
 import androidx.lifecycle.LiveData;
-import androidx.room.ColumnInfo;
 import androidx.room.Dao;
-import androidx.room.Delete;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +20,7 @@ public interface PantryDao {
     LiveData<List<Pantry>> getAll();
 
     @Update(
-            entity = ProductInstance.class,
+            entity = ProductInstanceGroup.class,
             onConflict = OnConflictStrategy.IGNORE
     )
     void moveInstanceToPantry(ProductInstanceLocation... update);
@@ -37,7 +35,7 @@ public interface PantryDao {
             this.pantry_id = pantry_id;
         }
 
-        ProductInstanceLocation(@NotNull ProductInstance instance, @NotNull Pantry location){
+        ProductInstanceLocation(@NotNull ProductInstanceGroup instance, @NotNull Pantry location){
             this.id = instance.getId();
             this.pantry_id = location.getId();
         }

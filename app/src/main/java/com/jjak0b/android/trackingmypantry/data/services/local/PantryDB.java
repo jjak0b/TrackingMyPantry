@@ -13,18 +13,16 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
-import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Database(
         entities = {
                 Product.class,
-                ProductInstance.class,
+                ProductInstanceGroup.class,
                 ProductTag.class,
                 Pantry.class,
                 TagAndProduct.class

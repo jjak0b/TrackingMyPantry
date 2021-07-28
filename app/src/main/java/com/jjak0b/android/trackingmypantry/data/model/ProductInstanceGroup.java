@@ -27,7 +27,7 @@ import java.util.Date;
             )
     }*/
 )
-public class ProductInstance {
+public class ProductInstanceGroup {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo( name = "id")
     long id;

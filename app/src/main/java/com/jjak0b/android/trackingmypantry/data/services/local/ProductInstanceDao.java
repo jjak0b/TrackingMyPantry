@@ -4,13 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithInstances;
 
 import java.util.List;
@@ -45,11 +43,11 @@ public interface ProductInstanceDao {
     LiveData<List<ProductWithInstances>> searchAllInstancesOfProduct(String[] tags, String content);
 
     @Insert
-    long[] insertAll(ProductInstance... instances);
+    long[] insertAll(ProductInstanceGroup... instances);
 
     @Update
-    void updateAll(ProductInstance... instances);
+    void updateAll(ProductInstanceGroup... instances);
 
     @Delete
-    void deleteAll(ProductInstance... instances);
+    void deleteAll(ProductInstanceGroup... instances);
 }

@@ -1,8 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.main;
 
 import android.app.Application;
-import android.os.Bundle;
-import android.util.Log;
 
 import androidx.arch.core.util.Function;
 import androidx.lifecycle.AndroidViewModel;
@@ -13,10 +11,9 @@ import androidx.lifecycle.Transformations;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.GeoLocation;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
@@ -26,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,7 +44,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     private MutableLiveData<List<ProductTag>> assignedTags;
 
-    private MutableLiveData<ProductInstance> productInstance;
+    private MutableLiveData<ProductInstanceGroup> productInstance;
 
     private MutableLiveData<Integer> productInstancesCount;
 
@@ -120,7 +116,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
     }
 
     public void resetProductInstance(){
-        ProductInstance pi = new ProductInstance();
+        ProductInstanceGroup pi = new ProductInstanceGroup();
         pi.setExpiryDate( new Date() );
         pi.setPantryId( -1 );
         setArticlesCount( 1 );
@@ -139,7 +135,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         return pantryRepository.getPantries();
     }
 
-    public LiveData<ProductInstance> getProductInstance(){
+    public LiveData<ProductInstanceGroup> getProductInstance(){
         return productInstance;
     }
 
