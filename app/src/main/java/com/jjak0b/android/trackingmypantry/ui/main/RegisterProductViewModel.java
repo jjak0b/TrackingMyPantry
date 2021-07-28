@@ -13,6 +13,7 @@ import androidx.lifecycle.Transformations;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.model.GeoLocation;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstance;
@@ -217,5 +218,142 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     public LiveData<ProductWithTags> getProduct() {
         return this.localProduct;
+    }
+
+    public ProductValidator getValidator() {
+        return new ProductValidator();
+    }
+
+    public class ProductValidator {
+
+        private boolean validityProductBuilder;
+        private boolean validityName;
+        private boolean validityDescription;
+        private boolean validityImage;
+        private boolean validityTags;
+
+        private boolean validityProductInstance;
+        private boolean validityQuantity;
+        private boolean validityExpireDate;
+        private boolean validityPantry;
+
+        private boolean validityProductPurchaseInfo;
+        private boolean validityCost;
+        private boolean validityPurchaseDate;
+        private boolean validityPurchaseLocation;
+
+        public void updateProductBuilderValidity() {
+            validityProductBuilder = isProductBuilderReady();
+            validityName = isNameValid();
+            validityDescription = isDescriptionValid();
+            validityImage = isImageValid();
+            validityTags = areTagsValid();
+        }
+
+        public void updateProductInstanceValidity() {
+            validityProductPurchaseInfo = isProductPurchaseInfoReady();
+            validityQuantity = isQuantityValid();
+            validityExpireDate = isExpireDateValid();
+        }
+
+        public boolean isProductBuilderReady() {
+            return getProductBuilder().getValue() != null;
+        }
+
+        public boolean isProductInstanceReady() {
+            return getProductInstance().getValue() != null;
+        }
+
+        public boolean isProductPurchaseInfoReady() {
+            return getProductPurchaseInfo().getValue() != null;
+        }
+
+        public boolean isTextFieldValueValid( String value, boolean isRequired ) {
+            if( value == null ){
+                return !isRequired;
+            }
+            else {
+                value = value.trim();
+                if( value.length() < 1) {
+                    return !isRequired;
+                }
+
+                return true;
+            }
+        }
+
+        public boolean isNameValid() {
+
+            if( !isProductBuilderReady() ){
+                return false;
+            }
+
+            String name = productBuilder.getValue().getName();
+
+            return isTextFieldValueValid( name, true );
+        }
+        public boolean isDescriptionValid() {
+
+            if( !isProductBuilderReady() ){
+                return false;
+            }
+
+            String description = productBuilder.getValue().getDescription();
+
+            return isTextFieldValueValid( description, false );
+        }
+
+        public boolean areTagsValid() {
+            return isProductBuilderReady();
+        }
+
+        public boolean isImageValid() {
+            if( !isProductBuilderReady() ){
+                return false;
+            }
+
+            String img = productBuilder.getValue().getImg();
+
+            return isTextFieldValueValid( img, false );
+        }
+
+        public boolean areProductDetailsValid() {
+            return isProductBuilderReady() && isNameValid() && isDescriptionValid() && areTagsValid() && isImageValid();
+        }
+
+        public boolean isQuantityValid() {
+            return getArticlesCount().getValue() > 0;
+        }
+
+        public boolean isExpireDateValid() {
+            Date d = getProductInstance().getValue().getExpiryDate();
+            return d != null;
+        }
+
+        public boolean isPantryValid() {
+            return getProductInstance().getValue().getPantryId() > 0;
+        }
+
+        public boolean areProductInstanceDetailsValid() {
+            return isProductInstanceReady() && isQuantityValid() && isExpireDateValid() && isPantryValid();
+        }
+
+        public boolean isCostValid() {
+            return getProductPurchaseInfo().getValue().getCost() >= 0f;
+        }
+
+        public boolean isPurchaseDateValid() {
+            Date d = getProductPurchaseInfo().getValue().getPurchaseDate();
+            return d != null;
+        }
+
+        public boolean isPurchaseLocationValid() {
+            // GeoLocation l = getProductPurchaseInfo().getValue().getPurchaseLocation();
+            return true;
+        }
+
+        public boolean areProductPurchaseInfoValid() {
+            return isProductPurchaseInfoReady() && isCostValid() && isPurchaseDateValid() && isPurchaseLocationValid();
+        }
     }
 }

@@ -9,9 +9,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.google.android.material.tabs.TabLayout;
 import com.jjak0b.android.trackingmypantry.R;
@@ -45,13 +45,72 @@ public class RegisterProductFragment extends Fragment {
         mPageViewModel = new ViewModelProvider(requireActivity()).get(PageViewModel.class);
 
         ViewPager viewPager = view.findViewById(R.id.view_pager);
+        Button nextBtn = view.findViewById( R.id.continueBtn );
         TabLayout tabs = view.findViewById( R.id.tabs );
 
         ProductInfoSectionsPagerAdapter productInfoSectionsPagerAdapter =
                 new ProductInfoSectionsPagerAdapter(getActivity(), getActivity().getSupportFragmentManager(), mProductViewModel);
 
+        // when product is not ready so allow only tab 0
         mProductViewModel.getProductBuilder().observe( getViewLifecycleOwner(), builder -> {
-            productInfoSectionsPagerAdapter.enableTabs( builder != null && builder.getBarcode() != null );
+            if( builder == null ){
+                mPageViewModel.setPageIndex( 0 );
+                mPageViewModel.setMaxNavigableTabCount( 1 );
+            }
+            else {
+                mPageViewModel.setMaxNavigableTabCount( productInfoSectionsPagerAdapter.getAbsolutePageCount()  );
+            }
+        });
+
+        mPageViewModel.getPageIndex().observe( getViewLifecycleOwner(), index -> {
+            tabs.selectTab( tabs.getTabAt( index ) );
+
+            boolean shouldEnableBtn = mPageViewModel.canSelectNextTab();
+
+            if( index >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ){
+                shouldEnableBtn = true;
+                nextBtn.setText( R.string.action_register_product );
+            }
+            else{
+                nextBtn.setText( R.string.action_next_product_section);
+            }
+
+            nextBtn.setEnabled( shouldEnableBtn );
+        });
+
+        mPageViewModel.getMaxNavigableTabCount().observe( getViewLifecycleOwner(), count -> {
+            nextBtn.setEnabled( mPageViewModel.canSelectNextTab() );
+            productInfoSectionsPagerAdapter.setMaxEnabledTabs( count );
+        });
+
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if( mPageViewModel.canSelectNextTab() ){
+                    int nextIndex = tabs.getSelectedTabPosition() + 1;
+                    mPageViewModel.setPageIndex( nextIndex );
+                }
+                else if( tabs.getSelectedTabPosition() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
+                    // TODO: register product
+                }
+            }
+        });
+
+        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                mPageViewModel.setPageIndex( tab.getPosition() );
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
         });
 
         viewPager.setAdapter(productInfoSectionsPagerAdapter);

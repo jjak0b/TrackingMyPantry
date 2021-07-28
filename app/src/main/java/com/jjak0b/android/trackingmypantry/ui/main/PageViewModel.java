@@ -6,22 +6,33 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
+import java.util.Objects;
+
 public class PageViewModel extends ViewModel {
 
-    private MutableLiveData<Integer> mIndex = new MutableLiveData<>();
+    private MutableLiveData<Integer> mIndex = new MutableLiveData<>( 0 );
 
-    private LiveData<String> mText = Transformations.map(mIndex, new Function<Integer, String>() {
-        @Override
-        public String apply(Integer input) {
-            return "Hello world from section: " + input;
+    private MutableLiveData<Integer> maxTabCount = new MutableLiveData<>( 1 );
+
+    public void setPageIndex(Integer index) {
+        if( !Objects.equals( mIndex.getValue(), index ) ){
+            mIndex.setValue(index);
         }
-    });
-
-    public void setIndex(int index) {
-        mIndex.setValue(index);
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    public LiveData<Integer> getPageIndex(){
+        return mIndex;
+    }
+
+    public LiveData<Integer> getMaxNavigableTabCount() {
+        return maxTabCount;
+    }
+
+    public void setMaxNavigableTabCount( Integer c ) {
+        maxTabCount.setValue( c );
+    }
+
+    public boolean canSelectNextTab() {
+        return mIndex.getValue() + 1 < maxTabCount.getValue();
     }
 }

@@ -58,18 +58,17 @@ public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
     }
 
 
-    public void enableTabs( boolean shouldEnable ){
-        if( !shouldEnable ){
-            pageCount = 1;
-        }
-        else{
-            pageCount = TAB_TITLES.length;
-        }
+    public void setMaxEnabledTabs( int pageCount ){
+        this.pageCount = pageCount;
         this.notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return pageCount;
+        return this.pageCount;
+    }
+
+    public int getAbsolutePageCount() {
+        return TAB_TITLES.length;
     }
 }
