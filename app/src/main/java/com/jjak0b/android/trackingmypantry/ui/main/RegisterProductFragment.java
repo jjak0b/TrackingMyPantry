@@ -4,19 +4,32 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.viewpager.widget.ViewPager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
+import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+
+import retrofit2.HttpException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -25,6 +38,8 @@ public class RegisterProductFragment extends Fragment {
 
     private RegisterProductViewModel mProductViewModel;
     private PageViewModel mPageViewModel;
+    private static final String TAG = RegisterProductFragment.class.getName();
+
     public RegisterProductFragment() {
         // Required empty public constructor
     }
@@ -91,7 +106,7 @@ public class RegisterProductFragment extends Fragment {
                     mPageViewModel.setPageIndex( nextIndex );
                 }
                 else if( tabs.getSelectedTabPosition() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
-                    // TODO: register product
+                    registerProduct( view );
                 }
             }
         });
@@ -116,5 +131,45 @@ public class RegisterProductFragment extends Fragment {
         viewPager.setAdapter(productInfoSectionsPagerAdapter);
         tabs.setupWithViewPager(viewPager);
 
+    }
+
+    // submit product
+    void registerProduct( View view) {
+        Futures.addCallback(
+                mProductViewModel.registerProduct(),
+                new FutureCallback<Object>() {
+                    @Override
+                    public void onSuccess(@NullableDecl Object result) {
+                        Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
+                        Navigation.findNavController(view)
+                                .popBackStack(R.id.registerProductFragment, true);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        if( t instanceof AuthException){
+                            Log.e( TAG, "Authentication Error", t );
+                            Toast.makeText(getContext(), "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
+                                    .show();
+                        }
+                        else if( t instanceof HttpException){
+                            Log.e( TAG, "Server Error", t );
+                            Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
+                                    .show();
+                        }
+                        else if( t instanceof IOException){
+                            Log.e( TAG, "Network Error", t );
+                            Toast.makeText(getContext(), "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
+                                    .show();
+                        }
+                        else {
+                            Log.e( TAG, "Unexpected Error", t );
+                            Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
+                                    .show();
+                        }
+                    }
+                },
+                ContextCompat.getMainExecutor( getContext() )
+        );
     }
 }

@@ -97,6 +97,11 @@ public class SectionProductDetailsFragment extends Fragment {
                 android.R.layout.simple_dropdown_item_1line
         );
         chipsInput.setAdapter( adapter );
+        chipsInput.setOnFocusChangeListener( (v, hasFocus) -> {
+            if( !hasFocus ){
+                mViewModel.setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
+            }
+        });
 
         editBarcode.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -206,50 +211,7 @@ public class SectionProductDetailsFragment extends Fragment {
             editBarcode.addTextChangedListener( registeredTextWatchers[ 0 ] );
             editName.addTextChangedListener( registeredTextWatchers[ 1 ] );
             editDescription.addTextChangedListener( registeredTextWatchers[ 2 ] );
-/*
-            // submit product
-            submitProductBtn.setOnClickListener(v -> {
 
-                mViewModel.setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
-
-                Futures.addCallback(
-                        mViewModel.registerProduct(),
-                        new FutureCallback<Object>() {
-                            @Override
-                            public void onSuccess(@NullableDecl Object result) {
-                                Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
-                                Navigation.findNavController(view)
-                                        .popBackStack(R.id.registerProductFragment, true);
-                            }
-
-                            @Override
-                            public void onFailure(Throwable t) {
-                                if( t instanceof AuthException ){
-                                    Log.e( TAG, "Authentication Error", t );
-                                    Toast.makeText(getContext(), "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
-                                            .show();
-                                }
-                                else if( t instanceof HttpException ){
-                                    Log.e( TAG, "Server Error", t );
-                                    Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
-                                            .show();
-                                }
-                                else if( t instanceof IOException ){
-                                    Log.e( TAG, "Network Error", t );
-                                    Toast.makeText(getContext(), "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
-                                            .show();
-                                }
-                                else {
-                                    Log.e( TAG, "Unexpected Error", t );
-                                    Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
-                                            .show();
-                                }
-                            }
-                        },
-                        ContextCompat.getMainExecutor( getContext() )
-                );
-            });
-            */
             productForm.setVisibility( View.VISIBLE );
 
 
