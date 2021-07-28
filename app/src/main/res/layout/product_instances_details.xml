@@ -2,20 +2,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:divider="?attr/dividerHorizontal"
     android:dividerPadding="@dimen/text_margin"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_quantity"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:dividerPadding="@dimen/text_margin"
-        android:hint="@string/product_quantity"
         android:layout_marginBottom="@dimen/text_margin"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        android:dividerPadding="@dimen/text_margin"
+        android:hint="@string/product_quantity">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_product_quantity"
@@ -40,21 +39,20 @@
             android:id="@+id/editTextDate_register_product_expire_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:editable="false"
+            android:enabled="false"
             android:imeOptions="actionNext"
-            android:inputType="none"
+            android:inputType="date"
             android:singleLine="true" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/product_pantry"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/text_margin"
         android:hint="@string/product_pantry_name"
-        app:endIconMode="dropdown_menu"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        app:endIconMode="dropdown_menu">
 
         <AutoCompleteTextView
             android:id="@+id/product_pantry_selector"

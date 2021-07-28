@@ -4,15 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:divider="?attr/dividerHorizontal"
-    android:orientation="vertical"
-    android:showDividers="end">
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/text_margin">
+        android:orientation="vertical">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/barcodeInputLayout"
@@ -40,124 +37,102 @@
     <LinearLayout
         android:id="@+id/productForm"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:visibility="invisible"
+        android:visibility="gone"
         tools:visibility="visible">
 
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="194dp">
+
+            <ImageView
+                android:id="@+id/photoPreview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/register_product_take_photo"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_baseline_product_placeholder" />
+
+            <ImageButton
+                android:id="@+id/photoPreviewBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_menu_camera" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp">
+            android:orientation="vertical">
 
-            <LinearLayout
+            <!-- Title, secondary and supporting text -->
+            <com.google.android.material.textfield.TextInputLayout
+
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:dividerPadding="@dimen/text_margin"
+                android:hint="@string/register_product_name">
 
-                <!-- Media -->
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="194dp">
-
-                    <ImageView
-                        android:id="@+id/photoPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription="@string/register_product_take_photo"
-                        android:scaleType="fitCenter"
-                        app:srcCompat="@drawable/ic_baseline_product_placeholder" />
-
-                    <ImageButton
-                        android:id="@+id/photoPreviewBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/ic_menu_camera" />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-                <LinearLayout
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editProductName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:imeOptions="actionNext"
+                    android:inputType="text" />
 
-                    <!-- Title, secondary and supporting text -->
-                    <com.google.android.material.textfield.TextInputLayout
+            </com.google.android.material.textfield.TextInputLayout>
 
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginBottom="@dimen/text_margin"
-                        android:dividerPadding="@dimen/text_margin"
-                        android:hint="@string/register_product_name">
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:dividerPadding="@dimen/text_margin"
+                android:hint="@string/register_product_description">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/editProductName"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="text"
-                            android:textAppearance="?attr/textAppearanceHeadline6" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editProductDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionNext"
+                    android:inputType="textMultiLine|textImeMultiLine"
+                    android:lines="3"
+                    android:maxLines="5"
+                    android:nestedScrollingEnabled="true" />
 
-                    </com.google.android.material.textfield.TextInputLayout>
+            </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginBottom="@dimen/text_margin"
-                        android:dividerPadding="@dimen/text_margin"
-                        android:hint="@string/register_product_description">
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:dividerPadding="@dimen/text_margin"
+                android:hint="@string/register_product_tags"
+                app:endIconMode="dropdown_menu"
+                app:startIconDrawable="@drawable/ic_baseline_tag"
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/editProductDescription"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:imeOptions="actionNext"
-                            android:inputType="textMultiLine|textImeMultiLine"
-                            android:lines="3"
-                            android:maxLines="5"
-                            android:nestedScrollingEnabled="true"
-                            android:textAppearance="?attr/textAppearanceBody2"
-                            android:textColor="?android:attr/textColorSecondary" />
+                >
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                <com.hootsuite.nachos.NachoTextView
+                    android:id="@+id/chips_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:completionThreshold="0"
+                    android:paddingHorizontal="@dimen/text_margin"
+                    android:paddingVertical="@dimen/default_vertical_padding" />
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginBottom="@dimen/text_margin"
-                        android:dividerPadding="@dimen/text_margin"
-                        android:hint="@string/register_product_tags"
-                        app:endIconMode="dropdown_menu"
-                        app:startIconDrawable="@drawable/ic_baseline_tag"
+            </com.google.android.material.textfield.TextInputLayout>
 
-                        >
-
-                        <com.hootsuite.nachos.NachoTextView
-                            android:id="@+id/chips_input"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:completionThreshold="0"
-                            android:paddingHorizontal="@dimen/text_margin"
-                            android:paddingVertical="@dimen/default_vertical_padding"
-                            android:textAppearance="?attr/textAppearanceBody2"
-                            android:textColor="?android:attr/textColorSecondary" />
-
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
     </LinearLayout>
 
