@@ -63,36 +63,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
         ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), R.layout.support_simple_spinner_dropdown_item);
         pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
-
-
-        quantityInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if( !hasFocus ){
-                    int c;
-                    try {
-                        c = Integer.parseInt(quantityInput.getText().toString());
-                    }
-                    catch (NumberFormatException e ){
-                        c = -1;
-                    }
-
-                    if( c > 0 ){
-                        mViewModel.setArticlesCount( c );
-                    }
-                    else{
-                        mViewModel.setArticlesCount( 1 );
-                        quantityInput.setText( String.valueOf( 1 ) );
-                    }
-                }
-            }
-        });
-
-        mViewModel.getArticlesCount().observe( getViewLifecycleOwner(), count -> {
-            String t = String.valueOf( count );
-            quantityInput.setText( t );
-            quantityInput.setSelection( t.length() );
-        });
+        
 /*
         mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), pantries -> {
             pantriesAdapter.clear();
@@ -116,6 +87,28 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                     productInstance.setPantryId(pantry.getId());
                 }
             });
+
+            quantityInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if( !hasFocus ){
+                        int c;
+                        try {
+                            c = Integer.parseInt(quantityInput.getText().toString());
+                        }
+                        catch (NumberFormatException e ){
+                            c = -1;
+                        }
+
+
+                        if( c <= 0 ){
+                            c = 1;
+                        }
+
+                        productInstance.setQuantity( c );
+                        quantityInput.setText( String.valueOf( c ) );
+                }
+            }});
 
             View.OnClickListener showDatePickerOnClick = new View.OnClickListener() {
                 @Override
@@ -150,6 +143,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                     pantryAutoCompleteSelector.setSelection( position );
                 }
                 expireDateInput.setText( dateFormat.format( productInstance.getExpiryDate() ) );
+                quantityInput.setText( String.valueOf( productInstance.getQuantity() ));
             }
         });
     }

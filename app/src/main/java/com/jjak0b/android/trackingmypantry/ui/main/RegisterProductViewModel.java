@@ -119,7 +119,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         ProductInstanceGroup pi = new ProductInstanceGroup();
         pi.setExpiryDate( new Date() );
         pi.setPantryId( -1 );
-        setArticlesCount( 1 );
+        pi.setQuantity( 1 );
         productInstance.setValue( pi );
     }
 
@@ -139,14 +139,6 @@ public class RegisterProductViewModel extends AndroidViewModel {
         return productInstance;
     }
 
-    public LiveData<Integer> getArticlesCount(){
-        return productInstancesCount;
-    }
-
-    public void setArticlesCount( @NotNull Integer count ){
-        if( !productInstancesCount.getValue().equals( count ) )
-            productInstancesCount.setValue( count );
-    }
     public MutableLiveData<PurchaseInfo> getProductPurchaseInfo() {
         return productPurchaseInfo;
     }
@@ -318,7 +310,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         }
 
         public boolean isQuantityValid() {
-            return getArticlesCount().getValue() > 0;
+            return getProductInstance().getValue().getQuantity() > 0;
         }
 
         public boolean isExpireDateValid() {

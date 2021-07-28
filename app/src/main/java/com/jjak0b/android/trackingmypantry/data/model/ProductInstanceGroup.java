@@ -39,6 +39,9 @@ public class ProductInstanceGroup {
     @ColumnInfo( name = "pantry_id")
     long pantryId;
 
+    @ColumnInfo( name = "quantity")
+    int quantity;
+
     @Embedded(prefix = "purchaseInfo")
     PurchaseInfo purchaseInfo;
 
@@ -92,5 +95,13 @@ public class ProductInstanceGroup {
 
     public void setCurrentAmountPercent(float currentAmountPercent) {
         this.currentAmountPercent = currentAmountPercent;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }
