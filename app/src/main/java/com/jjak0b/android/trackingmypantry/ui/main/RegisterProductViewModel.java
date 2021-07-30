@@ -8,7 +8,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
@@ -18,11 +21,12 @@ import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
-import org.jetbrains.annotations.NotNull;
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,6 +47,8 @@ public class RegisterProductViewModel extends AndroidViewModel {
     private MutableLiveData<Product.Builder> productBuilder;
 
     private MutableLiveData<List<ProductTag>> assignedTags;
+
+    private MutableLiveData<Pantry> assignedPantry;
 
     private MutableLiveData<ProductInstanceGroup> productInstance;
 
@@ -86,6 +92,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
                     }
                 }
         );
+        assignedPantry = new MutableLiveData<>();
         productInstancesCount = new MutableLiveData<>(1);
         productInstance = new MutableLiveData<>(null);
         productPurchaseInfo = new MutableLiveData<>(null);
@@ -118,7 +125,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
     public void resetProductInstance(){
         ProductInstanceGroup pi = new ProductInstanceGroup();
         pi.setExpiryDate( new Date() );
-        pi.setPantryId( -1 );
+        pi.setPantryId( 0 );
         pi.setQuantity( 1 );
         productInstance.setValue( pi );
     }
@@ -186,6 +193,14 @@ public class RegisterProductViewModel extends AndroidViewModel {
         }
     }
 
+    public LiveData<Pantry> getPantry() {
+        return assignedPantry;
+    }
+
+    public void setPantry( Pantry p ){
+        assignedPantry.setValue( p );
+    }
+
     public ListenableFuture registerProduct() {
         Product p = new Product.Builder()
                 .from(
@@ -200,8 +215,29 @@ public class RegisterProductViewModel extends AndroidViewModel {
             p.setId(null);
         }
 
-        return pantryRepository.addProduct(p, assignedTags.getValue());
+        Pantry pantry = getPantry().getValue();
+        ProductInstanceGroup group = getProductInstance().getValue();
+        PurchaseInfo purchaseInfo = getProductPurchaseInfo().getValue();
+        group.setPurchaseInfo( purchaseInfo );
 
+        ListenableFuture<List<Object>> futureResults = Futures.successfulAsList(
+                pantryRepository.addProduct(p, assignedTags.getValue()),
+                pantryRepository.addPantry( pantry )
+        );
+
+        return Futures.transformAsync(
+                futureResults,
+                new AsyncFunction<List<Object>, Long>() {
+                    @Override
+                    public ListenableFuture<Long> apply(@NullableDecl List<Object> results) {
+                        Iterator<Object> it = results.iterator();
+                        Product product = (Product) it.next();
+                        Pantry pantry = (Pantry) it.next();
+                        return pantryRepository.addProductInstanceGroup(group, product, pantry);
+                    }
+                },
+                MoreExecutors.directExecutor()
+        );
     }
 
     public LiveData<ProductWithTags> getProduct() {

@@ -2,10 +2,12 @@ package com.jjak0b.android.trackingmypantry.data.services.local;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 
@@ -25,6 +27,10 @@ public interface PantryDao {
     )
     void moveInstanceToPantry(ProductInstanceLocation... update);
 
+    @Insert(
+            onConflict = OnConflictStrategy.IGNORE
+    )
+    ListenableFuture<Long> addPantry(Pantry... pantry);
 
     class ProductInstanceLocation {
         long id;

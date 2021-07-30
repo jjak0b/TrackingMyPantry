@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Index;
@@ -18,8 +19,22 @@ public class Pantry {
 
     String name;
 
+
+    @NonNull
+    @Override
+    public Pantry clone()  {
+        return new Pantry( id, name );
+    }
+
     public static Pantry creteDummy(long id){
         return new Pantry(id, null);
+    }
+    public static Pantry creteDummy(String name){
+        return new Pantry(0, name);
+    }
+
+    public static boolean isDummy( Pantry p ) {
+        return p.id <= 0 || p.name == null;
     }
 
     public Pantry( long id, String name ){

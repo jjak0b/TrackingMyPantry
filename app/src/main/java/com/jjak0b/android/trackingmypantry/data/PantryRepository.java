@@ -1,7 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data;
 
 import android.content.Context;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.core.content.ContextCompat;
@@ -21,6 +20,7 @@ import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
@@ -29,6 +29,7 @@ import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -162,6 +163,7 @@ public class PantryRepository {
      * Blocking call
      * @param p
      * @param tags
+     * @return
      */
     private void addProductLocal( Product p, List<ProductTag> tags ){
         pantryDB.getProductDao().insertProductAndAssignedTags( p, tags );
@@ -175,7 +177,7 @@ public class PantryRepository {
      * with cause
      *
      */
-    public ListenableFuture addProduct(final Product p, List<ProductTag> tags ) {
+    public ListenableFuture<Product> addProduct(final Product p, List<ProductTag> tags ) {
         // TODO: pass ProductBundle to add Product details to remote and and product instances details to local
 
         Log.d( TAG, "addProduct: " + p );
@@ -204,14 +206,51 @@ public class PantryRepository {
             );
         }
 
-        return Futures.transform(
+        ListenableFuture<Product> afterLocal = Futures.transform(
                 beforeLocal,
-                new Function<Product, Void>() {
+                new Function<Product, Product>() {
                     @Override
-                    public Void apply(@NullableDecl Product input) {
-                        Log.d( TAG, "addProduct - adding product to local" + input );
-                        addProductLocal(input, tags);
-                        return null;
+                    public Product apply(@NullableDecl Product input) {
+                        addProductLocal(input, tags);;
+                        Log.d( TAG, "addProduct - added product to local" + input );
+                        return input;
+                    }
+                },
+                pantryDB.getDBWriteExecutor()
+        );
+
+        return afterLocal;
+    };
+
+
+    public ListenableFuture<Long> addProductInstanceGroup(ProductInstanceGroup instanceGroup, Product product, Pantry pantry ) {
+        instanceGroup.setPantryId( pantry.getId() );
+        instanceGroup.setProductId( product.getId() );
+        return Futures.submit(
+                new Callable<Long>() {
+                    @Override
+                    public Long call() {
+                        return pantryDB.getProductInstanceDao().insertAll( instanceGroup )[ 0 ];
+                    }
+                },
+                pantryDB.getDBWriteExecutor()
+        );
+    }
+
+    public ListenableFuture<Pantry> addPantry( Pantry pantry ) {
+        Log.d( TAG, "adding pantry to local " + pantry );
+
+        return Futures.transform(
+                pantryDB.getPantryDao().addPantry( pantry ),
+                new Function<Long, Pantry>() {
+                    @Override
+                    public Pantry apply(@NullableDecl Long pantryId) {
+                        if( pantryId >= 0 ){
+                            pantry.setId( pantryId );
+                        }
+
+                        Log.d( TAG, "added pantry to local " + pantry );
+                        return pantry;
                     }
                 },
                 pantryDB.getDBWriteExecutor()
