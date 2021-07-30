@@ -63,14 +63,22 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
         ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), R.layout.support_simple_spinner_dropdown_item);
         pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
-        
-/*
+
         mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), pantries -> {
             pantriesAdapter.clear();
             if( pantries != null )
                 pantriesAdapter.addAll( pantries );
         });
-*/
+
+        pantryAutoCompleteSelector.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if( !hasFocus ){
+
+                }
+            }
+        });
+
         mViewModel.getProductInstance().observe( getViewLifecycleOwner(), productInstance -> {
             if( productInstance == null ){
                 // set default values in fields
