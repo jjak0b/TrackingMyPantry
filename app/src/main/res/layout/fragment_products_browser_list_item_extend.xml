@@ -5,21 +5,5 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <net.cachapa.expandablelayout.ExpandableLayout
-        android:id="@+id/expandable_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        app:el_duration="300"
-        app:el_expanded="false"
-        app:el_parallax="0.5"
-        tools:el_expanded="true">
 
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Expanded Content" />
-    </net.cachapa.expandablelayout.ExpandableLayout>
 </LinearLayout>

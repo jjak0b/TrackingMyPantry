@@ -92,6 +92,21 @@
 
         </LinearLayout>
 
+        <net.cachapa.expandablelayout.ExpandableLayout
+            android:id="@+id/expandable_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:el_duration="300"
+            app:el_expanded="false"
+            app:el_parallax="0.5"
+            tools:el_expanded="true">
+
+            <include
+                layout="@layout/fragment_pantries_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </net.cachapa.expandablelayout.ExpandableLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
