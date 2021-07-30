@@ -21,16 +21,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
 
-public class PantriesFragment extends Fragment {
+public class ProductsBrowserFragment extends Fragment {
 
-    private PantriesViewModel viewModel;
+    private ProductsBrowserViewModel viewModel;
     private ProductListAdapter listAdapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         viewModel =
-                new ViewModelProvider(this).get(PantriesViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_productinpantries_list, container, false);
+                new ViewModelProvider(this).get(ProductsBrowserViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_products_browser, container, false);
 
         return root;
     }

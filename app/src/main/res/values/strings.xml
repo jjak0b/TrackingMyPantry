@@ -57,6 +57,7 @@
     <string name="product_purchase_date">Purchase date</string>
     <string name="product_purchase_location">Purchase location</string>
     <string name="product_quantity">Quantity</string>
+    <string name="product_unconsumed_amount">Unconsumed amount</string>
     <string name="action_register_product">Register product</string>
     <string name="action_next_product_section">Continue</string>
 

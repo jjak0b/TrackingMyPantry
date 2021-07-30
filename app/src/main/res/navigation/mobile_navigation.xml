@@ -7,9 +7,9 @@
 
     <fragment
         android:id="@+id/nav_pantries"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.PantriesFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.ProductsBrowserFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_productinpantries_list" >
+        tools:layout="@layout/fragment_products_browser" >
         <action
             android:id="@+id/action_nav_pantries_to_registerProductBottomSheetDialogFragment"
             app:destination="@id/registerProductBottomSheetDialogFragment" />

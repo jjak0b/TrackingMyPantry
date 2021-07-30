@@ -26,7 +26,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         image = itemView.findViewById(R.id.cardThumbnail);
     }
 
-    public void bind(Product product, PantriesViewModel viewModel){
+    public void bind(Product product, ProductsBrowserViewModel viewModel){
         title.setText( product.getName());
         description.setText(product.getDescription());
 

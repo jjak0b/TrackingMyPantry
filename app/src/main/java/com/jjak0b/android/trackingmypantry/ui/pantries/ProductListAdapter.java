@@ -10,9 +10,9 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> {
 
-    private PantriesViewModel viewModel;
+    private ProductsBrowserViewModel viewModel;
 
-    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback, @NonNull PantriesViewModel viewModel ) {
+    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback, @NonNull ProductsBrowserViewModel viewModel ) {
         super(diffCallback);
         this.viewModel = viewModel;
     }

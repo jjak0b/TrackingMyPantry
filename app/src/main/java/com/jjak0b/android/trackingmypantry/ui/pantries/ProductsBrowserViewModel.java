@@ -15,14 +15,14 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 import java.util.List;
 
-public class PantriesViewModel extends AndroidViewModel {
+public class ProductsBrowserViewModel extends AndroidViewModel {
 
     private PantryRepository mPantryRepository;
 
     private LiveData<List<Product>> mProductsList;
     private MutableLiveData<FilterState> mFilterState;
 
-    public PantriesViewModel(Application application ) {
+    public ProductsBrowserViewModel(Application application ) {
         super(application);
         mPantryRepository = PantryRepository.getInstance(application);
         mFilterState = new MutableLiveData<>( new FilterState() );
