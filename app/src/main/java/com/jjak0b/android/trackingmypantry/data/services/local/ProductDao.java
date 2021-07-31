@@ -54,6 +54,10 @@ public abstract class ProductDao {
     @Query( "SELECT * FROM products WHERE id = (:product_id)")
     public abstract LiveData<ProductWithTags> getProductWithTags( String product_id );
 
+    @Transaction
+    @Query( "SELECT * FROM products")
+    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags();
+
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<Product>> getAll();
 

@@ -49,10 +49,10 @@ public class ProductsBrowserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        viewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
+        viewModel.getProductsWithTags().observe( getViewLifecycleOwner(), productsWTags -> {
             Log.e( "MyPantries", "submitting new list" );
 
-            if( products.isEmpty() ){
+            if( productsWTags.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );
             }
             else {
@@ -60,7 +60,7 @@ public class ProductsBrowserFragment extends Fragment {
 
             }
             loadingBar.setVisibility( View.VISIBLE );
-            listAdapter.submitList( products );
+            listAdapter.submitList( productsWTags );
             loadingBar.setVisibility( View.GONE );
         });
 

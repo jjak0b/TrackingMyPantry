@@ -150,8 +150,8 @@ public class PantryRepository {
         return future;
     }
 
-    public LiveData<List<Product>> getProducts( /*TODO: pass Filter*/){
-        return pantryDB.getProductDao().getAll();
+    public LiveData<List<ProductWithTags>> getProductsWithTags( /*TODO: pass Filter*/){
+        return pantryDB.getProductDao().getAllProductsWithTags();
     }
 
     public LiveData<ProductWithTags> getProductWithTags(String productId ) {

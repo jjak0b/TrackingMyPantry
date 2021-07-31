@@ -102,7 +102,7 @@
             tools:el_expanded="true">
 
             <include
-                layout="@layout/fragment_pantries_list"
+                layout="@layout/fragment_products_browser_list_item_extend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
