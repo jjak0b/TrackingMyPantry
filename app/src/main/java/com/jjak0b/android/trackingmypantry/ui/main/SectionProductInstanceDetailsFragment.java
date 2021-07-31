@@ -18,23 +18,27 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
+import android.widget.EditText;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class SectionProductInstanceDetailsFragment extends Fragment {
 
+    final static String TAG = SectionProductInstanceDetailsFragment.class.getName();
     private RegisterProductViewModel mViewModel;
 
     public SectionProductInstanceDetailsFragment() {
@@ -59,7 +63,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
         TextInputEditText expireDateInput = view.findViewById(R.id.editTextDate_register_product_expire_date);
         TextInputEditText quantityInput = view.findViewById(R.id.input_product_quantity);
         AutoCompleteTextView pantryAutoCompleteSelector = view.findViewById( R.id.product_pantry_selector);
-
+        TextInputLayout pantryInputLayout = view.findViewById( R.id.product_pantry );
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
         ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), R.layout.support_simple_spinner_dropdown_item);
         pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
@@ -70,13 +74,53 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                 pantriesAdapter.addAll( pantries );
         });
 
-        pantryAutoCompleteSelector.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        pantryAutoCompleteSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if( !hasFocus ){
-
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Pantry selectedPantry = pantriesAdapter.getItem( position );
+                Log.d( TAG, "selected pantry: " + selectedPantry );
+                if( selectedPantry != null ) {
+                    mViewModel.setPantry(selectedPantry);
                 }
             }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        mViewModel.getPantry().observe( getViewLifecycleOwner(), pantry -> {
+            Log.d( TAG, "updated pantry to: " + pantry );
+            if( pantry != null ) {
+                pantryAutoCompleteSelector.setText( pantry.toString() );
+            }
+            else{
+                pantryAutoCompleteSelector.setText(null);
+            }
+
+           pantryAutoCompleteSelector.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if( !hasFocus ){
+
+                        String fieldValue = pantryAutoCompleteSelector.getText().toString();
+                        boolean hasBeenChanged = true;
+                        if( pantry != null ){
+                            hasBeenChanged = !Objects.equals( pantry.toString(), fieldValue );
+                        }
+                        Log.d( TAG, "has been changed:" + hasBeenChanged);
+                        if( hasBeenChanged ){
+                            mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
+                        }
+                    }
+                }
+            });
+
+            pantryAutoCompleteSelector.addTextChangedListener(new InputUtil.FieldTextWatcher() {
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
         });
 
         mViewModel.getProductInstance().observe( getViewLifecycleOwner(), productInstance -> {
@@ -146,10 +190,6 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
             expireDateInput.setOnClickListener(showDatePickerOnClick);
 
             if( productInstance != null ){
-                if( productInstance.getPantryId() > 0 ){
-                    int position = pantriesAdapter.getPosition( Pantry.creteDummy( productInstance.getPantryId() ) );
-                    pantryAutoCompleteSelector.setSelection( position );
-                }
                 expireDateInput.setText( dateFormat.format( productInstance.getExpiryDate() ) );
                 quantityInput.setText( String.valueOf( productInstance.getQuantity() ));
             }

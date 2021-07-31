@@ -92,7 +92,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
                     }
                 }
         );
-        assignedPantry = new MutableLiveData<>();
+        assignedPantry = new MutableLiveData<>(null);
         productInstancesCount = new MutableLiveData<>(1);
         productInstance = new MutableLiveData<>(null);
         productPurchaseInfo = new MutableLiveData<>(null);

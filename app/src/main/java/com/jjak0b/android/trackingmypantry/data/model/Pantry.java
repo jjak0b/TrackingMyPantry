@@ -65,4 +65,9 @@ public class Pantry {
         Pantry pantry = (Pantry) o;
         return id == pantry.id;
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }
