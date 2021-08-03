@@ -13,19 +13,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
-@Entity(/*
+@Entity(
     foreignKeys = {
             @ForeignKey(
                     entity = Product.class,
-                    parentColumns = "product_id",
-                    childColumns = "fk_product_id"
+                    parentColumns = "id",
+                    childColumns = "product_id"
             ),
             @ForeignKey(
                     entity = Pantry.class,
                     parentColumns = "pantry_id",
-                    childColumns = "fk_pantry_id"
+                    childColumns = "pantry_id"
             )
-    }*/
+    }
 )
 public class ProductInstanceGroup {
     @PrimaryKey(autoGenerate = true)

@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.ui.pantries;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
@@ -12,10 +13,12 @@ import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithT
 public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductViewHolder> {
 
     private ProductsBrowserViewModel viewModel;
+    private FragmentManager fm;
 
-    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<ProductWithTags> diffCallback, @NonNull ProductsBrowserViewModel viewModel ) {
+    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<ProductWithTags> diffCallback, @NonNull ProductsBrowserViewModel viewModel, FragmentManager fm ) {
         super(diffCallback);
         this.viewModel = viewModel;
+        this.fm = fm;
     }
 
     @NonNull
@@ -27,7 +30,7 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         ProductWithTags current = getItem(position);
-        holder.bind(current, viewModel);
+        holder.bind(current, viewModel, fm );
     }
 
     static class ProductDiff extends DiffUtil.ItemCallback<ProductWithTags> {
@@ -41,4 +44,6 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
             return oldItem.product.getId() != newItem.product.getId();
         }
     }
+
+
 }

@@ -60,7 +60,7 @@
     <string name="product_unconsumed_amount">Unconsumed amount</string>
     <string name="action_register_product">Register product</string>
     <string name="action_next_product_section">Continue</string>
-
+    <string name="pantries_no_pantry_available">there is no pantry that contains this product</string>
     <!-- product suggestions -->
     <string name="suggested_products_list_header">Found matches</string>
     <string name="suggested_products_list_description">Select the product that you think best matches your product. Go back if you prefer to enter it manually</string>

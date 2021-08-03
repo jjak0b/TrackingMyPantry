@@ -85,11 +85,6 @@
 
             </LinearLayout>
 
-            <include
-                layout="@layout/fragment_products_browser_list_item_extend"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
         </LinearLayout>
 
         <net.cachapa.expandablelayout.ExpandableLayout
@@ -105,7 +100,6 @@
                 layout="@layout/fragment_products_browser_list_item_extend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
-
         </net.cachapa.expandablelayout.ExpandableLayout>
     </LinearLayout>
 

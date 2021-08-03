@@ -23,6 +23,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 
@@ -259,5 +260,9 @@ public class PantryRepository {
 
     public LiveData<List<Pantry>> getPantries(){
         return pantryDB.getPantryDao().getAll();
+    }
+
+    public LiveData<List<PantryWithProductInstanceGroups>> getPantriesWithProductInstanceGroupsOf(String productID ){
+        return pantryDB.getPantryDao().getAllThatContains(productID);
     }
 }

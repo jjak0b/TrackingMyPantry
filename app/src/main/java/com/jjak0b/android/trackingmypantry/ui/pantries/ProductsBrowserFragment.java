@@ -39,7 +39,7 @@ public class ProductsBrowserFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff(), viewModel);
+        listAdapter = new ProductListAdapter( new ProductListAdapter.ProductDiff(), viewModel, requireActivity().getSupportFragmentManager() );
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.productsloadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
@@ -50,7 +50,7 @@ public class ProductsBrowserFragment extends Fragment {
         recyclerView.setAdapter( listAdapter );
 
         viewModel.getProductsWithTags().observe( getViewLifecycleOwner(), productsWTags -> {
-            Log.e( "MyPantries", "submitting new list" );
+            Log.e( "MyProducts", "submitting new list" );
 
             if( productsWTags.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );

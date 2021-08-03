@@ -5,11 +5,13 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +30,13 @@ public interface PantryDao {
     void moveInstanceToPantry(ProductInstanceLocation... update);
 
     @Insert(
-            onConflict = OnConflictStrategy.IGNORE
+            onConflict = OnConflictStrategy.REPLACE
     )
     ListenableFuture<Long> addPantry(Pantry pantry);
+
+    @Transaction
+    @Query( "SELECT * FROM productinstancegroup AS G INNER JOIN pantries AS P ON G.pantry_id = p.pantry_id WHERE product_id = (:productID)")
+    LiveData<List<PantryWithProductInstanceGroups>> getAllThatContains(String productID );
 
     class ProductInstanceLocation {
         long id;

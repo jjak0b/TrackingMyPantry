@@ -54,7 +54,7 @@
             tools:el_expanded="true">
 
             <include
-                layout="@layout/fragment_pantries_list_item_extend"
+                layout="@layout/fragment_pantries_browser_list_item_extend"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
