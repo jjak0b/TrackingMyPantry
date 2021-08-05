@@ -1,6 +1,5 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -53,7 +52,7 @@ public class PantriesBrowserFragment extends Fragment {
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final TextView listInfo = (TextView) view.findViewById( R.id.listInfo );
 
-        listAdapter = new PantryListAdapter( new PantryListAdapter.ProductDiff(), mViewModel);
+        listAdapter = new PantryListAdapter( new PantryListAdapter.ProductDiff(), mViewModel, getActivity().getSupportFragmentManager() );
         loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
@@ -64,7 +63,7 @@ public class PantriesBrowserFragment extends Fragment {
         }
 
         mViewModel.getPantriesList().observe( getViewLifecycleOwner(), pantryWithProductInstanceGroupsList -> {
-            Log.e( "MyPantries", "submitting new list" );
+            Log.e( "MyPantries", "submitting new list " + new GsonBuilder().setPrettyPrinting().create().toJson( pantryWithProductInstanceGroupsList));
             if( pantryWithProductInstanceGroupsList.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );
             }

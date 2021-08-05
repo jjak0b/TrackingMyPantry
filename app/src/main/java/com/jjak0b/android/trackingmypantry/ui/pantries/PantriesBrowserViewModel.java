@@ -24,7 +24,6 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
         productID = new MutableLiveData<>();
-
         list = Transformations.switchMap(
                 productID,
                 new Function<String, LiveData<List<PantryWithProductInstanceGroups>>>() {
@@ -38,7 +37,7 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
     public void setProductID( String id ){
         productID.setValue( id );
     }
-
+    public LiveData<String> getProductID() { return productID; }
     LiveData<List<PantryWithProductInstanceGroups>> getPantriesList(){
         return list;
     }
