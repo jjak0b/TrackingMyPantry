@@ -83,12 +83,14 @@ public class ProductInstanceGroupTableViewModel {
     }
 
     private List<RowHeader> createRowHeaderList(int size) {
+        return null;
+        /*
         List<RowHeader> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             // Row headers just shows the index of the TableView List.
             list.add(new RowHeader(String.valueOf(i + 1)));
         }
-        return list;
+        return list;*/
     }
 
 }

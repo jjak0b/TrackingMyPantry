@@ -35,6 +35,8 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
         holder.bind(current, viewModel, fm );
         // must not be empty: https://github.com/evrencoskun/TableView/issues/26
         if( !current.instances.isEmpty() ){
+            holder.tableView.setShowCornerView( false );
+            holder.tableView.setRowHeaderWidth(0);
             holder.tableView.setAdapter(tableAdapter);
             tableAdapter.setItems( current.instances );
         }

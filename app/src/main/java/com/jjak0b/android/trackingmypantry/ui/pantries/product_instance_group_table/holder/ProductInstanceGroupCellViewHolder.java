@@ -26,11 +26,11 @@ public class ProductInstanceGroupCellViewHolder extends AbstractViewHolder {
     public void bind( Cell model ){
 
         cellTextView.setText( String.valueOf( model.getData() ) );
-
+/*
         // If your TableView should have auto resize for cells & columns.
         // Then you should consider the below lines. Otherwise, you can ignore them.
         // It is necessary to remeasure itself.
         cell_container.getLayoutParams().width = LinearLayout.LayoutParams.WRAP_CONTENT;
-        cellTextView.requestLayout();
+        cellTextView.requestLayout();*/
     }
 }
