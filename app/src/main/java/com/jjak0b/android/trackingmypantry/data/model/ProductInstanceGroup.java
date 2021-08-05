@@ -47,7 +47,7 @@ public class ProductInstanceGroup {
 
     // instance info
     Date expiryDate;
-    float currentAmountPercent;
+    int currentAmountPercent;
 
     public long getId() {
         return id;
@@ -89,11 +89,11 @@ public class ProductInstanceGroup {
         this.expiryDate = expiryDate;
     }
 
-    public float getCurrentAmountPercent() {
+    public int getCurrentAmountPercent() {
         return currentAmountPercent;
     }
 
-    public void setCurrentAmountPercent(float currentAmountPercent) {
+    public void setCurrentAmountPercent(int currentAmountPercent) {
         this.currentAmountPercent = currentAmountPercent;
     }
 
