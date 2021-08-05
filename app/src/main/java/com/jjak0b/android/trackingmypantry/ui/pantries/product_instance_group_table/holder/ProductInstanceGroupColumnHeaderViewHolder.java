@@ -1,8 +1,11 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.holder;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
@@ -14,7 +17,7 @@ import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_ta
  */
 public class ProductInstanceGroupColumnHeaderViewHolder extends AbstractViewHolder {
 
-    final LinearLayout column_header_container;
+    final ViewGroup column_header_container;
     final TextView column_header_textview;
 
     public ProductInstanceGroupColumnHeaderViewHolder(View itemView) {
@@ -23,15 +26,11 @@ public class ProductInstanceGroupColumnHeaderViewHolder extends AbstractViewHold
         column_header_textview = itemView.findViewById(R.id.column_header_textView);
     }
 
+    public ViewGroup getContainer() {
+        return column_header_container;
+    }
+
     public void bind( Cell model ){
-
         column_header_textview.setText((Integer) model.getData());
-
-        // If your TableView should have auto resize for cells & columns.
-        // Then you should consider the below lines. Otherwise, you can ignore them.
-        // It is necessary to remeasure itself.
-       /* column_header_container.getLayoutParams().width = LinearLayout
-                .LayoutParams.WRAP_CONTENT;
-        column_header_textview.requestLayout();*/
     }
 }

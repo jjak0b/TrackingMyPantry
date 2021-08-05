@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,7 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
     private ImageButton actionExpandBtn;
     private FrameLayout fragmentContainer;
     public TableView tableView;
+    public LinearLayout tableContainer;
 
     public PantryViewHolder(@NonNull View itemView ) {
         super(itemView);
@@ -44,6 +46,11 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
         fragmentContainer = itemView.findViewById(R.id.fragment_container);
         tableView = itemView.findViewById(R.id.tableView);
+        tableContainer = itemView.findViewById(R.id.tableContainer);
+
+        // hide corner and column of row number
+        tableView.setShowCornerView( false );
+        tableView.setRowHeaderWidth(0);
     }
 
 

@@ -1,6 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
+import android.util.Log;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
@@ -35,10 +37,17 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
         holder.bind(current, viewModel, fm );
         // must not be empty: https://github.com/evrencoskun/TableView/issues/26
         if( !current.instances.isEmpty() ){
-            holder.tableView.setShowCornerView( false );
-            holder.tableView.setRowHeaderWidth(0);
             holder.tableView.setAdapter(tableAdapter);
-            tableAdapter.setItems( current.instances );
+            holder.tableContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    holder.tableContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                    Log.d( PantryListAdapter.class.getName(), "update Table width on GlobalLayout");
+                    tableAdapter.setRowWidth( holder.tableContainer.getWidth() );
+                    tableAdapter.setItems( current.instances );
+                }
+            });
         }
     }
 
@@ -53,6 +62,4 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
             return oldItem.pantry.getId() != newItem.pantry.getId();
         }
     }
-
-
 }

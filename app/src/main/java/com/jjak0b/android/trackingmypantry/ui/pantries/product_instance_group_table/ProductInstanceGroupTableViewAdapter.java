@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.adapter.AbstractTableAdapter;
 import com.evrencoskun.tableview.adapter.recyclerview.holder.AbstractViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
@@ -19,8 +20,19 @@ import java.util.List;
 public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<ColumnHeader, RowHeader, Cell> {
 
     private ProductInstanceGroupTableViewModel mViewModel;
+    private int rowWidth;
+
     public ProductInstanceGroupTableViewAdapter(){
         mViewModel = new ProductInstanceGroupTableViewModel();
+        rowWidth = 0;
+    }
+
+    public void setRowWidth( int width ){
+        this.rowWidth = width;
+    }
+
+    public int getHeadersCount() {
+        return super.mColumnHeaderItems.size();
     }
 
     public void setItems(List<ProductInstanceGroup> list) {
@@ -140,7 +152,14 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
      */
     @Override
     public void onBindColumnHeaderViewHolder(@NonNull AbstractViewHolder holder, @Nullable ColumnHeader columnHeaderItemModel, int columnPosition) {
-        ((ProductInstanceGroupColumnHeaderViewHolder) holder).bind( columnHeaderItemModel );
+        ProductInstanceGroupColumnHeaderViewHolder columnHeaderHolder = (ProductInstanceGroupColumnHeaderViewHolder) holder;
+        columnHeaderHolder.bind( columnHeaderItemModel );
+
+        TableView view = (TableView) getTableView();
+        view.setColumnWidth(
+                columnPosition,
+                Math.max(rowWidth / getHeadersCount(), columnHeaderHolder.getContainer().getWidth())
+        );
     }
 
     /**
