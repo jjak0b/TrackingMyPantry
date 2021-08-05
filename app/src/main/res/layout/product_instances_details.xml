@@ -54,7 +54,7 @@
         android:hint="@string/product_pantry_name"
         app:endIconMode="dropdown_menu">
 
-        <AutoCompleteTextView
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/product_pantry_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
