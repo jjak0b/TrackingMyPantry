@@ -6,24 +6,18 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.evrencoskun.tableview.TableView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
-
-import java.util.List;
 
 public class PantryViewHolder extends RecyclerView.ViewHolder  {
 
@@ -35,8 +29,6 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
     private ExpandableLayout expandableLayout;
     private ImageButton actionExpandBtn;
     private FrameLayout fragmentContainer;
-    public TableView tableView;
-    public LinearLayout tableContainer;
 
     public PantryViewHolder(@NonNull View itemView ) {
         super(itemView);
@@ -45,21 +37,16 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
         expandableLayout = itemView.findViewById(R.id.expandable_layout);
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
         fragmentContainer = itemView.findViewById(R.id.fragment_container);
-        tableView = itemView.findViewById(R.id.tableView);
-        tableContainer = itemView.findViewById(R.id.tableContainer);
-
-        // hide corner and column of row number
-        tableView.setShowCornerView( false );
-        tableView.setRowHeaderWidth(0);
     }
 
 
-    public void bind(PantryWithProductInstanceGroups pantryWProducts, PantriesBrowserViewModel viewModel, FragmentManager fm ){
-        Pantry pantry = pantryWProducts.pantry;
-        List<ProductInstanceGroup> itemsList = pantryWProducts.instances;
+    public void bind(Pantry pantry, String productID, FragmentManager fm){
+
+        fm.beginTransaction()
+                .replace(fragmentContainer.getId(), ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() ) )
+                .commit();
 
         title.setText( pantry.getName() );
-        badge.setText( String.valueOf( itemsList.size() )  );
         actionExpandBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

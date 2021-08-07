@@ -6,7 +6,10 @@
     android:id="@+id/tableView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-
+    app:allow_click_inside_cell="true"
+    app:selected_color="@color/table_view_default_selected_background_color"
+    app:unselected_color="@color/table_view_default_unselected_background_color"
+    app:row_header_width="0dp"
 >
 
 </com.evrencoskun.tableview.TableView>

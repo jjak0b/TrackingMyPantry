@@ -34,9 +34,8 @@ public interface PantryDao {
     )
     ListenableFuture<Long> addPantry(Pantry pantry);
 
-    @Transaction
     @Query( "SELECT * FROM pantries AS P1 INNER JOIN ( SELECT DISTINCT P2.pantry_id FROM productinstancegroup AS G INNER JOIN pantries AS P2 ON G.pantry_id = P2.pantry_id WHERE product_id = (:productID) ) AS IDS ON P1.pantry_id = IDS.pantry_id ORDER BY P1.name ")
-    LiveData<List<PantryWithProductInstanceGroups>> getAllThatContains(String productID );
+    LiveData<List<Pantry>> getAllThatContains(String productID );
 
     class ProductInstanceLocation {
         long id;

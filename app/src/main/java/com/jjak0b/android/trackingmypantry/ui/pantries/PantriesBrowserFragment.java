@@ -25,6 +25,13 @@ public class PantriesBrowserFragment extends Fragment {
 
     private PantriesBrowserViewModel mViewModel;
     private PantryListAdapter listAdapter;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -46,23 +53,23 @@ public class PantriesBrowserFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         String productID = getArguments().getString("productID");
-
-        mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.pantriesLoadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final TextView listInfo = (TextView) view.findViewById( R.id.listInfo );
 
-        listAdapter = new PantryListAdapter( new PantryListAdapter.ProductDiff(), mViewModel, getActivity().getSupportFragmentManager() );
+        listAdapter = new PantryListAdapter( new PantryListAdapter.ProductDiff(),
+                getActivity().getSupportFragmentManager(),
+                productID
+        );
         loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
-
 
         if( productID != null ){
             mViewModel.setProductID( productID );
         }
 
-        mViewModel.getPantriesList().observe( getViewLifecycleOwner(), pantryWithProductInstanceGroupsList -> {
+        mViewModel.getList().observe( getViewLifecycleOwner(), pantryWithProductInstanceGroupsList -> {
             Log.e( "MyPantries", "submitting new list " + new GsonBuilder().setPrettyPrinting().create().toJson( pantryWithProductInstanceGroupsList));
             if( pantryWithProductInstanceGroupsList.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );

@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.data;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
@@ -238,6 +239,19 @@ public class PantryRepository {
         );
     }
 
+    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup entry) {
+        return pantryDB.getProductInstanceDao().deleteAll(entry);
+    }
+
+    public ListenableFuture<Void> updatedProductInstanceGroup( ProductInstanceGroup entry ){
+        return pantryDB.getProductInstanceDao().updateAll(entry);
+    }
+
+    public ListenableFuture<Void> moveProductInstanceGroupToPantry( ProductInstanceGroup entry, Pantry pantry ){
+        entry.setPantryId( pantry.getId() );
+        return pantryDB.getProductInstanceDao().updateAll(entry);
+    }
+
     public ListenableFuture<Pantry> addPantry( Pantry pantry ) {
         Log.d( TAG, "adding pantry to local " + pantry );
 
@@ -262,7 +276,10 @@ public class PantryRepository {
         return pantryDB.getPantryDao().getAll();
     }
 
-    public LiveData<List<PantryWithProductInstanceGroups>> getPantriesWithProductInstanceGroupsOf(String productID ){
+    public LiveData<List<ProductInstanceGroup>> getProductInstanceGroupsOf(long pantryID, String productID ){
+        return pantryDB.getProductInstanceDao().getAllInstancesOfProduct(productID, pantryID);
+    }
+    public LiveData<List<Pantry>> getPantriesWithProductInstanceGroupsOf(String productID ){
         return pantryDB.getPantryDao().getAllThatContains(productID);
     }
 }

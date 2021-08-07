@@ -8,6 +8,7 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithInstances;
 
@@ -21,6 +22,8 @@ public interface ProductInstanceDao {
     @Query("SELECT * FROM products" )
     List<ProductWithInstances> getAllInstancesOfProduct();
 
+    @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID" )
+    LiveData<List<ProductInstanceGroup>> getAllInstancesOfProduct(String productID, long pantryID);
 
     String getProductsWithTags = "SELECT * FROM products AS P INNER JOIN ( SELECT product_id FROM assignedTags AS AT INNER JOIN productTags AS T ON AT.tag_id = T.id WHERE T.name in (:tags) ) as FILTER ON P.id = product_id";
     // String filterByGroupCount = "GROUP BY FILTER.productId HAVING COUNT( FILTER.productId ) >= COUNT( (:tags) ) ORDER BY COUNT( FILTER.productId ) ASC, P.name ASC";
@@ -46,8 +49,8 @@ public interface ProductInstanceDao {
     long[] insertAll(ProductInstanceGroup... instances);
 
     @Update
-    void updateAll(ProductInstanceGroup... instances);
+    ListenableFuture<Void> updateAll(ProductInstanceGroup... instances);
 
     @Delete
-    void deleteAll(ProductInstanceGroup... instances);
+    ListenableFuture<Void> deleteAll(ProductInstanceGroup... instances);
 }

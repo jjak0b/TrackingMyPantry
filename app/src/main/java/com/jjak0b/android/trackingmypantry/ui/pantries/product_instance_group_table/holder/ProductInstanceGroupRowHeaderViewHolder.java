@@ -21,6 +21,6 @@ public class ProductInstanceGroupRowHeaderViewHolder extends AbstractViewHolder 
     }
 
     public void bind( Cell model, int position ){
-        row_header_textview.setText( String.valueOf( model.getData() ) );
+        row_header_textview.setText( String.valueOf(position) );
     }
 }

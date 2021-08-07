@@ -1,28 +1,22 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
-import android.util.Log;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
-import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
+import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 
-public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGroups, PantryViewHolder> {
-
-    private PantriesBrowserViewModel viewModel;
-    private ProductInstanceGroupTableViewAdapter tableAdapter;
+public class PantryListAdapter extends ListAdapter<Pantry, PantryViewHolder> {
     private FragmentManager fm;
+    private String productID;
 
-    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<PantryWithProductInstanceGroups> diffCallback, @NonNull PantriesBrowserViewModel viewModel, FragmentManager fm ) {
+    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<Pantry> diffCallback, FragmentManager fm, String productID ) {
         super(diffCallback);
-        this.viewModel = viewModel;
         this.fm = fm;
-        this.tableAdapter = new ProductInstanceGroupTableViewAdapter();
+        this.productID = productID;
     }
 
     @NonNull
@@ -33,33 +27,19 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
 
     @Override
     public void onBindViewHolder(@NonNull PantryViewHolder holder, int position) {
-        PantryWithProductInstanceGroups current = getItem(position);
-        holder.bind(current, viewModel, fm );
-        // must not be empty: https://github.com/evrencoskun/TableView/issues/26
-        if( !current.instances.isEmpty() ){
-            holder.tableView.setAdapter(tableAdapter);
-            holder.tableContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    holder.tableContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                    Log.d( PantryListAdapter.class.getName(), "update Table width on GlobalLayout");
-                    tableAdapter.setRowWidth( holder.tableContainer.getWidth() );
-                    tableAdapter.setItems( current.instances );
-                }
-            });
-        }
+        Pantry current = getItem(position);
+        holder.bind(current, productID, fm);
     }
 
-    static class ProductDiff extends DiffUtil.ItemCallback<PantryWithProductInstanceGroups> {
+    static class ProductDiff extends DiffUtil.ItemCallback<Pantry> {
         @Override
-        public boolean areItemsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
+        public boolean areItemsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
             return oldItem == newItem;
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
-            return oldItem.pantry.getId() != newItem.pantry.getId();
+        public boolean areContentsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
+            return oldItem.getId() != newItem.getId();
         }
     }
 }

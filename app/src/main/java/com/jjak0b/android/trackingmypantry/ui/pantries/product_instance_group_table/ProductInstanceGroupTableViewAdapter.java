@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +36,7 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
         return super.mColumnHeaderItems.size();
     }
 
-    public void setItems(List<ProductInstanceGroup> list) {
+    public void submitList(List<ProductInstanceGroup> list) {
         // Generate the lists that are used to TableViewAdapter
         mViewModel.generateListForTableView(list);
 
@@ -237,5 +238,34 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
         // then you should fill this method to be able create different
         // type of CellViewHolder on "onCreateCellViewHolder"
         return mViewModel.getColumnTypeByIndex( columnPosition );
+    }
+
+    public Row getRow(int row ) {
+        Row bundle = new Row();
+        bundle.items = getCellRowItems(row);
+        bundle.rowHeader = getRowHeaderItem(row);
+        return bundle;
+    }
+
+    public void addRow(int rowPosition, Row row ) {
+        addRow(rowPosition, row.rowHeader, row.items);
+    }
+
+
+    public ProductInstanceGroup getRowItem( int rowPosition ){
+        return mViewModel.getItem(rowPosition);
+    }
+
+    public void addRowItem( int rowPosition, ProductInstanceGroup item ){
+        mViewModel.addItem( rowPosition, item );
+        Row row = new Row();
+        row.rowHeader = new RowHeader(String.valueOf(rowPosition + 1) );
+        row.items =  mViewModel.createRowModel(item);
+        addRow( rowPosition, row );
+    }
+
+    public static class Row {
+        RowHeader rowHeader;
+        List<Cell> items;
     }
 }
