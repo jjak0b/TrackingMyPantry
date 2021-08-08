@@ -7,6 +7,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -75,6 +76,7 @@ public class ProductInstanceGroupBrowserFragment extends Fragment {
         // prevent: java.lang.IllegalArgumentException: parameter must be a descendant of this view
         tableView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
         tableAdapter = new ProductInstanceGroupTableViewAdapter();
+
         tableView.setAdapter(tableAdapter);
         tableView.setTableViewListener(new SimpleTableViewListener() {
             @Override
@@ -95,17 +97,18 @@ public class ProductInstanceGroupBrowserFragment extends Fragment {
             }
         });
 
+        ViewGroup container = tableContainer;
         mViewModel.getItems().observe( getViewLifecycleOwner(), itemsList -> {
             // must not be empty: https://github.com/evrencoskun/TableView/issues/26
             if( !itemsList.isEmpty() ){
-                tableContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        tableContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-
-                        Log.d( ProductInstanceGroupBrowserFragment.class.getName(), "update Table width on GlobalLayout");
-                        tableAdapter.setRowWidth( tableContainer.getWidth() );
-                        tableAdapter.submitList( itemsList );
+                        if( container.getWidth() > 0 ) {
+                            container.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            tableAdapter.setRowWidth(container.getWidth()-1);
+                            tableAdapter.submitList( itemsList );
+                        }
                     }
                 });
             }

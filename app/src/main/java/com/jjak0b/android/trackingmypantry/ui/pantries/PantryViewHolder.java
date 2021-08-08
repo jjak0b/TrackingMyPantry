@@ -1,14 +1,17 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,8 +31,8 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
     private ChipGroup tags;
     private ExpandableLayout expandableLayout;
     private ImageButton actionExpandBtn;
-    private FrameLayout fragmentContainer;
-
+    private ViewGroup fragmentContainer;
+    private FrameLayout fragmentLayout;
     public PantryViewHolder(@NonNull View itemView ) {
         super(itemView);
         title = itemView.findViewById(R.id.cardTitle);
@@ -37,13 +40,19 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
         expandableLayout = itemView.findViewById(R.id.expandable_layout);
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
         fragmentContainer = itemView.findViewById(R.id.fragment_container);
+
+        fragmentLayout = new FrameLayout(itemView.getContext());
+        fragmentLayout.setId(ViewCompat.generateViewId());
+        fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
+        fragmentContainer.addView( fragmentLayout );
     }
 
 
     public void bind(Pantry pantry, String productID, FragmentManager fm){
 
         fm.beginTransaction()
-                .replace(fragmentContainer.getId(), ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() ) )
+                .setReorderingAllowed(true)
+                .add(fragmentLayout.getId(), ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() ) )
                 .commit();
 
         title.setText( pantry.getName() );

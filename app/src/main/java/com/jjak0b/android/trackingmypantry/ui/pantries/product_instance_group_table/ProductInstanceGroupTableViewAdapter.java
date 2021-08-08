@@ -32,7 +32,7 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
         this.rowWidth = width;
     }
 
-    public int getHeadersCount() {
+    private int getHeadersCount() {
         return super.mColumnHeaderItems.size();
     }
 
@@ -157,10 +157,13 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
         columnHeaderHolder.bind( columnHeaderItemModel );
 
         TableView view = (TableView) getTableView();
-        view.setColumnWidth(
-                columnPosition,
-                Math.max(rowWidth / getHeadersCount(), columnHeaderHolder.getContainer().getWidth())
-        );
+        int count = getHeadersCount();
+        if( rowWidth > 0 && count > 0 ){
+            view.setColumnWidth(
+                    columnPosition,
+                    rowWidth / count
+            );
+        }
     }
 
     /**

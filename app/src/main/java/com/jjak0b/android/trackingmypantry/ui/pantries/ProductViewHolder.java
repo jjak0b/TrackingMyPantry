@@ -38,6 +38,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
     private ExpandableLayout expandableLayout;
     private ImageButton actionExpandBtn;
     private FrameLayout fragmentContainer;
+    private FrameLayout fragmentLayout;
     public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
         title = itemView.findViewById(R.id.cardTitle);
@@ -48,6 +49,11 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         expandableLayout = itemView.findViewById(R.id.expandable_layout);
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
         fragmentContainer = itemView.findViewById(R.id.fragment_container);
+
+        fragmentLayout = new FrameLayout(itemView.getContext());
+        fragmentLayout.setId(ViewCompat.generateViewId());
+        fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
+        fragmentContainer.addView( fragmentLayout );
     }
 
 
@@ -56,7 +62,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         List<ProductTag> tagList = productWithTags.tags;
 
         fm.beginTransaction()
-                .replace(fragmentContainer.getId(), PantriesBrowserFragment.newInstance( product ) )
+                .replace(fragmentLayout.getId(), PantriesBrowserFragment.newInstance( product ) )
                 .commit();
 
         title.setText( product.getName());
