@@ -259,6 +259,14 @@ public class ProductInstanceGroupTableViewAdapter extends AbstractTableAdapter<C
         return mViewModel.getItem(rowPosition);
     }
 
+    public void removeRowItem(int rowPosition) {
+        // looks like a library bug: if using removeRow(rowPosition) it won't update correctly
+        // the internal dataModel list causing to throw some IndexOutOfBoundExceptions ( manly on last row position )
+        // so just use this one that is analog but working
+        removeRow(rowPosition, true);
+        mViewModel.removeRowItem(rowPosition);
+    }
+
     public void addRowItem( int rowPosition, ProductInstanceGroup item ){
         mViewModel.addItem( rowPosition, item );
         Row row = new Row();

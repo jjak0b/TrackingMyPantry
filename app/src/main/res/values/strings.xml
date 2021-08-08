@@ -80,4 +80,7 @@
     <string name="option_remove_entry">Remove</string>
     <string name="option_move_to_pantry">Move to</string>
 
+    <string name="product_entry_removed_from_pantry">Product entry removed from the pantry</string>
+    <string name="action_undo">Undo</string>
+
 </resources>

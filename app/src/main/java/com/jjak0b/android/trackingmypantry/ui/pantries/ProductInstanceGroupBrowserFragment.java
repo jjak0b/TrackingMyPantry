@@ -99,19 +99,20 @@ public class ProductInstanceGroupBrowserFragment extends Fragment {
 
         ViewGroup container = tableContainer;
         mViewModel.getItems().observe( getViewLifecycleOwner(), itemsList -> {
-            // must not be empty: https://github.com/evrencoskun/TableView/issues/26
-            if( !itemsList.isEmpty() ){
-                container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        if( container.getWidth() > 0 ) {
-                            container.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                            tableAdapter.setRowWidth(container.getWidth()-1);
-                            tableAdapter.submitList( itemsList );
+            container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    if( container.getWidth() > 0 ) {
+                        container.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        tableAdapter.setRowWidth(container.getWidth());
+
+                        // Note: must not be empty: https://github.com/evrencoskun/TableView/issues/26
+                        if( !itemsList.isEmpty() ) {
+                            tableAdapter.submitList(itemsList);
                         }
                     }
-                });
-            }
+                }
+            });
         });
     }
 
@@ -186,11 +187,11 @@ public class ProductInstanceGroupBrowserFragment extends Fragment {
 
     private void deleteEntry(int position) {
         ProductInstanceGroup entry = tableAdapter.getRowItem( position );
-        tableAdapter.removeRow(position);
+        tableAdapter.removeRowItem(position);
 
-        final Snackbar snackbar = Snackbar.make(requireView(), " is Deleted", Snackbar.LENGTH_LONG);
+        final Snackbar snackbar = Snackbar.make(requireView(), R.string.product_entry_removed_from_pantry, Snackbar.LENGTH_LONG);
 
-        snackbar.setAction("Undo", new View.OnClickListener() {
+        snackbar.setAction(R.string.action_undo, new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 tableAdapter.addRowItem( position, entry );
@@ -199,7 +200,10 @@ public class ProductInstanceGroupBrowserFragment extends Fragment {
         snackbar.addCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar transientBottomBar, int event) {
-                if (event == DISMISS_EVENT_TIMEOUT) {
+                if (event == DISMISS_EVENT_TIMEOUT ||
+                    event == DISMISS_EVENT_CONSECUTIVE ||
+                    event == DISMISS_EVENT_SWIPE
+                ) {
                     mViewModel.deleteProductInstanceGroup( entry );
                 }
             }
