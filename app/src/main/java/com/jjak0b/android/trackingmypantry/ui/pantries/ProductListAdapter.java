@@ -3,17 +3,25 @@ package com.jjak0b.android.trackingmypantry.ui.pantries;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LifecycleRegistry;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
+import java.util.List;
+import java.util.Objects;
+
 public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductViewHolder> {
 
     private ProductsBrowserViewModel viewModel;
     private FragmentManager fm;
+    private LifecycleRegistry lifecycleRegistry;
 
     protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<ProductWithTags> diffCallback, @NonNull ProductsBrowserViewModel viewModel, FragmentManager fm ) {
         super(diffCallback);
@@ -36,14 +44,13 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     static class ProductDiff extends DiffUtil.ItemCallback<ProductWithTags> {
         @Override
         public boolean areItemsTheSame(@NonNull ProductWithTags oldItem, @NonNull ProductWithTags newItem) {
-            return oldItem == newItem;
+            return Objects.equals(  oldItem.product.getId(), newItem.product.getId() );
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull ProductWithTags oldItem, @NonNull ProductWithTags newItem) {
-            return oldItem.product.getId() != newItem.product.getId();
+            return Objects.equals( oldItem.product.getId(), newItem.product.getId())
+                    && Objects.equals( oldItem.tags, newItem.tags);
         }
     }
-
-
 }

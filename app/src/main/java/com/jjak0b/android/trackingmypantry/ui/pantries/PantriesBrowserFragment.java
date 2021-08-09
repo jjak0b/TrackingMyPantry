@@ -58,7 +58,7 @@ public class PantriesBrowserFragment extends Fragment {
         final TextView listInfo = (TextView) view.findViewById( R.id.listInfo );
 
         listAdapter = new PantryListAdapter( new PantryListAdapter.ProductDiff(),
-                getActivity().getSupportFragmentManager(),
+                getParentFragmentManager(),
                 productID
         );
         loadingBar.setVisibility( View.VISIBLE );
@@ -68,10 +68,9 @@ public class PantriesBrowserFragment extends Fragment {
         if( productID != null ){
             mViewModel.setProductID( productID );
         }
-
-        mViewModel.getList().observe( getViewLifecycleOwner(), pantryWithProductInstanceGroupsList -> {
-            Log.e( "MyPantries", "submitting new list " + new GsonBuilder().setPrettyPrinting().create().toJson( pantryWithProductInstanceGroupsList));
-            if( pantryWithProductInstanceGroupsList.isEmpty() ){
+        mViewModel.getList().observe( getViewLifecycleOwner(), pantries -> {
+            Log.e( "MyPantries", "submitting new list from " +  this.toString() + " " + new GsonBuilder().setPrettyPrinting().create().toJson( pantries));
+            if( pantries.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );
             }
             else {
@@ -79,7 +78,7 @@ public class PantriesBrowserFragment extends Fragment {
 
             }
             loadingBar.setVisibility( View.VISIBLE );
-            listAdapter.submitList( pantryWithProductInstanceGroupsList );
+            listAdapter.submitList( pantries );
             loadingBar.setVisibility( View.GONE );
         });
     }

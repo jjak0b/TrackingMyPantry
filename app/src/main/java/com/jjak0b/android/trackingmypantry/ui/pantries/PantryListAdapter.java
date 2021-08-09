@@ -6,8 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+
+import java.util.Objects;
 
 public class PantryListAdapter extends ListAdapter<Pantry, PantryViewHolder> {
     private FragmentManager fm;
@@ -17,6 +20,12 @@ public class PantryListAdapter extends ListAdapter<Pantry, PantryViewHolder> {
         super(diffCallback);
         this.fm = fm;
         this.productID = productID;
+        setHasStableIds(true);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return getItem(position).getId();
     }
 
     @NonNull
@@ -34,12 +43,12 @@ public class PantryListAdapter extends ListAdapter<Pantry, PantryViewHolder> {
     static class ProductDiff extends DiffUtil.ItemCallback<Pantry> {
         @Override
         public boolean areItemsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
-            return oldItem == newItem;
+            return Objects.equals( oldItem.getId(), newItem.getId() );
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
-            return oldItem.getId() != newItem.getId();
+            return Objects.equals( oldItem, newItem );
         }
     }
 }
