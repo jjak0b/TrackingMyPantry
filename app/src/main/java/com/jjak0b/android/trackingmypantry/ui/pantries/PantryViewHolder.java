@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
@@ -42,7 +44,10 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
         expandableLayout = itemView.findViewById(R.id.expandable_layout);
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
         fragmentContainer = itemView.findViewById(R.id.fragment_container);
-
+        fragmentLayout = new FrameLayout(itemView.getContext());
+        fragmentLayout.setId(ViewCompat.generateViewId());
+        fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
+        fragmentContainer.addView( fragmentLayout );
 
         // isExpanded = expandableLayout.isExpanded();
         Log.e("a", "new instance");
@@ -52,17 +57,21 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
     public void bind(Pantry pantry, String productID, FragmentManager fm){
         Log.e("a", "bind " + pantry);
 
-        if(fragmentContainer.getChildCount() < 1 ){
-            fragmentLayout = new FrameLayout(itemView.getContext());
-            fragmentLayout.setId(ViewCompat.generateViewId());
-            fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
-            fragmentContainer.addView( fragmentLayout );
-            Log.e("a", "new fragment " + pantry);
+        String fragmentTag = "Product"+productID +"Pantry"+pantry.getId();
+        Fragment f = fm.findFragmentByTag(fragmentTag);
+
+        if( f != null ){
+            //fragmentTransaction is created for the removal of the old
             fm.beginTransaction()
-                    .replace(fragmentLayout.getId(), ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() ) )
-                    .addToBackStack(productID + pantry.getId())
+                    .remove(f)
                     .commit();
         }
+
+        // fragmentTransaction2 is created to add the new one
+        f = ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() );
+        fm.beginTransaction()
+                .replace(fragmentLayout.getId(), f, fragmentTag)
+                .commit();
 
         title.setText( pantry.getName() );
         // expandableLayout.setExpanded(isExpanded);

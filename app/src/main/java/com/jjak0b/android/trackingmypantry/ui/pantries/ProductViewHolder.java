@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentContainerView;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -61,8 +62,20 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         Product product = productWithTags.product;
         List<ProductTag> tagList = productWithTags.tags;
 
+        String fragmentTag = "Product"+product.getId();
+        Fragment f = fm.findFragmentByTag(fragmentTag);
+
+        if( f != null ){
+            //fragmentTransaction is created for the removal of the old
+            fm.beginTransaction()
+                    .remove(f)
+                    .commit();
+        }
+
+        // fragmentTransaction2 is created to add the new one
+        f = PantriesBrowserFragment.newInstance( product );
         fm.beginTransaction()
-                .replace(fragmentLayout.getId(), PantriesBrowserFragment.newInstance( product ) )
+                .replace(fragmentLayout.getId(), f, fragmentTag)
                 .commit();
 
         title.setText( product.getName());
