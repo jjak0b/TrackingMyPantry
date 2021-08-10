@@ -1,10 +1,8 @@
 package com.jjak0b.android.trackingmypantry.data;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteQuery;
 import android.util.Log;
 
-import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
@@ -33,7 +31,6 @@ import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -230,14 +227,11 @@ public class PantryRepository {
     public ListenableFuture<Long> addProductInstanceGroup(ProductInstanceGroup instanceGroup, Product product, Pantry pantry ) {
         instanceGroup.setPantryId( pantry.getId() );
         instanceGroup.setProductId( product.getId() );
-        return Futures.submit(
-                new Callable<Long>() {
-                    @Override
-                    public Long call() {
-                        return pantryDB.getProductInstanceDao().insertAll( instanceGroup )[ 0 ];
-                    }
-                },
-                pantryDB.getDBWriteExecutor()
+
+        return Futures.transform(
+                pantryDB.getProductInstanceDao().insertAll( instanceGroup ),
+                input -> input[0],
+                getExecutor()
         );
     }
 
@@ -249,9 +243,28 @@ public class PantryRepository {
         return pantryDB.getProductInstanceDao().updateAll(entry);
     }
 
-    public ListenableFuture<Void> moveProductInstanceGroupToPantry( ProductInstanceGroup entry, Pantry pantry ){
-        entry.setPantryId( pantry.getId() );
-        return pantryDB.getProductInstanceDao().updateAll(entry);
+    public ListenableFuture<Void> moveProductInstanceGroupToPantry( ProductInstanceGroup entry, Pantry pantry, int quantity ){
+
+        if( quantity >= entry.getQuantity() ){
+            entry.setPantryId(pantry.getId());
+            return pantryDB.getProductInstanceDao().updateAll(entry);
+        }
+        else {
+            ProductInstanceGroup newGroup = ProductInstanceGroup.from(entry);
+            newGroup.setId(0);
+            newGroup.setPantryId(pantry.getId());
+            newGroup.setQuantity(quantity);
+            entry.setQuantity(entry.getQuantity() - quantity);
+
+            return Futures.transform(
+                    Futures.successfulAsList(
+                            pantryDB.getProductInstanceDao().updateAll(entry),
+                            pantryDB.getProductInstanceDao().insertAll(newGroup)
+                    ),
+                    input -> null,
+                    getExecutor()
+            );
+        }
     }
 
     public ListenableFuture<Pantry> addPantry( Pantry pantry ) {

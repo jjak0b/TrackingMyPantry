@@ -4,7 +4,6 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.view.ViewCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -20,9 +19,11 @@ import android.view.LayoutInflater;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
@@ -158,8 +159,25 @@ public class PantriesBrowserFragment extends Fragment {
                                 Pantry pantry = pantries != null ? pantries.get(index) : null;
                                 ProductInstanceGroup entry = tableAdapter.getRowItem(row);
                                 if( pantry != null && entry != null ) {
-                                    mViewModel.moveProductInstanceGroupToPantry(entry, pantry);
-                                    livePantries.removeObserver( this::onChanged );
+
+                                    NumberPicker quantityPicker = new NumberPicker(requireContext());
+                                    quantityPicker.setMinValue(1);
+                                    quantityPicker.setMaxValue(entry.getQuantity());
+                                    new MaterialAlertDialogBuilder(requireContext())
+                                            .setView(quantityPicker)
+                                            .setCancelable(true)
+                                            .setTitle(R.string.product_quantity)
+                                            .setNegativeButton(android.R.string.cancel , null )
+                                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                                                mViewModel.moveProductInstanceGroupToPantry(
+                                                        entry, pantry, quantityPicker.getValue()
+                                                );
+                                            })
+                                            .setOnDismissListener(dialog -> {
+                                                livePantries.removeObserver( this::onChanged );
+                                            })
+                                            .create()
+                                            .show();
                                 }
                             }
                         });

@@ -46,7 +46,7 @@ public interface ProductInstanceDao {
     LiveData<List<ProductWithInstances>> searchAllInstancesOfProduct(String[] tags, String content);
 
     @Insert
-    long[] insertAll(ProductInstanceGroup... instances);
+    ListenableFuture<long[]> insertAll(ProductInstanceGroup... instances);
 
     @Update
     ListenableFuture<Void> updateAll(ProductInstanceGroup... instances);

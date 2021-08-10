@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.data.model;
 
 import android.location.Location;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Embedded;
 import androidx.room.Entity;
@@ -120,4 +121,15 @@ public class ProductInstanceGroup {
                 Objects.equals(expiryDate, that.expiryDate);
     }
 
+    public static ProductInstanceGroup from( ProductInstanceGroup o ){
+        ProductInstanceGroup newO = new ProductInstanceGroup();
+        newO.setId(o.getId());
+        newO.setPantryId(o.getPantryId());
+        newO.setProductId(o.getProductId());
+        newO.setQuantity(o.getQuantity());
+        newO.setPurchaseInfo(o.getPurchaseInfo());
+        newO.setExpiryDate(o.getExpiryDate());
+        newO.setCurrentAmountPercent(o.getCurrentAmountPercent());
+        return newO;
+    }
 }

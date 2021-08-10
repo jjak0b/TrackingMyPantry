@@ -45,8 +45,8 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
         return pantryRepository.deleteProductInstanceGroup(entry);
     }
 
-    public ListenableFuture<Void> moveProductInstanceGroupToPantry(ProductInstanceGroup entry, Pantry destination ){
-        return pantryRepository.moveProductInstanceGroupToPantry(entry, destination);
+    public ListenableFuture<Void> moveProductInstanceGroupToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
+        return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
     }
 
     LiveData<List<Pantry>> getPantries() {
