@@ -4,7 +4,7 @@
     android:id="@+id/tableContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".ui.pantries.ProductInstanceGroupBrowserFragment">
+>
 
     <include
         layout="@layout/fragment_product_instance_group_table"

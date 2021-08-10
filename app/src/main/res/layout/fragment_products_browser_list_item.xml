@@ -5,7 +5,8 @@
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp">
+    android:layout_margin="8dp"
+    android:clickable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,17 +34,13 @@
                     android:text="@string/register_product_name"
                     android:textAppearance="?attr/textAppearanceHeadline6" />
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/cardBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1" />
             </LinearLayout>
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/cardTags"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:clickable="false" />
         </LinearLayout>
         <!-- Media -->
         <ImageView
@@ -75,32 +72,10 @@
                     android:textColor="?android:attr/textColorSecondary" />
 
 
-                <ImageButton
-                    android:id="@+id/actionExpandBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:background="@color/design_default_color_background"
-                    android:src="@drawable/ic_baseline_expand_more" />
-
             </LinearLayout>
 
         </LinearLayout>
 
-        <net.cachapa.expandablelayout.ExpandableLayout
-            android:id="@+id/expandable_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:el_duration="300"
-            app:el_expanded="false"
-            app:el_parallax="0.5"
-            tools:el_expanded="true">
-
-            <include
-                layout="@layout/fragment_products_browser_list_item_extend"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </net.cachapa.expandablelayout.ExpandableLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

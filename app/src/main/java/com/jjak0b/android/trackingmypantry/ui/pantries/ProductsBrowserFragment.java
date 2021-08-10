@@ -39,15 +39,11 @@ public class ProductsBrowserFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        listAdapter = new ProductListAdapter(
-                new ProductListAdapter.ProductDiff(),
-                viewModel,
-                getParentFragmentManager()
-        );
-
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.productsloadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final TextView listInfo = (TextView) view.findViewById( R.id.listInfo );
+
+        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), onProductClick );
 
         loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -70,14 +66,16 @@ public class ProductsBrowserFragment extends Fragment {
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
 
-        fab.setOnClickListener( v -> {
-            Navigation.findNavController(view)
-                    .navigate(R.id.action_nav_pantries_to_registerProductBottomSheetDialogFragment);
-            // d.show(getActivity().getSupportFragmentManager(), "dialog");
-/*
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-        });
+        fab.setOnClickListener( onFabClick );
     }
 
+    private View.OnClickListener onFabClick = v -> {
+        Navigation.findNavController(getView())
+                .navigate(ProductsBrowserFragmentDirections.openAddProductOptions());
+    };
+
+    private ProductListAdapter.OnProductClick onProductClick = product -> {
+        Navigation.findNavController(getView())
+                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId()));
+    };
 }

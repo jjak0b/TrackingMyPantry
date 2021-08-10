@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.data;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteQuery;
 import android.util.Log;
 
 import androidx.annotation.StringRes;
@@ -8,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
@@ -239,7 +241,7 @@ public class PantryRepository {
         );
     }
 
-    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup entry) {
+    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup... entry) {
         return pantryDB.getProductInstanceDao().deleteAll(entry);
     }
 
@@ -276,10 +278,27 @@ public class PantryRepository {
         return pantryDB.getPantryDao().getAll();
     }
 
-    public LiveData<List<ProductInstanceGroup>> getProductInstanceGroupsOf(long pantryID, String productID ){
-        return pantryDB.getProductInstanceDao().getAllInstancesOfProduct(productID, pantryID);
-    }
-    public LiveData<List<Pantry>> getPantriesWithProductInstanceGroupsOf(String productID ){
-        return pantryDB.getPantryDao().getAllThatContains(productID);
+    public LiveData<List<PantryWithProductInstanceGroups>> getPantriesWithProductInstanceGroupsOf(String productID ){
+
+        return Transformations.switchMap(
+                pantryDB.getPantryDao().getAllThatContains(productID),
+                pantries -> {
+                    final MutableLiveData<List<PantryWithProductInstanceGroups>> mData = new MutableLiveData<>();
+
+                    getExecutor().submit( () -> {
+                        ArrayList<PantryWithProductInstanceGroups> dataList = new ArrayList<>(pantries.size());
+
+                        for (Pantry pantry : pantries) {
+                            PantryWithProductInstanceGroups item = new PantryWithProductInstanceGroups();
+                            item.pantry = pantry;
+                            item.instances =  pantryDB.getProductInstanceDao().getAllInstancesOfProduct(productID, pantry.getId());
+                            dataList.add(item);
+                        }
+                        mData.postValue(dataList);
+                    });
+
+                    return mData;
+                }
+        );
     }
 }

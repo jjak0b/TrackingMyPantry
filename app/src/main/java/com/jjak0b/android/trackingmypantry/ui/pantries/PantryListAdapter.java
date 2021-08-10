@@ -1,54 +1,64 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
+import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentManager;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
-public class PantryListAdapter extends ListAdapter<Pantry, PantryViewHolder> {
-    private FragmentManager fm;
-    private String productID;
+public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGroups, PantryViewHolder> {
+    private PantryInteractionsListener interactionsListener;
 
-    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<Pantry> diffCallback, FragmentManager fm, String productID ) {
+    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<PantryWithProductInstanceGroups> diffCallback, PantryInteractionsListener listener ) {
         super(diffCallback);
-        this.fm = fm;
-        this.productID = productID;
+        this.interactionsListener = listener;
         setHasStableIds(true);
     }
 
     @Override
     public long getItemId(int position) {
-        return getItem(position).getId();
+        return getItem(position).pantry.getId();
     }
 
     @NonNull
     @Override
     public PantryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return PantryViewHolder.create(parent);
+        PantryViewHolder viewHolder = PantryViewHolder.create(parent);
+        return viewHolder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull PantryViewHolder holder, int position) {
-        Pantry current = getItem(position);
-        holder.bind(current, productID, fm);
+        PantryViewModel viewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext())
+                .get( String.valueOf(getItemId(position)), PantryViewModel.class );
+        viewModel.setItem(getItem(position));
+        viewModel.setInteractionsListener(interactionsListener);
+        holder.bindTo(viewModel);
     }
 
-    static class ProductDiff extends DiffUtil.ItemCallback<Pantry> {
+    static class ProductDiff extends DiffUtil.ItemCallback<PantryWithProductInstanceGroups> {
         @Override
-        public boolean areItemsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
-            return Objects.equals( oldItem.getId(), newItem.getId() );
+        public boolean areItemsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
+            boolean isSame = oldItem.pantry.getId() == newItem.pantry.getId();
+            Log.e( "p", "is same items " + isSame );
+            return  isSame;
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull Pantry oldItem, @NonNull Pantry newItem) {
-            return Objects.equals( oldItem, newItem );
+        public boolean areContentsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
+            boolean isSame = Objects.equals( oldItem, newItem );
+            Log.e( "p", "is same cont " + isSame );
+            return  isSame;
         }
     }
 }

@@ -23,7 +23,7 @@ public interface ProductInstanceDao {
     List<ProductWithInstances> getAllInstancesOfProduct();
 
     @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID" )
-    LiveData<List<ProductInstanceGroup>> getAllInstancesOfProduct(String productID, long pantryID);
+    List<ProductInstanceGroup> getAllInstancesOfProduct(String productID, long pantryID);
 
     String getProductsWithTags = "SELECT * FROM products AS P INNER JOIN ( SELECT product_id FROM assignedTags AS AT INNER JOIN productTags AS T ON AT.tag_id = T.id WHERE T.name in (:tags) ) as FILTER ON P.id = product_id";
     // String filterByGroupCount = "GROUP BY FILTER.productId HAVING COUNT( FILTER.productId ) >= COUNT( (:tags) ) ORDER BY COUNT( FILTER.productId ) ASC, P.name ASC";

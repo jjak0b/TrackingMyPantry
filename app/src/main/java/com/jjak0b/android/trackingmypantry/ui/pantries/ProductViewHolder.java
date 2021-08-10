@@ -34,50 +34,20 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
     private TextView title;
     private TextView description;
     private ImageView image;
-    private Chip badge;
     private ChipGroup tags;
-    private ExpandableLayout expandableLayout;
-    private ImageButton actionExpandBtn;
-    private FrameLayout fragmentContainer;
-    private FrameLayout fragmentLayout;
+
     public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
         title = itemView.findViewById(R.id.cardTitle);
         description = itemView.findViewById(R.id.cardDescription);
         image = itemView.findViewById(R.id.cardThumbnail);
-        badge = itemView.findViewById(R.id.cardBadge);
         tags = itemView.findViewById(R.id.cardTags);
-        expandableLayout = itemView.findViewById(R.id.expandable_layout);
-        actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
-        fragmentContainer = itemView.findViewById(R.id.fragment_container);
-
-        fragmentLayout = new FrameLayout(itemView.getContext());
-        fragmentLayout.setId(ViewCompat.generateViewId());
-        fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
-        fragmentContainer.addView( fragmentLayout );
     }
 
 
-    public void bind(ProductWithTags productWithTags, ProductsBrowserViewModel viewModel, FragmentManager fm ){
+    public void bind(ProductWithTags productWithTags ){
         Product product = productWithTags.product;
         List<ProductTag> tagList = productWithTags.tags;
-
-        String fragmentTag = "Product"+product.getId();
-        Fragment f = fm.findFragmentByTag(fragmentTag);
-
-        if( f != null ){
-            //fragmentTransaction is created for the removal of the old
-            fm.beginTransaction()
-                    .remove(f)
-                    .commit();
-        }
-
-        // fragmentTransaction2 is created to add the new one
-        f = PantriesBrowserFragment.newInstance( product );
-        fm.beginTransaction()
-                .replace(fragmentLayout.getId(), f, fragmentTag)
-                .commit();
-
         title.setText( product.getName());
         description.setText(product.getDescription());
         if( product.getImg() != null ){
@@ -97,19 +67,6 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
                 tags.addView( chip );
             }
         }
-
-        actionExpandBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                expandableLayout.toggle();
-                if( expandableLayout.isExpanded() ){
-                    actionExpandBtn.setImageResource(R.drawable.ic_baseline_expand_less);
-                }
-                else {
-                    actionExpandBtn.setImageResource(R.drawable.ic_baseline_expand_more);
-                }
-            }
-        });
     }
 
     static ProductViewHolder create(ViewGroup parent) {

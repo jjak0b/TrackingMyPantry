@@ -5,28 +5,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.view.ViewCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.evrencoskun.tableview.TableView;
+import com.evrencoskun.tableview.listener.SimpleTableViewListener;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.jjak0b.android.trackingmypantry.ItemViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
 
 import net.cachapa.expandablelayout.ExpandableLayout;
 
+import java.util.List;
 
-public class PantryViewHolder extends RecyclerView.ViewHolder  {
+
+public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
 
     private TextView title;
     private TextView description;
@@ -35,46 +37,37 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
     private ChipGroup tags;
     private ExpandableLayout expandableLayout;
     private ImageButton actionExpandBtn;
-    private ViewGroup fragmentContainer;
-    private FrameLayout fragmentLayout;
+    private ViewGroup tableContainer;
+    private TableView tableView;
+    private ProductInstanceGroupTableViewAdapter tableAdapter;
+
     public PantryViewHolder(@NonNull View itemView ) {
         super(itemView);
         title = itemView.findViewById(R.id.cardTitle);
         badge = itemView.findViewById(R.id.cardBadge);
         expandableLayout = itemView.findViewById(R.id.expandable_layout);
         actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
-        fragmentContainer = itemView.findViewById(R.id.fragment_container);
-        fragmentLayout = new FrameLayout(itemView.getContext());
-        fragmentLayout.setId(ViewCompat.generateViewId());
-        fragmentLayout.setLayoutParams( fragmentContainer.getLayoutParams() );
-        fragmentContainer.addView( fragmentLayout );
-
-        // isExpanded = expandableLayout.isExpanded();
-        Log.e("a", "new instance");
+        tableContainer = itemView.findViewById(R.id.tableContainer);
+        tableView = itemView.findViewById(R.id.tableView);
+        Log.e("a", "new instance " + this.toString());
     }
 
+    @Override
+    public void bindTo(PantryViewModel viewModel) {
+        super.bindTo(viewModel);
 
-    public void bind(Pantry pantry, String productID, FragmentManager fm){
-        Log.e("a", "bind " + pantry);
+        PantryWithProductInstanceGroups pantryWGroups = getViewModel().getItem();
+        Log.e("a", "bind " + pantryWGroups + " to " + this.toString() );
+        PantryInteractionsListener listener = getViewModel().getInteractionsListener();
+        tableAdapter = new ProductInstanceGroupTableViewAdapter();
+        Pantry pantry = pantryWGroups.pantry;
+        List<ProductInstanceGroup> pantryItems = pantryWGroups.instances;
 
-        String fragmentTag = "Product"+productID +"Pantry"+pantry.getId();
-        Fragment f = fm.findFragmentByTag(fragmentTag);
-
-        if( f != null ){
-            //fragmentTransaction is created for the removal of the old
-            fm.beginTransaction()
-                    .remove(f)
-                    .commit();
-        }
-
-        // fragmentTransaction2 is created to add the new one
-        f = ProductInstanceGroupBrowserFragment.newInstance( productID, pantry.getId() );
-        fm.beginTransaction()
-                .replace(fragmentLayout.getId(), f, fragmentTag)
-                .commit();
+        bindTable(pantryItems, listener);
 
         title.setText( pantry.getName() );
-        // expandableLayout.setExpanded(isExpanded);
+        badge.setText( String.valueOf(pantryItems.size()) );
+        expandableLayout.setExpanded(getViewModel().getExpanded());
         actionExpandBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,6 +78,62 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
                 else {
                     actionExpandBtn.setImageResource(R.drawable.ic_baseline_expand_more);
                 }
+                getViewModel().setExpanded(expandableLayout.isExpanded());
+            }
+        });
+    }
+
+
+    private void bindTable(List<ProductInstanceGroup> itemsList, PantryInteractionsListener listener){
+        View view = itemView;
+
+        // hide corner and column of row number
+        tableView.setShowCornerView( false );
+        // block focus when items are changed
+        // prevent: java.lang.IllegalArgumentException: parameter must be a descendant of this view
+        tableView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+
+        tableView.setAdapter(tableAdapter);
+        tableView.setTableViewListener(new SimpleTableViewListener() {
+            @Override
+            public void onCellClicked(@NonNull RecyclerView.ViewHolder cellView, int column, int row) {
+                // tableView.setSelectedRow(row);
+
+                listener.onItemClicked(
+                        getBindingAdapterPosition(),
+                        itemView,
+                        row,
+                        cellView.itemView,
+                        tableAdapter
+                );
+            }
+
+            @Override
+            public void onCellLongPressed(@NonNull RecyclerView.ViewHolder cellView, int column, int row) {
+                // tableView.setSelectedRow(row);
+                listener.onItemLongClicked(
+                        getBindingAdapterPosition(),
+                        itemView,
+                        row,
+                        cellView.itemView,
+                        tableAdapter
+                );
+            }
+        });
+
+        ViewGroup container = tableContainer;
+        container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if( container.getWidth() > 0 ) {
+                    container.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    tableAdapter.setRowWidth(container.getWidth());
+
+                    // Note: must not be empty: https://github.com/evrencoskun/TableView/issues/26
+                    if( !itemsList.isEmpty() ) {
+                        tableAdapter.submitList(itemsList);
+                    }
+                }
             }
         });
     }
@@ -94,4 +143,5 @@ public class PantryViewHolder extends RecyclerView.ViewHolder  {
                 .inflate(R.layout.fragment_pantries_browser_list_item, parent, false);
         return new PantryViewHolder(view);
     }
+
 }

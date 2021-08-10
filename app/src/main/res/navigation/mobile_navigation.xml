@@ -11,8 +11,11 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_products_browser" >
         <action
-            android:id="@+id/action_nav_pantries_to_registerProductBottomSheetDialogFragment"
+            android:id="@+id/openAddProductOptions"
             app:destination="@id/registerProductBottomSheetDialogFragment" />
+        <action
+            android:id="@+id/openProduct"
+            app:destination="@id/pantriesBrowserFragment" />
     </fragment>
 
     <fragment
@@ -106,5 +109,14 @@
         android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductPurchaseDetailsFragment"
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
+    <fragment
+        android:id="@+id/pantriesBrowserFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.PantriesBrowserFragment"
+        android:label="fragment_pantries_browser"
+        tools:layout="@layout/fragment_pantries_browser" >
+        <argument
+            android:name="productID"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

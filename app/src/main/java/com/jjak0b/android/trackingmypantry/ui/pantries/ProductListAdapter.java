@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -19,14 +20,11 @@ import java.util.Objects;
 
 public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductViewHolder> {
 
-    private ProductsBrowserViewModel viewModel;
-    private FragmentManager fm;
-    private LifecycleRegistry lifecycleRegistry;
+    private OnProductClick onClickListener;
 
-    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<ProductWithTags> diffCallback, @NonNull ProductsBrowserViewModel viewModel, FragmentManager fm ) {
+    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<ProductWithTags> diffCallback, OnProductClick onClickListener ) {
         super(diffCallback);
-        this.viewModel = viewModel;
-        this.fm = fm;
+        this.onClickListener = onClickListener;
     }
 
     @NonNull
@@ -38,7 +36,8 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         ProductWithTags current = getItem(position);
-        holder.bind(current, viewModel, fm );
+        holder.bind(current);
+        holder.itemView.setOnClickListener(v -> onClickListener.onAction(current.product) );
     }
 
     static class ProductDiff extends DiffUtil.ItemCallback<ProductWithTags> {
@@ -52,5 +51,9 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
             return Objects.equals( oldItem.product.getId(), newItem.product.getId())
                     && Objects.equals( oldItem.tags, newItem.tags);
         }
+    }
+
+    public interface OnProductClick {
+        void onAction(Product p);
     }
 }

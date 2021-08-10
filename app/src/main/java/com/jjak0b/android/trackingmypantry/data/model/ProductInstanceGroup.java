@@ -12,6 +12,7 @@ import androidx.room.Relation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
+import java.util.Objects;
 
 @Entity(
     foreignKeys = {
@@ -104,4 +105,19 @@ public class ProductInstanceGroup {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductInstanceGroup that = (ProductInstanceGroup) o;
+        return  Objects.equals(id ,  that.id) &&
+                Objects.equals(pantryId, that.pantryId) &&
+                Objects.equals(productId, that.productId)  &&
+                Objects.equals(quantity, that.quantity) &&
+                Objects.equals(currentAmountPercent, that.currentAmountPercent) &&
+                Objects.equals(purchaseInfo, that.purchaseInfo) &&
+                Objects.equals(expiryDate, that.expiryDate);
+    }
+
 }

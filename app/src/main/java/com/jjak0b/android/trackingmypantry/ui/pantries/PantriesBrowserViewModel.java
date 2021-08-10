@@ -22,7 +22,7 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
 
     private PantryRepository pantryRepository;
     private MutableLiveData<String> productID;
-    private LiveData<List<Pantry>> list;
+    private LiveData<List<PantryWithProductInstanceGroups>> list;
 
     public PantriesBrowserViewModel(@NonNull Application application) {
         super(application);
@@ -30,19 +30,26 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
         productID = new MutableLiveData<>();
         list = Transformations.switchMap(
                 productID,
-                new Function<String, LiveData<List<Pantry>>>() {
-                    @Override
-                    public LiveData<List<Pantry>> apply(String id) {
-                        return pantryRepository.getPantriesWithProductInstanceGroupsOf(id);
-                    }
-                });
+                id -> pantryRepository.getPantriesWithProductInstanceGroupsOf(id));
     }
 
     public void setProductID( String id ){
         productID.setValue( id );
     }
 
-    LiveData<List<Pantry>> getList(){
+    LiveData<List<PantryWithProductInstanceGroups>> getList(){
         return list;
+    }
+
+    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup... entry){
+        return pantryRepository.deleteProductInstanceGroup(entry);
+    }
+
+    public ListenableFuture<Void> moveProductInstanceGroupToPantry(ProductInstanceGroup entry, Pantry destination ){
+        return pantryRepository.moveProductInstanceGroupToPantry(entry, destination);
+    }
+
+    LiveData<List<Pantry>> getPantries() {
+        return pantryRepository.getPantries();
     }
 }
