@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.data;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
@@ -25,6 +26,7 @@ import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 
@@ -313,5 +315,12 @@ public class PantryRepository {
                     return mData;
                 }
         );
+    }
+
+    public List<ProductInstanceGroupInfo> getListInfoOfAll(@Nullable String productID, @Nullable Long pantryID){
+        return pantryDB.getProductInstanceDao().getListInfoOfAll(productID, pantryID);
+    }
+    public LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID){
+        return pantryDB.getProductInstanceDao().getLiveInfoOfAll(productID, pantryID);
     }
 }

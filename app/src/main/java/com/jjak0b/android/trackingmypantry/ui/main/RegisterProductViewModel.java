@@ -201,7 +201,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         assignedPantry.setValue( p );
     }
 
-    public ListenableFuture registerProduct() {
+    public ListenableFuture<ProductInstanceGroup> registerProduct() {
         Product p = new Product.Builder()
                 .from(
                         productBuilder.getValue()
@@ -225,7 +225,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
                 pantryRepository.addPantry( pantry )
         );
 
-        return Futures.transformAsync(
+        ListenableFuture<Long> futureProductInstanceGroupID = Futures.transformAsync(
                 futureResults,
                 new AsyncFunction<List<Object>, Long>() {
                     @Override
@@ -234,6 +234,19 @@ public class RegisterProductViewModel extends AndroidViewModel {
                         Product product = (Product) it.next();
                         Pantry pantry = (Pantry) it.next();
                         return pantryRepository.addProductInstanceGroup(group, product, pantry);
+                    }
+                },
+                MoreExecutors.directExecutor()
+        );
+
+        return Futures.transform(
+                futureProductInstanceGroupID,
+                new com.google.common.base.Function<Long, ProductInstanceGroup>() {
+                    @NullableDecl
+                    @Override
+                    public ProductInstanceGroup apply(@NullableDecl Long id) {
+                        group.setId( id );
+                        return group;
                     }
                 },
                 MoreExecutors.directExecutor()

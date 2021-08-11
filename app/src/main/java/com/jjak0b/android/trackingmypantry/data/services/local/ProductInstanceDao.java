@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.services.local;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -10,6 +11,7 @@ import androidx.room.Update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithInstances;
 
 import java.util.List;
@@ -21,6 +23,13 @@ public interface ProductInstanceDao {
     @Transaction
     @Query("SELECT * FROM products" )
     List<ProductWithInstances> getAllInstancesOfProduct();
+
+    @Transaction
+    @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
+    List<ProductInstanceGroupInfo> getListInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
+    @Transaction
+    @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
+    LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
 
     @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID" )
     List<ProductInstanceGroup> getAllInstancesOfProduct(String productID, long pantryID);

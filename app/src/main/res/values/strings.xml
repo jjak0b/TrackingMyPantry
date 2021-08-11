@@ -83,4 +83,5 @@
     <string name="product_entry_removed_from_pantry">Product entry removed from the pantry</string>
     <string name="action_undo">Undo</string>
 
+    <string name="product_expiration">Product expiration</string>
 </resources>

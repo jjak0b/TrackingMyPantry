@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="product">
+        <item quantity="zero">no product</item>
+        <item quantity="one">product</item>
+        <item quantity="other">products</item>
+    </plurals>
+    <plurals name="product_expire_message">
+        <item quantity="one">a %1$s in %2$s expires today</item>
+        <item quantity="other">%3$d %1$s in %2$s expire today</item>
+    </plurals>
+</resources>
