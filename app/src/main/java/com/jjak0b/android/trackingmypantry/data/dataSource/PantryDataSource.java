@@ -1,5 +1,7 @@
 package com.jjak0b.android.trackingmypantry.data.dataSource;
 
+import android.content.Context;
+
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -29,9 +31,17 @@ public class PantryDataSource {
     }
 
 
-    public static PantryDataSource getInstance() {
+    public static PantryDataSource getInstance(LoginRepository repository) {
         if( instance == null ) {
-            instance = new PantryDataSource(LoginRepository.getInstance());
+            instance = new PantryDataSource(repository);
+        }
+
+        return instance;
+    }
+
+    public static PantryDataSource getInstance(final Context context) {
+        if( instance == null ) {
+            instance = new PantryDataSource(LoginRepository.getInstance(context));
         }
 
         return instance;

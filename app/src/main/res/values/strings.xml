@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TrackingMyPantry</string>
+    <string name="app_name">Tracking My Pantry</string>
     <string name="title_activity_browse_products_list_type">BrowseProductsListTypeActivity</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -17,16 +17,18 @@
     <string name="action_sign_in">Sign in</string>
     <string name="action_register">Sign up</string>
     <string name="action_sign_in_short">Sign in</string>
-    <string name="welcome_login">"You are now logged in"</string>
-    <string name="welcome_register">Welcome</string>
+    <string name="welcome_login">"You are now logged in as %1$s"</string>
+    <string name="welcome_register">Welcome %1$s</string>
     <string name="invalid_email">Not a valid email</string>
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Invalid password</string>
     <string name="signIn_failed">"Login failed using the provided credentials"</string>
     <string name="signUp_failed">"Unable to sign up using the provided credentials, change username or email"</string>
     <string name="auth_failed_network">"Unable to authenticate due to a network error"</string>
-    <string name="operation_failed_network">"Unable to complete the operation due to a network error"</string>
-    <string name="operation_failed_unknown">"Unable to complete the operation due to an expected error"</string>
+    <string name="auth_failed_unknown">"Unable to authenticate due to an expected error"</string>
+    <string name="error_generic_failed_network">"Unable %1$s due to a network error"</string>
+    <string name="error_generic_failed_unknown">"Unable %1$s due to an expected error"</string>
+    <string name="to_authenticate">"to authenticate"</string>
 
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -84,4 +86,8 @@
     <string name="action_undo">Undo</string>
 
     <string name="product_expiration">Product expiration</string>
+    <string name="title_activity_auth">AuthActivity</string>
+
+    <string name="description_account_required">Please, choose or create an account which you want to use the application with </string>
+    <string name="error_account_required">An account is required to use the application</string>
 </resources>

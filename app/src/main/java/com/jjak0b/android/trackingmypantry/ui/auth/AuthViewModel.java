@@ -14,9 +14,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.Result;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
-import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
@@ -26,28 +25,43 @@ import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.io.IOException;
 import retrofit2.HttpException;
 
-public class LoginViewModel extends AndroidViewModel {
+public class AuthViewModel extends AndroidViewModel {
 
     private static final String TAG = "Auth";
 
     private LoginRepository loginRepository;
     protected MutableLiveData<LoginFormState> loginFormState;
     protected LiveEvent<LoginResult> loginUIResult;
+    private LiveEvent<LoggedAccount> onLoggedAccount;
+    @Override
+    protected void onCleared() {
+        loginFormState = null;
+        loginUIResult = null;
+        onLoggedAccount.removeSource(loginRepository.getLoggedInUser());
+        onLoggedAccount = null;
+        loginRepository = null;
+        super.onCleared();
+    }
 
-
-    public LoginViewModel( Application application) {
+    public AuthViewModel(Application application) {
         super(application);
         Log.d( TAG, "new login vm instance");
-        this.loginRepository = LoginRepository.getInstance(LoginDataSource.getInstance());
+        this.loginRepository = LoginRepository.getInstance(getApplication());
         this.loginFormState = new MutableLiveData<>( new LoginFormState(false) );
         this.loginUIResult = new LiveEvent<>();
+        this.onLoggedAccount = new LiveEvent<>();
+        this.onLoggedAccount.addSource(loginRepository.getLoggedInUser(), account -> this.onLoggedAccount.postValue(account) );
     }
 
     LiveData<LoginFormState> getLoginFormState() { return loginFormState; }
 
-    LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
+    public LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
 
-    LiveData<LoginCredentials> getLoggedUser() { return loginRepository.getLoggedInUser(); }
+    LiveData<LoggedAccount> getLoggedUser() { return onLoggedAccount; }
+
+    public boolean setLoggedAccount( String name ) {
+        return loginRepository.setLoggedAccount( name );
+    }
 
     public boolean isAuthDataValid() {
         return getLoginFormState().getValue().isDataValid();
@@ -71,23 +85,16 @@ public class LoginViewModel extends AndroidViewModel {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        if( t instanceof HttpException) {
-                            Log.w( TAG, "Server/Authentication Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.signIn_failed ) );
-                        }
-                        else if( t instanceof IOException) {
-                            Log.w( TAG, "Network Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_network ) );
-                        }
-                        else {
-                            Log.e( TAG, "Unexpected Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_unknown ) );
-                        }
+                        setUIErrorFor( t, true);
                     }
                 },
                 MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
         );
         return future;
+    }
+
+    public ListenableFuture<String> authenticate() {
+        return loginRepository.requireAuthorization(false);
     }
 
     public ListenableFuture register( String username, String email, String password ) {
@@ -105,23 +112,28 @@ public class LoginViewModel extends AndroidViewModel {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        if( t instanceof HttpException) {
-                            Log.w( TAG, "Server/Authentication Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.signUp_failed ) );
-                        }
-                        else if( t instanceof IOException) {
-                            Log.w( TAG, "Network Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_network ) );
-                        }
-                        else {
-                            Log.e( TAG, "Unexpected Error", t );
-                            loginUIResult.postValue(new LoginResult( R.string.operation_failed_unknown ) );
-                        }
+                        setUIErrorFor( t, false );
                     }
                 },
                 MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
         );
         return future;
+    }
+
+    public void setUIErrorFor( Throwable t, boolean isSignIn ) {
+        if( t instanceof HttpException) {
+            Log.w( TAG, "Server/Authentication Error", t );
+            if( isSignIn ) loginUIResult.postValue(new LoginResult( R.string.signIn_failed ) );
+            else loginUIResult.postValue(new LoginResult( R.string.signUp_failed ) );
+        }
+        else if( t instanceof IOException) {
+            Log.w( TAG, "Network Error", t );
+            loginUIResult.postValue(new LoginResult( R.string.auth_failed_network) );
+        }
+        else {
+            Log.e( TAG, "Unexpected Error", t );
+            loginUIResult.postValue(new LoginResult( R.string.auth_failed_unknown ) );
+        }
     }
 
     public void updateFormState(String username, String email, String password) {

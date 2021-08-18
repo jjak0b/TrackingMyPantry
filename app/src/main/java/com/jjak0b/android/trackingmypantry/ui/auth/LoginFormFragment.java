@@ -1,6 +1,5 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
@@ -10,26 +9,22 @@ import androidx.fragment.app.Fragment;
 
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputFilter;
-import android.text.Spanned;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 
 public class LoginFormFragment extends Fragment {
 
-    protected LoginViewModel formViewModel;
-
+    protected AuthViewModel formViewModel;
 
     @Nullable
     @Override
@@ -44,10 +39,10 @@ public class LoginFormFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         formViewModel = new ViewModelProvider(
-                requireActivity(),
+                this,
                 ViewModelProvider.AndroidViewModelFactory
                         .getInstance(getActivity().getApplication())
-        ).get(LoginViewModel.class);
+        ).get(AuthViewModel.class);
 
         /*
         Log.d( "LoginFormFragment", "removing observers");
@@ -98,12 +93,11 @@ public class LoginFormFragment extends Fragment {
         emailEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
 
-        LiveData<LoginCredentials> mAuth = formViewModel.getLoggedUser();
-
-        mAuth.observe(getViewLifecycleOwner(), credentials -> {
+        formViewModel.getLoggedUser().observe(getViewLifecycleOwner(), credentials -> {
             Log.d("LoginFormFragment", "LoggedUser changed " + credentials);
-            emailEditText.setText( credentials.getEmail() );
-            passwordEditText.setText( credentials.getPassword() );
+            if( credentials != null ){
+                emailEditText.setText( credentials.getName() );
+            }
         });
     }
 

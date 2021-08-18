@@ -5,7 +5,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -22,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 public class RegisterFragment extends LoginFormFragment {
@@ -114,7 +113,7 @@ public class RegisterFragment extends LoginFormFragment {
     }
 
     private void updateUiWithUser(LoggedInUserView model) {
-        String welcome = getString(R.string.welcome_register) + " " + model.getDisplayName();
+        String welcome = getString(R.string.welcome_register, model.getDisplayName());
         // TODO : initiate successful logged in experience
 
         if (getContext() != null && getContext().getApplicationContext() != null) {

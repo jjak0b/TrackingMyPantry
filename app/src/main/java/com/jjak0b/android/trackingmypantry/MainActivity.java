@@ -1,19 +1,31 @@
 package com.jjak0b.android.trackingmypantry;
 
-import android.Manifest;
+import android.accounts.AccountManager;
+import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
+import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.services.ProductExpirationNotificationService;
-import com.jjak0b.android.trackingmypantry.services.ProductExpirationNotificationViewModel;
+import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -22,9 +34,15 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-public class MainActivity extends AppCompatActivity {
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+
+public class MainActivity extends AppCompatActivity  {
 
     private AppBarConfiguration mAppBarConfiguration;
+    private AuthViewModel authViewModel;
+
+    private ActivityResultLauncher<Intent> chooseAccountLauncher;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +64,63 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // ImageButton openLoginPageButton = findViewById(R.id.access_login_button);
-        /*openLoginPageButton.setOnClickListener( new View.OnClickListener() {
+        authViewModel = new ViewModelProvider(
+                this,
+                ViewModelProvider.AndroidViewModelFactory
+                        .getInstance(getApplication())
+        ).get(AuthViewModel.class);
 
-        });*/
+        // Register the permissions callback, which handles the user's response to the
+        // system permissions dialog.
+        requestPermissionLauncher =
+                registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                    if (isGranted) {
+                        // Permission is granted. Continue the action or workflow in your
+                        // app.
+                        startService(new Intent(this, ProductExpirationNotificationService.class));
+                    } else {
+                        // Explain to the user that the feature is unavailable because the
+                        // features requires a permission that the user has denied. At the
+                        // same time, respect the user's decision. Don't link to system
+                        // settings in an effort to convince the user to change their
+                        // decision.
+                    }
+                });
+        // Register the account chooser callback, which handles the user's response to the
+        // system account dialog.
+        chooseAccountLauncher =
+                registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent intent = result.getData();
+                        Bundle b = intent.getExtras();
+                        String accountName = b.getString(AccountManager.KEY_ACCOUNT_NAME);
 
+                        Log.d("Main", "setting account " + accountName );
+                        authViewModel.setLoggedAccount( accountName );
+                    }
+                    else {
+                        Toast.makeText(getBaseContext(), R.string.error_account_required, Toast.LENGTH_SHORT )
+                                .show();
+                        finish();
+                    }
+                });
+
+        authViewModel.getLoginUIResult().observe(this, new Observer<LoginResult>() {
+            @Override
+            public void onChanged(LoginResult loginResult) {
+                if( loginResult.getError() != null ){
+                    Toast.makeText(getApplicationContext(),
+                            getString(loginResult.getError(), R.string.to_authenticate),
+                            Toast.LENGTH_LONG
+                    ).show();
+                }
+            }
+        });
+
+        authenticate();
+
+
+/*
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
@@ -61,8 +131,49 @@ public class MainActivity extends AppCompatActivity {
             // The registered ActivityResultCallback gets the result of this request.
             requestPermissionLauncher.launch(
                     Manifest.permission.WRITE_CALENDAR);
-        }
+        }*/
 
+    }
+
+
+    private ListenableFuture<String> authenticate() {
+        ListenableFuture<String> future = authViewModel.authenticate();
+        Futures.addCallback(
+                future,
+                new FutureCallback<String>() {
+                    @Override
+                    public void onSuccess(@NullableDecl String result) {
+
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        if( t instanceof NotLoggedInException ){
+                            launchAccountChooser();
+                        }
+                        else {
+                            authViewModel.setUIErrorFor( t, true);
+                        }
+                    }
+                },
+                ContextCompat.getMainExecutor(this)
+        );
+        return future;
+    }
+
+    private void launchAccountChooser() {
+        Intent intent = AccountManager
+                .newChooseAccountIntent(
+                        null,
+                        null,
+                        new String[]{Authenticator.ACCOUNT_TYPE},
+                        getString(R.string.description_account_required),
+                        Authenticator.TOKEN_TYPE,
+                        null,
+                        null
+                );
+
+        chooseAccountLauncher.launch(intent);
     }
 
     @Override
@@ -85,22 +196,4 @@ public class MainActivity extends AppCompatActivity {
         return super.onTouchEvent(event);
     }
 
-
-    // Register the permissions callback, which handles the user's response to the
-    // system permissions dialog. Save the return value, an instance of
-    // ActivityResultLauncher, as an instance variable.
-    private ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
-                    startService(new Intent(this, ProductExpirationNotificationService.class));
-                } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
-                }
-            });
 }

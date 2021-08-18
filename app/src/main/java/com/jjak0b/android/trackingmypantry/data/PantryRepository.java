@@ -51,7 +51,7 @@ public class PantryRepository {
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
     private static Executor mainExecutor;
     PantryRepository(final Context context) {
-        remoteDataSource = new PantryDataSource( LoginRepository.getInstance() );
+        remoteDataSource = PantryDataSource.getInstance(context);
         matchingProductList = new MediatorLiveData<>();
         requestToken = new MutableLiveData<>();
         pantryDB = PantryDB.getInstance( context );
@@ -70,17 +70,18 @@ public class PantryRepository {
         return executor;
     }
 
-    public void updateMatchingProducts( String barcode ) {
+    public ListenableFuture<ProductsList> updateMatchingProducts(String barcode ) {
         if( barcode == null ) {
             requestToken.postValue( null );
             Log.e(TAG, "reset request token" );
             matchingProductList.postValue( new ArrayList<>(0) );
             Log.e(TAG, "reset product list" );
-            return;
+            return null;
         }
         Log.e(TAG, "request product list by " + barcode );
+        ListenableFuture<ProductsList> futureList = remoteDataSource.getProducts(barcode);
         Futures.addCallback(
-                remoteDataSource.getProducts(barcode),
+                futureList,
                 new FutureCallback<ProductsList>() {
                     @Override
                     public void onSuccess(@NullableDecl ProductsList result) {
@@ -107,6 +108,7 @@ public class PantryRepository {
                 },
                 mainExecutor
         );
+        return futureList;
     }
 
     private void updateMatchingProductsUsingLocal( String barcode ) {

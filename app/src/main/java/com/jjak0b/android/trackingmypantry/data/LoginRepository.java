@@ -1,7 +1,12 @@
 package com.jjak0b.android.trackingmypantry.data;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.base.Function;
@@ -14,14 +19,17 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
+import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-import java.util.Calendar;
+
 import java.util.concurrent.Executors;
 
 /**
@@ -39,37 +47,40 @@ public class LoginRepository {
 
     // If user credentials will be cached in local storage, it is recommended it be encrypted
     // @see https://developer.android.com/training/articles/keystore
-    private MutableLiveData<LoginCredentials> mLoggedInUser;
+    private MutableLiveData<LoggedAccount> mLoggedInUser;
     private LiveEvent<AuthResultState> mAuthResultState;
+    private AccountManager mAccountManager;
 
     private static final int nTHREADS = 2;
     private static final ListeningExecutorService executor =
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
-
+    private Context context;
     // private constructor : singleton access
-    private LoginRepository(LoginDataSource dataSource) {
+    private LoginRepository(LoginDataSource dataSource, final Context context ) {
         this.dataSource = dataSource;
+        this.mAccountManager = AccountManager.get(context);
+        this.context = context;
     }
 
-    public static LoginRepository getInstance() {
-        return getInstance( LoginDataSource.getInstance() );
+    public static LoginRepository getInstance(final Context context) {
+        return getInstance( LoginDataSource.getInstance(), context);
     }
 
-    public static LoginRepository getInstance(LoginDataSource dataSource) {
+    public static LoginRepository getInstance(LoginDataSource dataSource, final Context context) {
         if (instance == null) {
-            instance = new LoginRepository(dataSource);
-            instance.mLoggedInUser = new MutableLiveData<LoginCredentials>();
+            instance = new LoginRepository(dataSource, context);
+            instance.mLoggedInUser = new MutableLiveData<>(null);
         }
 
         return instance;
     }
 
-    private ListeningExecutorService getExecutor(){
+    public ListeningExecutorService getExecutor(){
         return executor;
     }
 
     public boolean isLoggedIn() {
-        return mLoggedInUser.getValue() != null && mLoggedInUser.getValue().getAccessToken() != null;
+        return mLoggedInUser.getValue() != null;
     }
 
     /**
@@ -86,40 +97,74 @@ public class LoginRepository {
      * @return a future with the access Token
      */
     public ListenableFuture<String> requireAuthorization(boolean forceRefresh ) {
-
         StringBuilder authBuilder = new StringBuilder()
                 .append( "Bearer ");
-        if( isLoggedIn() ){
-            LoginCredentials credentials = getLoggedInUser().getValue();
-            if( forceRefresh || credentials.isAccessTokenExpired() ){
+        Log.d(TAG, "Request Auth");
+        // if( isLoggedIn() ){
+            // LoginCredentials credentials = getLoggedInUser().getValue();
+
+            // if( forceRefresh || credentials.isAccessTokenExpired() ){
+            ListenableFuture<Account> futureAccount;
+
+                final LoggedAccount loggedAccount = getLoggedAccount();
+                if( loggedAccount != null) {
+                    Log.d(TAG, "using current account");
+                    futureAccount = Futures.immediateFuture(loggedAccount.getAccount());
+                }
+                else {
+                    Log.d(TAG, "request to create an account");
+                    futureAccount = Futures.immediateFailedFuture(new NotLoggedInException());
+                }
+
+                ListenableFuture<String> futureAuthToken = Futures.transformAsync(
+                        futureAccount,
+                        this::requestAuthTokenForAccount,
+                        getExecutor()
+                );
+
                 return Futures.transform(
-                        signIn(credentials),
+                        futureAuthToken,
                         new Function<String, String>() {
                             @NullableDecl
                             @Override
                             public String apply(@NullableDecl String accessToken) {
+                                Log.d(TAG, "request auth completed");
                                 authBuilder.append( accessToken );
                                 return authBuilder.toString();
                             }
                         },
-                        MoreExecutors.directExecutor()
+                        getExecutor()
                 );
-            }
-            else { // AUTHORIZED: by cached token
-                authBuilder.append( getLoggedInUser().getValue().getAccessToken() );
-                return Futures.immediateFuture( authBuilder.toString() );
-            }
-        }
-        else { // UNAUTHORIZED: missing credentials
-            return Futures.immediateFailedFuture( new AuthException( AuthResultState.UNAUTHORIZED ) );
-        }
+        // }
+        // else { // UNAUTHORIZED: missing credentials
+        //     return Futures.immediateFailedFuture( new AuthException( AuthResultState.UNAUTHORIZED ) );
+        // }
     }
 
-    public MutableLiveData<LoginCredentials> getLoggedInUser() {
+    @Nullable
+    private LoggedAccount getLoggedAccount() {
+        if( isLoggedIn() ) {
+            return getLoggedInUser().getValue();
+        }
+        return null;
+    }
+
+    @Nullable
+    public Account getAccount(String name) {
+        Account[] accounts = mAccountManager.getAccountsByType(Authenticator.ACCOUNT_TYPE);
+        for (Account account : accounts) {
+            if (account.name.equals(name)) {
+                return account;
+            }
+        }
+        return null;
+    }
+
+    public MutableLiveData<LoggedAccount> getLoggedInUser() {
         return this.mLoggedInUser;
     }
 
-    public void setLoggedInUser(LoginCredentials user) {
+    public void setLoggedInUser(LoggedAccount user) {
         if( user == null ) {
             logout();
         }
@@ -132,7 +177,22 @@ public class LoginRepository {
     }
 
     public void logout() {
+        Log.d( TAG, "logging out"  );
         mLoggedInUser.postValue( null );
+    }
+
+    public boolean setLoggedAccount( String name ){
+        if( name != null ) {
+            Account account = getAccount(name);
+            if (account != null) {
+                setLoggedInUser(new LoggedAccount(account));
+                return true;
+            }
+        }
+        else if( isLoggedIn() ){
+            setLoggedInUser(null);
+        }
+        return false;
     }
 
     public ListenableFuture<String> signIn(LoginCredentials credentials) {
@@ -143,11 +203,9 @@ public class LoginRepository {
                 new FutureCallback<AuthLoginResponse>() {
                     @Override
                     public void onSuccess(@NullableDecl AuthLoginResponse result) {
-                        // set expire date pf the access token after 7 days from now
-                        Calendar cal = Calendar.getInstance();
-                        cal.add(Calendar.DATE, 7 );
-                        LoginCredentials c = new LoginCredentials( credentials, result.getAccessToken(), cal.getTime() );
-                        setLoggedInUser( c );
+                        LoggedAccount account = new LoggedAccount(new Account(credentials.getEmail(), Authenticator.ACCOUNT_TYPE) );
+                        mAccountManager.addAccountExplicitly( account.getAccount() , credentials.getPassword(), null );
+                        setLoggedInUser( account );
                     }
 
                     @Override
@@ -190,5 +248,47 @@ public class LoginRepository {
                 getExecutor()
         );
         return future;
+    }
+
+    boolean createAccountOnDevice(Context context, LoginCredentials loginCredentials ){
+        AccountManager accountManager = AccountManager.get(context);
+
+        Account account = new Account(loginCredentials.getEmail(), Authenticator.ACCOUNT_TYPE);
+
+        // If the password doesn't exist, the account doesn't exist
+        if( accountManager.getPassword(account) == null ) {
+            /*
+             * Add the account and account type, no password or user data
+             * If successful, return the Account object, otherwise report an error.
+             */
+            return accountManager.addAccountExplicitly(account, loginCredentials.getPassword(), null);
+        }
+        return false;
+    }
+
+    ListenableFuture<String> requestAuthTokenForAccount( Account account ) {
+
+        ListenableFuture<Bundle> futureAuthTokenBundle = getExecutor().submit(() -> {
+            return mAccountManager.getAuthToken (
+                    account,
+                    Authenticator.TOKEN_TYPE,
+                    null,
+                    true,
+                    null,
+                    null
+            ).getResult();
+        });
+
+        return Futures.transform(
+                futureAuthTokenBundle,
+                new Function<Bundle, String>() {
+                    @NullableDecl
+                    @Override
+                    public String apply(@NullableDecl Bundle result) {
+                        return result.getString( AccountManager.KEY_AUTHTOKEN );
+                    }
+                },
+                getExecutor()
+        );
     }
 }
