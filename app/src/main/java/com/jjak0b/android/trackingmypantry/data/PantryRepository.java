@@ -1,6 +1,10 @@
 package com.jjak0b.android.trackingmypantry.data;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SyncRequest;
+import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -17,6 +21,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
@@ -39,9 +44,14 @@ import java.util.concurrent.Executors;
 public class PantryRepository {
 
     private static PantryRepository instance;
+    private static final Object sInstanceLock = new Object();
+
     private static final String TAG = "PantryRepo";
 
     private PantryDataSource remoteDataSource;
+    private LoginRepository authRepository;
+    private ExpirationEventsRepository expirationEventsRepository;
+
     private MediatorLiveData<List<Product>> matchingProductList;
     private LiveData<List<Product>> matchingProductListLocal;
     private MutableLiveData<String> requestToken;
@@ -50,7 +60,10 @@ public class PantryRepository {
     private static final ListeningExecutorService executor =
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
     private static Executor mainExecutor;
+
     PantryRepository(final Context context) {
+        authRepository = LoginRepository.getInstance(context);
+        expirationEventsRepository = ExpirationEventsRepository.getInstance(context);
         remoteDataSource = PantryDataSource.getInstance(context);
         matchingProductList = new MediatorLiveData<>();
         requestToken = new MutableLiveData<>();
@@ -59,11 +72,18 @@ public class PantryRepository {
             mainExecutor = ContextCompat.getMainExecutor( context );
     }
 
-    public static PantryRepository getInstance( Context context ) {
-        if( instance == null ) {
-            instance = new PantryRepository( context );
+    public static PantryRepository getInstance(Context context) {
+        PantryRepository i = instance;
+        if( i == null ) {
+            synchronized (sInstanceLock) {
+                i = instance;
+                if (i == null) {
+                    instance = new PantryRepository(context);
+                    i = instance;
+                }
+            }
         }
-        return instance;
+        return i;
     }
 
     private ListeningExecutorService getExecutor(){
@@ -172,6 +192,7 @@ public class PantryRepository {
      */
     private void addProductLocal( Product p, List<ProductTag> tags ){
         pantryDB.getProductDao().insertProductAndAssignedTags( p, tags );
+        expirationEventsRepository.updateExpiration(p.getId(), null, null);
     }
 
     /**
@@ -234,24 +255,74 @@ public class PantryRepository {
 
         return Futures.transform(
                 pantryDB.getProductInstanceDao().insertAll( instanceGroup ),
-                input -> input[0],
+                input -> {
+                    expirationEventsRepository.insertExpiration(input[0]);
+                    return input[0];
+                },
                 getExecutor()
         );
     }
 
     public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup... entry) {
-        return pantryDB.getProductInstanceDao().deleteAll(entry);
+       ListenableFuture<Void> future = pantryDB.getProductInstanceDao().deleteAll(entry);
+       Futures.addCallback(
+               future,
+               new FutureCallback<Void>() {
+                   @Override
+                   public void onSuccess(@NullableDecl Void result) {
+                       for (ProductInstanceGroup group : entry) {
+                           expirationEventsRepository.removeExpiration(group.getId());
+                       }
+                   }
+
+                   @Override
+                   public void onFailure(Throwable t) { }
+               },
+               getExecutor()
+       );
+       return future;
     }
 
-    public ListenableFuture<Void> updatedProductInstanceGroup( ProductInstanceGroup entry ){
-        return pantryDB.getProductInstanceDao().updateAll(entry);
+    public ListenableFuture<Void> updatedProductInstanceGroup( ProductInstanceGroup... entry ){
+        ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
+        Futures.addCallback(
+                future,
+                new FutureCallback<Void>() {
+                    @Override
+                    public void onSuccess(@NullableDecl Void result) {
+                        for (ProductInstanceGroup group : entry) {
+                            expirationEventsRepository.updateExpiration(null, null, group.getId());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) { }
+                },
+                getExecutor()
+        );
+        return future;
     }
 
     public ListenableFuture<Void> moveProductInstanceGroupToPantry( ProductInstanceGroup entry, Pantry pantry, int quantity ){
 
         if( quantity >= entry.getQuantity() ){
             entry.setPantryId(pantry.getId());
-            return pantryDB.getProductInstanceDao().updateAll(entry);
+            ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
+
+            Futures.addCallback(
+                    future,
+                    new FutureCallback<Void>() {
+                        @Override
+                        public void onSuccess(@NullableDecl Void result) {
+                            expirationEventsRepository.updateExpiration(null, null, entry.getId() );
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {}
+                    },
+                    getExecutor()
+            );
+            return future;
         }
         else {
             ProductInstanceGroup newGroup = ProductInstanceGroup.from(entry);
@@ -260,11 +331,28 @@ public class PantryRepository {
             newGroup.setQuantity(quantity);
             entry.setQuantity(entry.getQuantity() - quantity);
 
+            ListenableFuture<List<Object>> futureList = Futures.successfulAsList(
+                    pantryDB.getProductInstanceDao().updateAll(entry),
+                    pantryDB.getProductInstanceDao().insertAll(newGroup)
+            );
+
+            Futures.addCallback(
+                    futureList,
+                    new FutureCallback<List<Object>>() {
+                        @Override
+                        public void onSuccess(@NullableDecl List<Object> results) {
+                            expirationEventsRepository.updateExpiration(null, null, entry.getId() );
+                            expirationEventsRepository.insertExpiration((Long) results.get( 1 ) );
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) { }
+                    },
+                    getExecutor()
+            );
+
             return Futures.transform(
-                    Futures.successfulAsList(
-                            pantryDB.getProductInstanceDao().updateAll(entry),
-                            pantryDB.getProductInstanceDao().insertAll(newGroup)
-                    ),
+                    futureList,
                     input -> null,
                     getExecutor()
             );
@@ -282,12 +370,14 @@ public class PantryRepository {
                         if( pantryId >= 0 ){
                             pantry.setId( pantryId );
                         }
-
                         Log.d( TAG, "added pantry to local " + pantry );
+
+                        expirationEventsRepository.updateExpiration(null, pantry.getId(), null );
+
                         return pantry;
                     }
                 },
-                pantryDB.getDBWriteExecutor()
+                getExecutor()
         );
     }
 
@@ -324,5 +414,8 @@ public class PantryRepository {
     }
     public LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID){
         return pantryDB.getProductInstanceDao().getLiveInfoOfAll(productID, pantryID);
+    }
+    public ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(@Nullable String productID, @Nullable Long pantryID){
+        return pantryDB.getProductInstanceDao().getInfoOfAll(productID, pantryID);
     }
 }

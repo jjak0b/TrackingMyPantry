@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.services;
 
 import android.Manifest;
+import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleService;
 import androidx.work.ListenableWorker;
@@ -26,6 +28,7 @@ import androidx.work.WorkerParameters;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
@@ -114,31 +117,11 @@ public class ProductExpirationNotificationService extends LifecycleService {
         super.onDestroy();
     }
 
-    public static Uri createCalendarWithName(Context ctx, String name,String accountName) {
-
-        Uri target = Uri.parse(CalendarContract.Calendars.CONTENT_URI.toString());
-        target = target.buildUpon().appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, "com.google").build();
-
-        ContentValues values = new ContentValues();
-        values.put(CalendarContract.Calendars.ACCOUNT_TYPE, CalendarContract.ACCOUNT_TYPE_LOCAL);
-        values.put(CalendarContract.Calendars.ACCOUNT_NAME, "test");
-        values.put(CalendarContract.Calendars.NAME, name);
-        values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, name);
-        values.put(CalendarContract.Calendars.OWNER_ACCOUNT, accountName);
-        values.put(CalendarContract.Calendars.VISIBLE, 1);
-
-        Uri newCalendar = ctx.getContentResolver().insert(target, values);
-
-        return newCalendar;
-    }
     static Uri asSyncAdapter(Uri uri, String account, String accountType) {
         return uri.buildUpon()
                 .appendQueryParameter(android.provider.CalendarContract.CALLER_IS_SYNCADAPTER,"true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, "" )
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, "" )
-                .build();
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType).build();
     }
 
     void insertExpirationReminder(@NotNull Context context, @NotNull Product product, @NotNull ProductInstanceGroup group, @NotNull Pantry pantry ) {

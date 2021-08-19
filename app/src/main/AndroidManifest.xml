@@ -32,7 +32,7 @@
         <activity
             android:name=".ui.auth.AuthActivity"
             android:label="@string/title_activity_auth"
-            android:theme="@style/Theme.TrackingMyPantry.NoActionBar"></activity>
+            android:theme="@style/Theme.TrackingMyPantry.NoActionBar" />
         <activity android:name=".BarcodeScannerActivity" />
 
         <meta-data
@@ -53,7 +53,7 @@
         <service
             android:name=".services.ProductExpirationNotificationService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
         <service
             android:name=".services.AuthenticatorService"
             android:enabled="true"
@@ -65,6 +65,18 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
+        </service>
+        <service
+            android:name=".services.ExpireDateSyncService"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":sync"
+        >
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
         </service>
     </application>
 

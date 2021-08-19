@@ -1,8 +1,10 @@
 package com.jjak0b.android.trackingmypantry;
 
+import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity  {
         authenticate();
 
 
-/*
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
@@ -131,7 +133,7 @@ public class MainActivity extends AppCompatActivity  {
             // The registered ActivityResultCallback gets the result of this request.
             requestPermissionLauncher.launch(
                     Manifest.permission.WRITE_CALENDAR);
-        }*/
+        }
 
     }
 

@@ -41,6 +41,7 @@ public class LoginRepository {
     private static final String TAG = "LoginRepository";
 
     private static volatile LoginRepository instance;
+    private static final Object sInstanceLock = new Object();
 
     private LoginDataSource dataSource;
 
@@ -67,12 +68,18 @@ public class LoginRepository {
     }
 
     public static LoginRepository getInstance(LoginDataSource dataSource, final Context context) {
-        if (instance == null) {
-            instance = new LoginRepository(dataSource, context);
-            instance.mLoggedInUser = new MutableLiveData<>(null);
+        LoginRepository i = instance;
+        if( i == null ) {
+            synchronized (sInstanceLock) {
+                i = instance;
+                if (i == null) {
+                    instance = new LoginRepository(dataSource, context);
+                    instance.mLoggedInUser = new MutableLiveData<>(null);
+                    i = instance;
+                }
+            }
         }
-
-        return instance;
+        return i;
     }
 
     public ListeningExecutorService getExecutor(){

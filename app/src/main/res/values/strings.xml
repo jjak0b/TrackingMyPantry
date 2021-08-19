@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Tracking My Pantry</string>
+    <string name="account_type">lam21.modron.network</string>
     <string name="title_activity_browse_products_list_type">BrowseProductsListTypeActivity</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -90,4 +91,6 @@
 
     <string name="description_account_required">Please, choose or create an account which you want to use the application with </string>
     <string name="error_account_required">An account is required to use the application</string>
+
+
 </resources>
