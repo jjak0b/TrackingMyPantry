@@ -3,9 +3,11 @@ package com.jjak0b.android.trackingmypantry;
 import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -17,12 +19,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
-import com.jjak0b.android.trackingmypantry.services.ProductExpirationNotificationService;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity  {
                     if (isGranted) {
                         // Permission is granted. Continue the action or workflow in your
                         // app.
-                        startService(new Intent(this, ProductExpirationNotificationService.class));
+                        // startService(new Intent(this, ProductExpirationNotificationService.class));
                     } else {
                         // Explain to the user that the feature is unavailable because the
                         // features requires a permission that the user has denied. At the
@@ -119,20 +118,25 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
+        authViewModel.getLoggedUser().observe(this, account -> {
+            if( account == null ) return;
+            // switch off and on
+            ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+            ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
+            // ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+        });
         authenticate();
 
-
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
-            startService(new Intent(this, ProductExpirationNotificationService.class));
+            // startService(new Intent(this, ProductExpirationNotificationService.class));
         }
         else {
             // You can directly ask for the permission.
             // The registered ActivityResultCallback gets the result of this request.
-            requestPermissionLauncher.launch(
-                    Manifest.permission.WRITE_CALENDAR);
+            requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR);
+            requestPermissionLauncher.launch(Manifest.permission.READ_CALENDAR);
         }
 
     }

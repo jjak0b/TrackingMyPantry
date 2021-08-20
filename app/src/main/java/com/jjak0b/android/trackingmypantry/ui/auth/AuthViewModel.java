@@ -57,7 +57,7 @@ public class AuthViewModel extends AndroidViewModel {
 
     public LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
 
-    LiveData<LoggedAccount> getLoggedUser() { return onLoggedAccount; }
+    public LiveData<LoggedAccount> getLoggedUser() { return onLoggedAccount; }
 
     public boolean setLoggedAccount( String name ) {
         return loginRepository.setLoggedAccount( name );

@@ -94,7 +94,8 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                     .withValue(CalendarContract.Events.ALL_DAY, true)
                     .withValue(CalendarContract.Events.DTSTART, entry.group.getExpiryDate().getTime())
                     .withValue(CalendarContract.Events.DTEND, entry.group.getExpiryDate().getTime())
-                    .withValue(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
+                    .withValue(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
+                    .withValue(CalendarContract.Events.AVAILABILITY, CalendarContract.Events.AVAILABILITY_FREE);
         }
     }
     /**
@@ -278,6 +279,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         };
         // The index for the projection array above.
         final int PROJECTION_CALENDAR_ID_INDEX = 0;
+        long eventID = -1;
 
         String selection = new StringBuilder()
                 .append( "(" )
@@ -288,10 +290,11 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
 
         String[] selectionArgs = new String[] {account.name, account.type, account.name};
         Cursor c = provider.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
-        long eventID = -1;
+
         if( c!= null && c.moveToNext() ){
             eventID = c.getLong(PROJECTION_CALENDAR_ID_INDEX);
         }
+        c.close();
         return eventID;
     }
 
@@ -305,12 +308,19 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
     public Uri createCalendarFor(ContentProviderClient provider, Account account) throws RemoteException {
 
         ContentValues values = new ContentValues();
+
+        // required from docs
         values.put(CalendarContract.Calendars.ACCOUNT_TYPE, account.type);
         values.put(CalendarContract.Calendars.ACCOUNT_NAME, account.name);
         values.put(CalendarContract.Calendars.OWNER_ACCOUNT, account.name);
-        values.put(CalendarContract.Calendars.VISIBLE, 1);
         values.put(CalendarContract.Calendars.NAME, getCalendarName());
         values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, getCalendarDisplayName());
+        values.put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER);
+        values.put(CalendarContract.Calendars.CALENDAR_COLOR, getContext().getColor(R.color.calendar_color));
+        // Recommended
+        values.put(CalendarContract.Calendars.SYNC_EVENTS, 1);
+        // others
+        values.put(CalendarContract.Calendars.VISIBLE, 1);
 
         Uri target = Uri.parse(CalendarContract.Calendars.CONTENT_URI.toString());
         target = asSyncAdapter(target, account);
