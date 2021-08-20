@@ -90,8 +90,8 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                     .withValue(CalendarContract.Events.DESCRIPTION, eventDescription)
                     .withValue(CalendarContract.Events.EVENT_LOCATION, entry.pantry.getName() )
                     .withValue(CalendarContract.Events.ALL_DAY, true)
-                    .withValue(CalendarContract.EXTRA_EVENT_BEGIN_TIME, entry.group.getExpiryDate().getTime())
-                    .withValue(CalendarContract.EXTRA_EVENT_END_TIME, entry.group.getExpiryDate().getTime())
+                    .withValue(CalendarContract.Events.DTSTART, entry.group.getExpiryDate().getTime())
+                    .withValue(CalendarContract.Events.DTEND, entry.group.getExpiryDate().getTime())
                     .withValue(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
         }
     }
@@ -160,21 +160,20 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
 
         futureList = pantryRepository.getInfoOfAll(null, null);
 
-        long calendarID = getCalendar( account );
-        if( calendarID < 0 ) {
-            Log.d(TAG, "creating new calendar for "+ account.name );
-            Uri newCalendar = createCalendarFor(account);
-            calendarID = Long.parseLong(newCalendar.getLastPathSegment());
-        }
-        else {
-            Log.d(TAG, "calendar for "+ account.name  + ": " + calendarID );
-        }
-
         try {
+            long calendarID = getCalendar( provider, account );
+            if( calendarID < 0 ) {
+                Log.d(TAG, "creating new calendar for "+ account.name );
+                Uri newCalendar = createCalendarFor(provider, account);
+                calendarID = Long.parseLong(newCalendar.getLastPathSegment());
+            }
+            else {
+                Log.d(TAG, "calendar for "+ account.name  + ": " + calendarID );
+            }
             List<ProductInstanceGroupInfo> infoGroups = futureList.get();
             Log.d(TAG, "syncing " + infoGroups.size() + " events" );
 
-            localEvents = getLocalEvents(account, calendarID );
+            localEvents = getLocalEvents(provider, account, calendarID );
             Log.d(TAG, "checking " + localEvents.size() + " local events" );
 
             for (ProductInstanceGroupInfo info : infoGroups) {
@@ -226,13 +225,13 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 step++;
             }
 
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (ExecutionException | InterruptedException | RemoteException e) {
             Log.e(TAG, "Error on fetching event items", e );
         }
         Log.d(TAG, "sync ended");
     }
 
-    HashMap<Long, LocalEventEntry> getLocalEvents(Account account, long calendarID ) {
+    HashMap<Long, LocalEventEntry> getLocalEvents(ContentProviderClient provider, Account account, long calendarID) throws RemoteException {
 
         final String[] EVENT_PROJECTION = new String[] {
                 CalendarContract.Events._ID,
@@ -243,8 +242,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         final int PROJECTION_ITEM_ID_INDEX = 1;
 
         final HashMap<Long, LocalEventEntry> localEvents = new HashMap<>();
-
-        Cursor cLocalEvents = mContentResolver.query(
+        Cursor cLocalEvents = provider.query(
                 asSyncAdapter(CalendarContract.Events.CONTENT_URI, account),
                 new String[] { CalendarContract.Events._ID, EVENTS_COLUMN_GROUP_ID},
                 CalendarContract.Events.CALENDAR_ID + "=?",
@@ -271,7 +269,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         ).build();
     }
 
-    private long getCalendar(Account account ) {
+    private long getCalendar(ContentProviderClient provider, Account account ) throws RemoteException {
 
         final String[] EVENT_PROJECTION = new String[] {
                 CalendarContract.Calendars._ID,                           // 0
@@ -287,7 +285,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 .append( ")" ).toString();
 
         String[] selectionArgs = new String[] {account.name, account.type, account.name};
-        Cursor c = mContentResolver.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
+        Cursor c = provider.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
         long eventID = -1;
         if( c!= null && c.moveToNext() ){
             eventID = c.getLong(PROJECTION_CALENDAR_ID_INDEX);
@@ -302,7 +300,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         return getContext().getString(CALENDAR_DISPLAY_NAME_VALUE);
     }
 
-    public Uri createCalendarFor(Account account) {
+    public Uri createCalendarFor(ContentProviderClient provider, Account account) throws RemoteException {
 
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Calendars.ACCOUNT_TYPE, account.type);
@@ -315,7 +313,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         Uri target = Uri.parse(CalendarContract.Calendars.CONTENT_URI.toString());
         target = asSyncAdapter(target, account);
 
-        Uri newCalendar = mContentResolver.insert(target, values);
+        Uri newCalendar = provider.insert(target, values);
 
         return newCalendar;
     }
@@ -342,13 +340,13 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 .build();
     }
 
-    Uri addRemindersForEvent( long eventID ) {
+    Uri addRemindersForEvent( ContentProviderClient provider, long eventID ) throws RemoteException {
         ContentValues values = new ContentValues();
         Date reminderTime = getCalendarTimeForReminder().getTime();
         values.put(CalendarContract.Reminders.EVENT_ID, eventID );
         values.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
         values.put(CalendarContract.Reminders.MINUTES, TimeUnit.MILLISECONDS.toMinutes(reminderTime.getTime() ) );
-        Uri uri = mContentResolver.insert(CalendarContract.Reminders.CONTENT_URI, values);
+        Uri uri = provider.insert(CalendarContract.Reminders.CONTENT_URI, values);
         return uri;
     }
 
