@@ -1,10 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.SyncRequest;
-import android.os.Bundle;
-import android.provider.CalendarContract;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -21,7 +17,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
-import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
@@ -192,7 +187,6 @@ public class PantryRepository {
      */
     private void addProductLocal( Product p, List<ProductTag> tags ){
         pantryDB.getProductDao().insertProductAndAssignedTags( p, tags );
-        expirationEventsRepository.updateExpiration(p.getId(), null, null);
     }
 
     /**
@@ -239,6 +233,8 @@ public class PantryRepository {
                     public Product apply(@NullableDecl Product input) {
                         addProductLocal(input, tags);;
                         Log.d( TAG, "addProduct - added product to local" + input );
+                        expirationEventsRepository.updateExpiration(input.getId(), null, null);
+                        Log.d( TAG, "sync " + input );
                         return input;
                     }
                 },
@@ -370,14 +366,14 @@ public class PantryRepository {
                         if( pantryId >= 0 ){
                             pantry.setId( pantryId );
                         }
-                        Log.d( TAG, "added pantry to local " + pantry );
+                        Log.d( TAG, "added pantry to local " + pantry + " with id " + pantryId );
 
                         expirationEventsRepository.updateExpiration(null, pantry.getId(), null );
 
                         return pantry;
                     }
                 },
-                getExecutor()
+                MoreExecutors.directExecutor()
         );
     }
 
@@ -417,5 +413,8 @@ public class PantryRepository {
     }
     public ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(@Nullable String productID, @Nullable Long pantryID){
         return pantryDB.getProductInstanceDao().getInfoOfAll(productID, pantryID);
+    }
+    public ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(long... groupID) {
+        return pantryDB.getProductInstanceDao().getInfoOfAll(groupID);
     }
 }

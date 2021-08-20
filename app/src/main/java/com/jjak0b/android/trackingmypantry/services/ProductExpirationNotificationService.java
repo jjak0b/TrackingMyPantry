@@ -88,7 +88,7 @@ public class ProductExpirationNotificationService extends LifecycleService {
         // start ID so we know which request we're stopping when we finish the job
         Message msg = serviceHandler.obtainMessage();
         msg.arg1 = startId;
-
+/*
         if (ContextCompat.checkSelfPermission(
                 this, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
             // You can use the API that requires the permission.
@@ -99,7 +99,7 @@ public class ProductExpirationNotificationService extends LifecycleService {
                     insertExpirationReminder(this, info.product, info.group, info.pantry);
                 }
             });
-        }
+        }*/
 
         // If we get killed, after returning from here, restart
         return START_STICKY;

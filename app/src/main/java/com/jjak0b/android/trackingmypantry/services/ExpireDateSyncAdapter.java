@@ -3,13 +3,17 @@ package com.jjak0b.android.trackingmypantry.services;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.CalendarContract;
 import android.util.Log;
 
@@ -21,14 +25,18 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -47,16 +55,46 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final String EXTRA_EVENT_PRODUCT_ID = "product_id";
     public static final String EXTRA_EVENT_PANTRY_ID = "event_item_id";
     public static final String EXTRA_OPERATION_EVENT = "operation_event_item";
+    private static final String TAG = "ExpireDateSyncAdapter";
 
     public static final int OPERATION_EVENT_INSERT = 0;
     public static final int OPERATION_EVENT_UPDATE = 1;
     public static final int OPERATION_EVENT_REMOVE = 2;
 
     // Define a variable to contain a content resolver instance
-    ContentResolver contentResolver;
+    ContentResolver mContentResolver;
     PantryRepository pantryRepository;
-    LiveData<List<ProductInstanceGroupInfo>> list;
 
+    class EventCreator {
+        private ContentProviderOperation.Builder builder;
+        private ProductInstanceGroupInfo entry;
+        public EventCreator(ContentProviderOperation.Builder builder) {
+            this.builder = builder;
+        }
+
+        EventCreator setItem(ProductInstanceGroupInfo info) {
+            entry = info;
+            return this;
+        }
+
+        ContentProviderOperation.Builder assembleBuilder() {
+            String eventDescription = getContext().getResources()
+                    .getQuantityString(R.plurals.product_expire_message, entry.group.getQuantity(),
+                            entry.product.getName(),
+                            entry.pantry.getName(),
+                            entry.group.getQuantity()
+                    );
+            String eventTitle = getContext().getResources().getString(R.string.product_expiration);
+            return builder.withValue(EVENTS_COLUMN_GROUP_ID, entry.group.getId() )
+                    .withValue(CalendarContract.Events.TITLE, eventTitle )
+                    .withValue(CalendarContract.Events.DESCRIPTION, eventDescription)
+                    .withValue(CalendarContract.Events.EVENT_LOCATION, entry.pantry.getName() )
+                    .withValue(CalendarContract.Events.ALL_DAY, true)
+                    .withValue(CalendarContract.EXTRA_EVENT_BEGIN_TIME, entry.group.getExpiryDate().getTime())
+                    .withValue(CalendarContract.EXTRA_EVENT_END_TIME, entry.group.getExpiryDate().getTime())
+                    .withValue(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
+        }
+    }
     /**
      * Set up the sync adapter
      */
@@ -66,7 +104,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
          * If your app uses a content resolver, get an instance of it
          * from the incoming Context
          */
-        contentResolver = context.getContentResolver();
+        mContentResolver = context.getContentResolver();
         pantryRepository = PantryRepository.getInstance(context);
     }
 
@@ -84,8 +122,12 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
          * If your app uses a content resolver, get an instance of it
          * from the incoming Context
          */
-        contentResolver = context.getContentResolver();
+        mContentResolver = context.getContentResolver();
         pantryRepository = PantryRepository.getInstance(context);
+    }
+
+    class LocalEventEntry {
+        public long eventID;
     }
 
     /*
@@ -102,37 +144,141 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
             SyncResult syncResult) {
 
 
-        ListenableFuture<List<ProductInstanceGroupInfo>> futureList = pantryRepository.getInfoOfAll(null, null);
-        long calendarID = getOrCreateCalendarIDFor( account );
+        Log.d(TAG, "sync started");
+        mContentResolver = getContext().getContentResolver();
+        pantryRepository = PantryRepository.getInstance(getContext());
+
+        final List<LocalEventEntry> localEventsUpdated = new LinkedList<>();
+        final ArrayList<ContentProviderOperation> toRemove = new ArrayList<>();
+        final ArrayList<ContentProviderOperation> toUpdate = new ArrayList<>();
+        final ArrayList<ContentProviderOperation> toCreate = new ArrayList<>();
+        ListenableFuture<List<ProductInstanceGroupInfo>> futureList;
+        Long groupID = extras.getLong(EXTRA_EVENT_GROUP_ID);
+        String productID = extras.getString(EXTRA_EVENT_PRODUCT_ID);
+        Long pantryID = extras.getLong(EXTRA_EVENT_PANTRY_ID);
+        HashMap<Long, LocalEventEntry> localEvents;
+
+        futureList = pantryRepository.getInfoOfAll(null, null);
+
+        long calendarID = getCalendar( account );
+        if( calendarID < 0 ) {
+            Log.d(TAG, "creating new calendar for "+ account.name );
+            Uri newCalendar = createCalendarFor(account);
+            calendarID = Long.parseLong(newCalendar.getLastPathSegment());
+        }
+        else {
+            Log.d(TAG, "calendar for "+ account.name  + ": " + calendarID );
+        }
 
         try {
             List<ProductInstanceGroupInfo> infoGroups = futureList.get();
-            Log.e("WARN", "got list of " + infoGroups.size() );
+            Log.d(TAG, "syncing " + infoGroups.size() + " events" );
+
+            localEvents = getLocalEvents(account, calendarID );
+            Log.d(TAG, "checking " + localEvents.size() + " local events" );
+
             for (ProductInstanceGroupInfo info : infoGroups) {
-                Uri newEvent = createEvent( calendarID, info.product, info.group, info.pantry );
-                long eventID = Long.parseLong(newEvent.getLastPathSegment());
+
+                LocalEventEntry localEntry = localEvents.get(info.group.getId());
+
+                // this entry is not in local
+                if( localEntry == null) {
+                    toCreate.add(createEvent(calendarID, account, info));
+                }
+                // update the entry in local
+                else {
+                    toUpdate.add(updateEvent(localEntry.eventID, account, info));
+                    localEventsUpdated.add(localEntry);
+                }
+
+                // long eventID = Long.parseLong(newEvent.getLastPathSegment());
                 // Uri uriReminder = addRemindersForEvent( eventID );
             }
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+
+            Collection<LocalEventEntry> unprocessed = localEvents.values();
+            unprocessed.removeAll(localEventsUpdated);
+
+            Log.d(TAG, "removing " + unprocessed.size() + " obsolete events" );
+            for (LocalEventEntry entry : unprocessed ) {
+                toRemove.add(deleteEvent(entry.eventID, account));
+            }
+
+            // submit operations
+            ArrayList<ArrayList<ContentProviderOperation>> operationsLists = new ArrayList<>(3);
+            operationsLists.add(toRemove);
+            operationsLists.add(toUpdate);
+            operationsLists.add(toCreate);
+
+            int step = 1;
+            for (ArrayList<ContentProviderOperation> operations : operationsLists) {
+                try {
+                    Log.d(TAG, "syncing step " + step + " ..." );
+                    if( !operations.isEmpty()) {
+                        Log.d(TAG, "syncing " + operations.size() + " operations" );
+                        provider.applyBatch(operations);
+                    }
+                } catch (OperationApplicationException | RemoteException e){
+                    Log.e(TAG, "syncing Exception occurred on step " + step , e );
+                }
+                operations.clear();
+
+                Log.d(TAG, "syncing step " + step + " ended" );
+                step++;
+            }
+
+        } catch (ExecutionException | InterruptedException e) {
+            Log.e(TAG, "Error on fetching event items", e );
         }
+        Log.d(TAG, "sync ended");
     }
 
-    private long getOrCreateCalendarIDFor( Account account ) {
+    HashMap<Long, LocalEventEntry> getLocalEvents(Account account, long calendarID ) {
+
+        final String[] EVENT_PROJECTION = new String[] {
+                CalendarContract.Events._ID,
+                EVENTS_COLUMN_GROUP_ID
+        };
+        // The indexes for the projection array above.
+        final int PROJECTION_EVENT_ID_INDEX = 0;
+        final int PROJECTION_ITEM_ID_INDEX = 1;
+
+        final HashMap<Long, LocalEventEntry> localEvents = new HashMap<>();
+
+        Cursor cLocalEvents = mContentResolver.query(
+                asSyncAdapter(CalendarContract.Events.CONTENT_URI, account),
+                new String[] { CalendarContract.Events._ID, EVENTS_COLUMN_GROUP_ID},
+                CalendarContract.Events.CALENDAR_ID + "=?",
+                new String[] { String.valueOf( calendarID) },
+                null
+        );
+
+        while (cLocalEvents != null && cLocalEvents.moveToNext()) {
+            LocalEventEntry entry = new LocalEventEntry();
+            entry.eventID = cLocalEvents.getLong(PROJECTION_EVENT_ID_INDEX);
+            localEvents.put(cLocalEvents.getLong(PROJECTION_ITEM_ID_INDEX) , entry );
+        }
+        cLocalEvents.close();
+
+        return localEvents;
+    }
+
+    private ContentProviderOperation deleteEvent(long eventID, Account account) {
+        return ContentProviderOperation.newDelete(
+                asSyncAdapter(
+                        ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID),
+                        account
+                ).buildUpon().build()
+        ).build();
+    }
+
+    private long getCalendar(Account account ) {
 
         final String[] EVENT_PROJECTION = new String[] {
                 CalendarContract.Calendars._ID,                           // 0
-                CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
-                CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 2
-                CalendarContract.Calendars.OWNER_ACCOUNT                  // 3
         };
-        // The indices for the projection array above.
+        // The index for the projection array above.
         final int PROJECTION_CALENDAR_ID_INDEX = 0;
-        final int PROJECTION_ACCOUNT_NAME_INDEX = 1;
-        final int PROJECTION_DISPLAY_NAME_INDEX = 2;
-        final int PROJECTION_OWNER_ACCOUNT_INDEX = 3;
+
         String selection = new StringBuilder()
                 .append( "(" )
                 .append( "(" + CalendarContract.Calendars.ACCOUNT_NAME + " = ? )")
@@ -141,14 +287,10 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 .append( ")" ).toString();
 
         String[] selectionArgs = new String[] {account.name, account.type, account.name};
-        Cursor c = contentResolver.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
+        Cursor c = mContentResolver.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
         long eventID = -1;
-        if( c.moveToFirst() ){
+        if( c!= null && c.moveToNext() ){
             eventID = c.getLong(PROJECTION_CALENDAR_ID_INDEX);
-        }
-        else {
-            Uri newCalendar = createCalendarFor(account);
-            eventID = Long.parseLong(newCalendar.getLastPathSegment());
         }
         return eventID;
     }
@@ -171,77 +313,42 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         values.put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, getCalendarDisplayName());
 
         Uri target = Uri.parse(CalendarContract.Calendars.CONTENT_URI.toString());
-        target = target.buildUpon().appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account.name)
-                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, account.type )
-                .build();
+        target = asSyncAdapter(target, account);
 
-        Uri newCalendar = contentResolver.insert(target, values);
+        Uri newCalendar = mContentResolver.insert(target, values);
 
         return newCalendar;
     }
 
-
-
-    Uri createEvent( long calendarId, @NotNull Product product, @NotNull ProductInstanceGroup group, @NotNull Pantry pantry ) {
-        String eventDescription = getContext().getResources()
-                .getQuantityString(R.plurals.product_expire_message, group.getQuantity(),
-                        product.getName(),
-                        pantry.getName(),
-                        group.getQuantity()
-                );
-        String eventTitle = getContext().getResources().getString(R.string.product_expiration);
-        Log.e( ProductExpirationNotificationService.class.getName(), eventDescription );
-
-        // Event related
-        ContentValues event = new ContentValues();
-        event.put(CalendarContract.Events.CALENDAR_ID, calendarId );
-        event.put(EVENTS_COLUMN_GROUP_ID, group.getId() );
-        event.put(CalendarContract.Events.TITLE, eventTitle );
-        event.put(CalendarContract.Events.DESCRIPTION, eventDescription);
-        event.put(CalendarContract.Events.EVENT_LOCATION, pantry.getName() );
-        event.put(CalendarContract.Events.ALL_DAY, true);
-        event.put(CalendarContract.EXTRA_EVENT_BEGIN_TIME, group.getExpiryDate().getTime());
-        event.put(CalendarContract.EXTRA_EVENT_END_TIME, group.getExpiryDate().getTime());
-        event.put(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
-        Uri uri = contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, event);
-
-        return uri;
-    }
-/*
-    Cursor getEvent(long calendarID, long groupID ) {
-        String selection = new StringBuilder()
-                .append( "(" )
-                .append( "(" + CalendarContract.Events.+ " = ? )")
-                .append(" AND (").append( CalendarContract.Calendars.ACCOUNT_TYPE + " = ? )")
-                .append(" AND (").append( CalendarContract.Calendars.OWNER_ACCOUNT + " = ? )")
-                .append( ")" ).toString();
-
-        String[] selectionArgs = new String[] {calendarID, account.type, account.name};
-        Cursor c = contentResolver.query( CalendarContract.Calendars.CONTENT_URI, EVENT_PROJECTION, selection, selectionArgs, null );
+    ContentProviderOperation createEvent(long calendarID, Account account, @NotNull ProductInstanceGroupInfo entry) {
+        return new EventCreator(ContentProviderOperation.newInsert(asSyncAdapter(CalendarContract.Events.CONTENT_URI, account)))
+                .setItem(entry)
+                .assembleBuilder()
+                .withValue(CalendarContract.Events.CALENDAR_ID, calendarID )
+                .build();
     }
 
-    long getOrCreateEvent( long calendarID, long groupID ) {
-
-        Cursor c = getEvent(calendarID, groupID );
-        long eventID = -1;
-        if( c.moveToFirst() ){
-            eventID = c.getLong(PROJECTION_CALENDAR_ID_INDEX);
-        }
-        else {
-            Uri newCalendar = createCalendarFor(account);
-            eventID = Long.parseLong(newCalendar.getLastPathSegment());
-        }
-        return eventID;
+    ContentProviderOperation updateEvent( long eventID, Account account, @NotNull ProductInstanceGroupInfo entry) {
+        return new EventCreator(
+                ContentProviderOperation.newUpdate(
+                        asSyncAdapter(
+                                ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventID),
+                                account
+                        )
+                )
+        )
+                .setItem(entry)
+                .assembleBuilder()
+                .build();
     }
-*/
-    Uri addRemindersForEvent(long eventID ) {
+
+    Uri addRemindersForEvent( long eventID ) {
         ContentValues values = new ContentValues();
         Date reminderTime = getCalendarTimeForReminder().getTime();
         values.put(CalendarContract.Reminders.EVENT_ID, eventID );
         values.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
         values.put(CalendarContract.Reminders.MINUTES, TimeUnit.MILLISECONDS.toMinutes(reminderTime.getTime() ) );
-        Uri uri = contentResolver.insert(CalendarContract.Reminders.CONTENT_URI, values);
+        Uri uri = mContentResolver.insert(CalendarContract.Reminders.CONTENT_URI, values);
         return uri;
     }
 
@@ -252,5 +359,12 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         calendar.add( Calendar.HOUR_OF_DAY, 12);
         calendar.add( Calendar.MINUTE, 30);
         return calendar;
+    }
+
+    static Uri asSyncAdapter(Uri uri, Account account) {
+        return uri.buildUpon()
+                .appendQueryParameter(android.provider.CalendarContract.CALLER_IS_SYNCADAPTER,"true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, account.name)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, account.type).build();
     }
 }
