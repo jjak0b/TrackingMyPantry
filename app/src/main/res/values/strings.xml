@@ -87,6 +87,8 @@
     <string name="action_undo">Undo</string>
 
     <string name="product_expiration">Product expiration</string>
+    <string name="location_inside_pantry">In \"%1$s\" pantry</string>
+
     <string name="title_activity_auth">AuthActivity</string>
 
     <string name="description_account_required">Please, choose or create an account which you want to use the application with </string>

@@ -6,7 +6,7 @@
         <item quantity="other">products</item>
     </plurals>
     <plurals name="product_expire_message">
-        <item quantity="one">a %1$s in %2$s expires today</item>
-        <item quantity="other">%3$d %1$s in %2$s expire today</item>
+        <item quantity="one">Expiration of a \"%1$s\" in pantry \"%2$s\"</item>
+        <item quantity="other">Expiration of %3$d \"%1$s\" in pantry \"%2$s\"</item>
     </plurals>
 </resources>

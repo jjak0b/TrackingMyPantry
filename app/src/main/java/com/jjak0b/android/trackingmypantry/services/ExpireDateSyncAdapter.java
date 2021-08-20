@@ -78,17 +78,19 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         ContentProviderOperation.Builder assembleBuilder() {
-            String eventDescription = getContext().getResources()
+            String eventTitle = getContext().getResources()
                     .getQuantityString(R.plurals.product_expire_message, entry.group.getQuantity(),
                             entry.product.getName(),
                             entry.pantry.getName(),
                             entry.group.getQuantity()
                     );
-            String eventTitle = getContext().getResources().getString(R.string.product_expiration);
+            String eventDescription = getContext().getResources().getString(R.string.product_expiration);
+            String eventLocation = getContext().getString(R.string.location_inside_pantry, entry.pantry.getName());
+
             return builder.withValue(EVENTS_COLUMN_GROUP_ID, entry.group.getId() )
                     .withValue(CalendarContract.Events.TITLE, eventTitle )
                     .withValue(CalendarContract.Events.DESCRIPTION, eventDescription)
-                    .withValue(CalendarContract.Events.EVENT_LOCATION, entry.pantry.getName() )
+                    .withValue(CalendarContract.Events.EVENT_LOCATION, eventLocation)
                     .withValue(CalendarContract.Events.ALL_DAY, true)
                     .withValue(CalendarContract.Events.DTSTART, entry.group.getExpiryDate().getTime())
                     .withValue(CalendarContract.Events.DTEND, entry.group.getExpiryDate().getTime())
