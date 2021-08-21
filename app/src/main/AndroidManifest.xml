@@ -68,8 +68,11 @@
             android:name=".services.ExpireDateSyncService"
             android:enabled="true"
             android:exported="true"
-            android:process=":sync"
         >
+            <!--
+                normally the service tag should contains android:process=":sync" attribute
+                but Xiaomi devices have issues with this field, so i just remove removing it
+            -->
             <intent-filter>
                 <action android:name="android.content.SyncAdapter"/>
             </intent-filter>
