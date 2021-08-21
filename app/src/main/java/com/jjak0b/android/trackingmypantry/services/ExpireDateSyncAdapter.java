@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -18,13 +19,10 @@ import android.provider.CalendarContract;
 import android.util.Log;
 
 import androidx.annotation.StringRes;
-import androidx.lifecycle.LiveData;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +34,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -155,6 +152,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         final ArrayList<ContentProviderOperation> toRemove = new ArrayList<>();
         final ArrayList<ContentProviderOperation> toUpdate = new ArrayList<>();
         final ArrayList<ContentProviderOperation> toCreate = new ArrayList<>();
+        final ArrayList<ContentProviderOperation> toRemind = new ArrayList<>();
         ListenableFuture<List<ProductInstanceGroupInfo>> futureList;
         Long groupID = extras.getLong(EXTRA_EVENT_GROUP_ID);
         String productID = extras.getString(EXTRA_EVENT_PRODUCT_ID);
@@ -210,14 +208,28 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
             operationsLists.add(toRemove);
             operationsLists.add(toUpdate);
             operationsLists.add(toCreate);
+            operationsLists.add(toRemind);
 
+            final int STEP_CREATE_EVENTS = 3;
+            long eventID = -1;
             int step = 1;
             for (ArrayList<ContentProviderOperation> operations : operationsLists) {
                 try {
                     Log.d(TAG, "syncing step " + step + " ..." );
                     if( !operations.isEmpty()) {
                         Log.d(TAG, "syncing " + operations.size() + " operations" );
-                        provider.applyBatch(operations);
+                        ContentProviderResult[] results = provider.applyBatch(operations);
+
+                        // create reminders for each event
+                        if( step == STEP_CREATE_EVENTS ) {
+                            for ( ContentProviderResult result : results ) {
+                                eventID = Long.parseLong(result.uri.getLastPathSegment());
+                                if( eventID > 0){
+                                    toRemind.add( createReminder(provider, account, eventID) );
+                                }
+                            }
+                        }
+
                     }
                 } catch (OperationApplicationException | RemoteException e){
                     Log.e(TAG, "syncing Exception occurred on step " + step , e );
@@ -352,23 +364,19 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 .build();
     }
 
-    Uri addRemindersForEvent( ContentProviderClient provider, long eventID ) throws RemoteException {
-        ContentValues values = new ContentValues();
-        Date reminderTime = getCalendarTimeForReminder().getTime();
-        values.put(CalendarContract.Reminders.EVENT_ID, eventID );
-        values.put(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT);
-        values.put(CalendarContract.Reminders.MINUTES, TimeUnit.MILLISECONDS.toMinutes(reminderTime.getTime() ) );
-        Uri uri = provider.insert(CalendarContract.Reminders.CONTENT_URI, values);
-        return uri;
+    ContentProviderOperation createReminder(ContentProviderClient provider, Account account, long eventID ) throws RemoteException {
+        long reminderTime = getCalendarTimeForReminder();
+        return ContentProviderOperation
+                .newInsert(asSyncAdapter(CalendarContract.Reminders.CONTENT_URI, account))
+                .withValue(CalendarContract.Reminders.EVENT_ID, eventID )
+                .withValue(CalendarContract.Reminders.METHOD, CalendarContract.Reminders.METHOD_ALERT)
+                .withValue(CalendarContract.Reminders.MINUTES, reminderTime)
+                .build();
     }
 
-    Calendar getCalendarTimeForReminder() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(0);
-        calendar.add( Calendar.DAY_OF_MONTH, 7);
-        calendar.add( Calendar.HOUR_OF_DAY, 12);
-        calendar.add( Calendar.MINUTE, 30);
-        return calendar;
+    long getCalendarTimeForReminder() {
+        // TODO: load this value from user's preferences
+        return  (6 * 24 * 60);
     }
 
     static Uri asSyncAdapter(Uri uri, Account account) {
