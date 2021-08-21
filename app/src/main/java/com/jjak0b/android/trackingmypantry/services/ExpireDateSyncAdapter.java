@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -376,7 +377,18 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
 
     long getCalendarTimeForReminder() {
         // TODO: load this value from user's preferences
-        return  (6 * 24 * 60);
+        int daysBefore = 2;
+        int hour = 12;
+        int minute = 00;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0);
+        calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar.add( Calendar.DATE, daysBefore-1);
+        calendar.add( Calendar.HOUR_OF_DAY, 23-hour);
+        calendar.add( Calendar.MINUTE, 60-minute);
+        return TimeUnit.MILLISECONDS.toMinutes(calendar.getTimeInMillis()) ;
+
     }
 
     static Uri asSyncAdapter(Uri uri, Account account) {
