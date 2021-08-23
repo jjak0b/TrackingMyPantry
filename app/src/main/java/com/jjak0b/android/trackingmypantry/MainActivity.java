@@ -165,10 +165,18 @@ public class MainActivity extends AppCompatActivity  {
             int featureFlag = options.getInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
             if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
 
-            Permissions.startFeaturesRequests( this, requestPermissionLauncher,
-                    new String[] {Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR},
-                    R.string.rationale_msg_features_calendar, R.string.features_calendar_disabled
-            );
+                new Permissions.FeatureRequestBuilder()
+                        .setRationaleMessage(R.string.rationale_msg_features_calendar)
+                        .setOnPositive(requestPermissionLauncher, new String[] {
+                                Manifest.permission.WRITE_CALENDAR,
+                                Manifest.permission.READ_CALENDAR
+                        })
+                        .setOnNegative(R.string.features_calendar_disabled, () -> {
+                            options.edit()
+                                    .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
+                                    .apply();
+                        })
+                        .show(this);
 
                 ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
             }
