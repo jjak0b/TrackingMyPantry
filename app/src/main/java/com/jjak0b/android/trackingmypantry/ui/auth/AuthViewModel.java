@@ -50,14 +50,18 @@ public class AuthViewModel extends AndroidViewModel {
         this.loginFormState = new MutableLiveData<>( new LoginFormState(false) );
         this.loginUIResult = new LiveEvent<>();
         this.onLoggedAccount = new LiveEvent<>();
-        this.onLoggedAccount.addSource(loginRepository.getLoggedInUser(), account -> this.onLoggedAccount.postValue(account) );
+        this.onLoggedAccount.addSource(getLoggedUser(), account -> this.onLoggedAccount.postValue(account) );
     }
 
     LiveData<LoginFormState> getLoginFormState() { return loginFormState; }
 
     public LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
 
-    public LiveData<LoggedAccount> getLoggedUser() { return onLoggedAccount; }
+    public LiveData<LoggedAccount> getLoggedUser() {
+        return loginRepository.getLoggedInUser();
+    }
+
+    public LiveEvent<LoggedAccount> onLoggedUser() { return onLoggedAccount; }
 
     public boolean setLoggedAccount( String name ) {
         return loginRepository.setLoggedAccount( name );

@@ -61,7 +61,7 @@ public class AuthActivity extends AppCompatActivity {
             viewModel.setLoggedAccount(null);
         }
 
-        viewModel.getLoggedUser().observe(this, new Observer<LoggedAccount>() {
+        viewModel.onLoggedUser().observe(this, new Observer<LoggedAccount>() {
             @Override
             public void onChanged(LoggedAccount account) {
                 if (account == null ) {
@@ -79,7 +79,7 @@ public class AuthActivity extends AppCompatActivity {
                         // account has been set
                         setAccountAuthenticatorResult(result);
                     }
-                    viewModel.getLoggedUser().removeObserver(this::onChanged);
+                    viewModel.onLoggedUser().removeObserver(this::onChanged);
                     finish();
                 }
             }
@@ -114,7 +114,7 @@ public class AuthActivity extends AppCompatActivity {
      */
     @Override
     public void finish() {
-        viewModel.getLoggedUser().removeObservers(this);
+        viewModel.onLoggedUser().removeObservers(this);
 
         if (mAccountAuthenticatorResponse != null) {
             Intent i = new Intent();

@@ -93,7 +93,7 @@ public class LoginFormFragment extends Fragment {
         emailEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
 
-        formViewModel.getLoggedUser().observe(getViewLifecycleOwner(), credentials -> {
+        formViewModel.onLoggedUser().observe(getViewLifecycleOwner(), credentials -> {
             Log.d("LoginFormFragment", "LoggedUser changed " + credentials);
             if( credentials != null ){
                 emailEditText.setText( credentials.getName() );

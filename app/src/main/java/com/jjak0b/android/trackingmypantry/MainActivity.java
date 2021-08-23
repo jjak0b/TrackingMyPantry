@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
-        authViewModel.getLoggedUser().observe(this, account -> {
+        authViewModel.onLoggedUser().observe(this, account -> {
             if( account == null ) return;
             // switch off and on
             ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
