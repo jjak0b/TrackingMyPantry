@@ -95,6 +95,10 @@ dependencies {
     implementation 'com.github.cachapa:ExpandableLayout:2.9.2'
     implementation "com.hootsuite.android:nachos:1.1.1"
 
+    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'com.github.koji-1009:ChronoDialogPreference:2.1.0'
+    implementation 'com.github.invissvenska:NumberPickerPreference:1.0.3'
+
     // test
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

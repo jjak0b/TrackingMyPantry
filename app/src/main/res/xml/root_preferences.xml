@@ -1,0 +1,30 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/feature_reminders_header">
+
+        <SwitchPreferenceCompat
+            app:key="enabled_feature_expiration_reminders"
+            app:title="@string/features_expiration_reminders"
+            app:useSimpleSummaryProvider="true" />
+
+        <nl.invissvenska.numberpickerpreference.NumberDialogPreference
+            app:key="feature_expiration_reminders_days_before"
+            android:defaultValue="@string/feature_expiration_reminders_days_before_default"
+            app:dependency="enabled_feature_expiration_reminders"
+            app:title="@string/feature_expiration_reminders_days_before"
+            app:numberPickerPreference_minValue="1"
+            app:numberPickerPreference_maxValue="365"
+            app:numberPickerPreference_unitText="@string/feature_expiration_reminders_days_before_unit"
+            app:useSimpleSummaryProvider="true" />
+
+        <com.dr1009.app.chronodialogpreference.TimeDialogPreference
+            app:key="feature_expiration_reminders_time"
+            android:defaultValue="@string/feature_expiration_reminders_time_default"
+            app:dependency="enabled_feature_expiration_reminders"
+            app:title="@string/feature_expiration_reminders_time"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

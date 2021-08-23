@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.widget.Toast;
 
@@ -28,6 +29,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -83,13 +85,27 @@ public class MainActivity extends AppCompatActivity  {
         requestPermissionLauncher =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
 
+                    boolean areAllGranted = !isGranted.containsValue(false);
+                    SharedPreferences options = getSharedPreferences(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY, MODE_PRIVATE);
+
+                    if( areAllGranted ){
+                        options.edit()
+                                .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED)
+                                .apply();
+                    }
+                    else {
+                        options.edit()
+                                .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
+                                .apply();
+                    }
+
                     authViewModel.getLoggedUser().observe(this, new Observer<LoggedAccount>() {
                         @Override
                         public void onChanged(LoggedAccount account) {
                             if( account == null ) return;
                             authViewModel.onLoggedUser().removeObserver(this::onChanged);
 
-                            if (!isGranted.containsValue(false)) {
+                            if (areAllGranted) {
                                 // Permission is granted.
 
                                 // switch off and on to trigger sync
@@ -145,13 +161,17 @@ public class MainActivity extends AppCompatActivity  {
 
         authViewModel.onLoggedUser().observe(this, account -> {
             if( account == null ) return;
+            SharedPreferences options = getSharedPreferences(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY, MODE_PRIVATE);
+            int featureFlag = options.getInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+            if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
 
             Permissions.startFeaturesRequests( this, requestPermissionLauncher,
                     new String[] {Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR},
                     R.string.rationale_msg_features_calendar, R.string.features_calendar_disabled
             );
 
-            ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+                ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+            }
         });
         authenticate();
     }
@@ -202,6 +222,13 @@ public class MainActivity extends AppCompatActivity  {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        return NavigationUI.onNavDestinationSelected(item, navController)
+                || super.onOptionsItemSelected(item);
     }
 
     @Override
