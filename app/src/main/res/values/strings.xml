@@ -94,5 +94,9 @@
     <string name="description_account_required">Please, choose or create an account which you want to use the application with </string>
     <string name="error_account_required">An account is required to use the application</string>
 
+    <string name="rationale_title_feature">App feature</string>
+    <string name="rationale_msg_features_calendar">The app can add reminders to your calendar to let you know when each product expires.\nThis feature requires to access to the calendar: if you want to use it, please allow the app to access the calendar on next prompt</string>
+    <string name="features_calendar_disabled">The product expiration reminders are disabled</string>
+    <string name="features_calendar_disabled_cause_permissions">The product expiration reminders are disabled because calendar access permissions are required</string>
 
 </resources>

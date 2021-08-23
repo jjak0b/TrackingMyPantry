@@ -4,8 +4,9 @@ import android.Manifest;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.util.Log;
@@ -17,13 +18,17 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.jjak0b.android.trackingmypantry.data.Preferences;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -43,7 +48,7 @@ public class MainActivity extends AppCompatActivity  {
     private AuthViewModel authViewModel;
 
     private ActivityResultLauncher<Intent> chooseAccountLauncher;
-    private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<String[]> requestPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,20 +78,40 @@ public class MainActivity extends AppCompatActivity  {
 
         // Register the permissions callback, which handles the user's response to the
         // system permissions dialog.
+
+        Context activityContext = this;
         requestPermissionLauncher =
-                registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                    if (isGranted) {
-                        // Permission is granted. Continue the action or workflow in your
-                        // app.
-                        // startService(new Intent(this, ProductExpirationNotificationService.class));
-                    } else {
-                        // Explain to the user that the feature is unavailable because the
-                        // features requires a permission that the user has denied. At the
-                        // same time, respect the user's decision. Don't link to system
-                        // settings in an effort to convince the user to change their
-                        // decision.
-                    }
+                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
+
+                    authViewModel.getLoggedUser().observe(this, new Observer<LoggedAccount>() {
+                        @Override
+                        public void onChanged(LoggedAccount account) {
+                            if( account == null ) return;
+                            authViewModel.onLoggedUser().removeObserver(this::onChanged);
+
+                            if (!isGranted.containsValue(false)) {
+                                // Permission is granted.
+
+                                // switch off and on to trigger sync
+                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
+                            }
+                            else {
+                                // Explain to the user that the feature is unavailable because the
+                                // features requires a permission that the user has denied.
+                                new AlertDialog.Builder(activityContext)
+                                        .setTitle(R.string.rationale_title_feature)
+                                        .setMessage(R.string.features_calendar_disabled_cause_permissions)
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show();
+
+                                // switch off sync
+                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                            }
+                        }
+                    });
                 });
+
         // Register the account chooser callback, which handles the user's response to the
         // system account dialog.
         chooseAccountLauncher =
@@ -120,25 +145,15 @@ public class MainActivity extends AppCompatActivity  {
 
         authViewModel.onLoggedUser().observe(this, account -> {
             if( account == null ) return;
-            // switch off and on
-            ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
-            ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
-            // ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+
+            Permissions.startFeaturesRequests( this, requestPermissionLauncher,
+                    new String[] {Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR},
+                    R.string.rationale_msg_features_calendar, R.string.features_calendar_disabled
+            );
+
+            ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
         });
         authenticate();
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-            && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-            // You can use the API that requires the permission.
-            // startService(new Intent(this, ProductExpirationNotificationService.class));
-        }
-        else {
-            // You can directly ask for the permission.
-            // The registered ActivityResultCallback gets the result of this request.
-            requestPermissionLauncher.launch(Manifest.permission.WRITE_CALENDAR);
-            requestPermissionLauncher.launch(Manifest.permission.READ_CALENDAR);
-        }
-
     }
 
 
