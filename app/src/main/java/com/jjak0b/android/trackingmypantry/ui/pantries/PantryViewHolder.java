@@ -16,7 +16,7 @@ import com.evrencoskun.tableview.TableView;
 import com.evrencoskun.tableview.listener.SimpleTableViewListener;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.jjak0b.android.trackingmypantry.ItemViewHolder;
+import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;

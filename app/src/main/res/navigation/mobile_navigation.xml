@@ -120,7 +120,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.SettingsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.settings.SettingsFragment"
         android:label="@string/action_settings" />
     <action
         android:id="@+id/action_settings"

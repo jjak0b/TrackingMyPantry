@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry;
+package com.jjak0b.android.trackingmypantry.ui.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

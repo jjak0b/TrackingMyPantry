@@ -2,7 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.pantries;
 
 import androidx.lifecycle.ViewModel;
 
-import com.jjak0b.android.trackingmypantry.ItemViewModel;
+import com.jjak0b.android.trackingmypantry.ui.ItemViewModel;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
 public class PantryViewModel extends ViewModel implements ItemViewModel<PantryWithProductInstanceGroups> {

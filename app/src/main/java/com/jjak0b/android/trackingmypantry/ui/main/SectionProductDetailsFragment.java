@@ -16,7 +16,6 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import android.provider.MediaStore;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +31,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
-import com.jjak0b.android.trackingmypantry.ImageUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
