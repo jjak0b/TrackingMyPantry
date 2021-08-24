@@ -35,7 +35,10 @@
             android:name=".ui.auth.AuthActivity"
             android:label="@string/title_activity_auth"
             android:theme="@style/Theme.TrackingMyPantry.NoActionBar" />
-        <activity android:name=".BarcodeScannerActivity" />
+        <activity
+            android:name=".BarcodeScannerActivity"
+            android:theme="@style/Theme.TrackingMyPantry.NoActionBar"
+        />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

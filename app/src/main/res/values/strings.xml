@@ -8,6 +8,8 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
+    <string name="barcode_scanner_hint">Point your camera at a barcode</string>
+
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <!-- Strings related to login -->

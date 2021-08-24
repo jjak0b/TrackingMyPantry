@@ -5,23 +5,45 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".BarcodeScannerActivity">>
+    tools:context=".BarcodeScannerActivity">
 
-    <Button
-        android:id="@+id/camera_capture_button"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="50dp"
-        android:scaleType="fitCenter"
-        android:text="Take Photo"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+    <ImageView
+        android:id="@+id/barcode_box"
+        android:layout_width="@dimen/barcode_scan_reticle_width"
+        android:layout_height="@dimen/barcode_scan_reticle_height"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/barcode_reticle"
+        android:contentDescription="@string/barcode_scanner_hint"
+        android:elevation="2dp"
+        android:maxWidth="@dimen/barcode_scan_reticle_width"
+        android:maxHeight="@dimen/barcode_scan_reticle_height"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:elevation="2dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/barcode_reticle_hint"
+        android:elevation="2dp"
+        android:padding="4dp"
+        android:text="@string/barcode_scanner_hint"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="@+id/barcode_box"
+        app:layout_constraintStart_toStartOf="@+id/barcode_box"
+        app:layout_constraintTop_toBottomOf="@+id/barcode_box" />
 
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="104dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
