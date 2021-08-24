@@ -338,7 +338,7 @@ public class PantryRepository {
                         @Override
                         public void onSuccess(@NullableDecl List<Object> results) {
                             expirationEventsRepository.updateExpiration(null, null, entry.getId() );
-                            expirationEventsRepository.insertExpiration((Long) results.get( 1 ) );
+                            expirationEventsRepository.insertExpiration(((long[]) results.get(1))[0]);
                         }
 
                         @Override
