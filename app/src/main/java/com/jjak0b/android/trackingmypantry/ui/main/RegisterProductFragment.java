@@ -148,6 +148,7 @@ public class RegisterProductFragment extends Fragment {
                     @Override
                     public void onSuccess(@NullableDecl ProductInstanceGroup result) {
                         Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
+                        mProductViewModel.setupNewProduct();
                         Navigation.findNavController(view)
                                 .popBackStack(R.id.registerProductFragment, true);
                     }

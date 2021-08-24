@@ -106,6 +106,12 @@ public class RegisterProductViewModel extends AndroidViewModel {
         super.onCleared();
     }
 
+    public void setupNewProduct() {
+        resetProductDetails();
+        resetProductInstance();
+        resetPurchaseInfo();
+    }
+
     public void setBarcode(String barcode) {
         this.barcode.setValue( barcode );
         pantryRepository.updateMatchingProducts(barcode);
@@ -128,6 +134,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         pi.setPantryId( 0 );
         pi.setQuantity( 1 );
         productInstance.setValue( pi );
+        setPantry(null);
     }
 
     public void resetPurchaseInfo(){
