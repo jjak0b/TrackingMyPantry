@@ -190,6 +190,12 @@ public class LoginRepository {
 
     public boolean setLoggedAccount( String name ){
         if( name != null ) {
+            if( isLoggedIn() ) {
+                if( getLoggedInUser().getValue()
+                        .getName().equals(name)) {
+                    return true;
+                }
+            }
             Account account = getAccount(name);
             if (account != null) {
                 setLoggedInUser(new LoggedAccount(account));

@@ -41,6 +41,7 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity  {
 
     private ActivityResultLauncher<Intent> chooseAccountLauncher;
     private ActivityResultLauncher<String[]> requestPermissionLauncher;
+    private SharedPreferences.OnSharedPreferenceChangeListener onEnableFeatureExpirationReminders;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,12 +92,12 @@ public class MainActivity extends AppCompatActivity  {
 
                     if( areAllGranted ){
                         options.edit()
-                                .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED)
+                                .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED)
                                 .apply();
                     }
                     else {
                         options.edit()
-                                .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
+                                .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
                                 .apply();
                     }
 
@@ -103,7 +105,7 @@ public class MainActivity extends AppCompatActivity  {
                         @Override
                         public void onChanged(LoggedAccount account) {
                             if( account == null ) return;
-                            authViewModel.onLoggedUser().removeObserver(this::onChanged);
+                            authViewModel.getLoggedUser().removeObserver(this::onChanged);
 
                             if (areAllGranted) {
                                 // Permission is granted.
@@ -147,6 +149,15 @@ public class MainActivity extends AppCompatActivity  {
                     }
                 });
 
+        onEnableFeatureExpirationReminders = (sharedPreferences, key) -> {
+            if( Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED.equals(key) ){
+                boolean isEnabled = sharedPreferences.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+                if( isEnabled ){
+                    requestFeatureExpirationReminders( requestPermissionLauncher, sharedPreferences);
+                }
+            }
+        };
+
         authViewModel.getLoginUIResult().observe(this, new Observer<LoginResult>() {
             @Override
             public void onChanged(LoginResult loginResult) {
@@ -159,31 +170,37 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        options.registerOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
+
         authViewModel.onLoggedUser().observe(this, account -> {
             if( account == null ) return;
-            SharedPreferences options = getSharedPreferences(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY, MODE_PRIVATE);
-            int featureFlag = options.getInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+
+            Log.e("onLoggedUser", account.toString() );
+            boolean featureFlag = options.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+
             if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
-
-                new Permissions.FeatureRequestBuilder()
-                        .setRationaleMessage(R.string.rationale_msg_features_calendar)
-                        .setOnPositive(requestPermissionLauncher, new String[] {
-                                Manifest.permission.WRITE_CALENDAR,
-                                Manifest.permission.READ_CALENDAR
-                        })
-                        .setOnNegative(R.string.features_calendar_disabled, () -> {
-                            options.edit()
-                                    .putInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
-                                    .apply();
-                        })
-                        .show(this);
-
+                requestFeatureExpirationReminders( requestPermissionLauncher, options);
                 ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
             }
         });
         authenticate();
     }
 
+    private void requestFeatureExpirationReminders( ActivityResultLauncher<String[]> requestPermissionLauncher, SharedPreferences options) {
+        new Permissions.FeatureRequestBuilder()
+                .setRationaleMessage(R.string.rationale_msg_features_calendar)
+                .setOnPositive(requestPermissionLauncher, new String[] {
+                        Manifest.permission.WRITE_CALENDAR,
+                        Manifest.permission.READ_CALENDAR
+                })
+                .setOnNegative(R.string.features_calendar_disabled, () -> {
+                    options.edit()
+                            .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
+                            .apply();
+                })
+                .show(this);
+    }
 
     private ListenableFuture<String> authenticate() {
         ListenableFuture<String> future = authViewModel.authenticate();
@@ -247,9 +264,17 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    protected void onDestroy() {
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        if( onEnableFeatureExpirationReminders != null )
+            options.unregisterOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
 
-        return super.onTouchEvent(event);
+        this.mAppBarConfiguration = null;
+        this.onEnableFeatureExpirationReminders = null;
+        this.authViewModel = null;
+        this.chooseAccountLauncher = null;
+        this.requestPermissionLauncher = null;
+
+        super.onDestroy();
     }
-
 }
