@@ -10,6 +10,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,14 +20,17 @@ import android.provider.CalendarContract;
 import android.util.Log;
 
 import androidx.annotation.StringRes;
+import androidx.preference.PreferenceManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.Preferences;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -376,10 +380,27 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     long getCalendarTimeForReminder() {
-        // TODO: load this value from user's preferences
         int daysBefore = 2;
         int hour = 12;
         int minute = 00;
+        
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String strTime = options.getString(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_TIME, Preferences.FEATURE_EXPIRATION_REMINDERS.TIME_DEFAULT);
+        int days = options.getInt(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_DAYS_BEFORE, Preferences.FEATURE_EXPIRATION_REMINDERS.DAYS_BEFORE_DEFAULT);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
+
+        try {
+            Date dateTime = dateFormat.parse(strTime);
+            Calendar c = Calendar.getInstance();
+            c.setTime( dateTime );
+
+            hour = c.get( Calendar.HOUR_OF_DAY );
+            minute = c.get( Calendar.MINUTE );
+            daysBefore = days;
+        }
+        catch (Exception e) {
+            Log.e(TAG, "Error parsing expiration reminders settings", e );
+        }
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(0);

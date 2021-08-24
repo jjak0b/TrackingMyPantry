@@ -5,6 +5,7 @@
 
         <SwitchPreferenceCompat
             app:key="enabled_feature_expiration_reminders"
+            android:defaultValue="@string/enabled_feature_expiration_reminders_default"
             app:title="@string/features_expiration_reminders"
             app:useSimpleSummaryProvider="true" />
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Preferences defaults -->
+    <string name="enabled_feature_expiration_reminders_default">true</string>
     <string name="feature_expiration_reminders_days_before_default">2</string>
     <string name="feature_expiration_reminders_time_default">12:00</string>
 </resources>
