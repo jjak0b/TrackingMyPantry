@@ -6,10 +6,13 @@ import androidx.camera.core.Camera;
 import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.FocusMeteringAction;
+import androidx.camera.core.FocusMeteringResult;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.MeteringPoint;
 import androidx.camera.core.Preview;
+import androidx.camera.core.UseCase;
+import androidx.camera.core.UseCaseGroup;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
@@ -27,9 +30,15 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,48 +90,64 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 
     }
 
-    private void startCamera() {
+    private ListenableFuture<Camera> startCamera() {
+        Executor mainExecutor = ContextCompat.getMainExecutor(getBaseContext());
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
 
-        cameraProviderFuture.addListener(() -> {
-            // Used to bind the lifecycle of cameras to the lifecycle owner
-            ProcessCameraProvider cameraProvider = null;
-            try {
-                cameraProvider = cameraProviderFuture.get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Used to bind the lifecycle of cameras to the lifecycle owner
+        ListenableFuture<Camera> cameraFuture = Futures.transform(cameraProviderFuture,
+                cameraProvider -> {
+                    // Preview
+                    Preview preview = new Preview.Builder()
+                            .build();
 
+                    // Select back camera as a default
+                    CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
-            // Preview
-            Preview preview = new Preview.Builder()
-                    .build();
+                    preview.setSurfaceProvider( viewFinder.getSurfaceProvider() );
 
-            // Select back camera as a default
-            CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                    ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
+                            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                            .build();
+                    imageAnalyzer.setAnalyzer( cameraExecutor, mAnalyzer );
 
-            preview.setSurfaceProvider( viewFinder.getSurfaceProvider() );
+                    // Unbind use cases before rebinding
+                    cameraProvider.unbindAll();
 
-            ImageAnalysis imageAnalyzer = new ImageAnalysis.Builder()
-                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                    .build();
-            imageAnalyzer.setAnalyzer( cameraExecutor, mAnalyzer );
+                    // Bind use cases to camera
+                    Camera camera = cameraProvider.bindToLifecycle(
+                            this,
+                            cameraSelector,
+                            preview,
+                            imageCapture,
+                            imageAnalyzer
+                    );
 
-            try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll();
+                    return camera;
+                },
+                mainExecutor
+        );
 
-                // Bind use cases to camera
-                Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalyzer);
-                setUpTapToFocus( camera );
+        Futures.addCallback(cameraFuture,
+                new FutureCallback<Camera>() {
+                    @Override
+                    public void onSuccess(@NullableDecl Camera camera) {
+                        setUpTapToFocus( camera );
+                    }
 
-            } catch(Exception exc) {
-                Log.e(TAG, "Use case binding failed", exc);
-            }
-
-        }, ContextCompat.getMainExecutor(this));
+                    @Override
+                    public void onFailure(Throwable t) {
+                        if( t instanceof IllegalArgumentException ){
+                            Log.e(TAG, "Unable to resolve Camera", t );
+                        }
+                        else if( t instanceof IllegalStateException ){
+                            Log.e(TAG, "Unable to bind Camera", t );
+                        }
+                    }
+                },
+                mainExecutor
+        );
+        return cameraFuture;
     }
 
     private boolean allPermissionsGranted() {
@@ -176,7 +201,26 @@ public class BarcodeScannerActivity extends AppCompatActivity {
                         .build();
                 CameraControl cameraControl = camera.getCameraControl();
 
-                cameraControl.startFocusAndMetering(action);
+                Futures.addCallback(
+                        cameraControl.startFocusAndMetering(action),
+                        new FutureCallback<FocusMeteringResult>() {
+                            @Override
+                            public void onSuccess(@NullableDecl FocusMeteringResult result) {
+                                if( result.isFocusSuccessful() ) {
+                                    Log.d(TAG, "Focused successfully");
+                                }
+                                else {
+                                    Log.w(TAG, "Not focused successfully");
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                Log.e(TAG, "Unable to focus", t);
+                            }
+                        },
+                        ContextCompat.getMainExecutor(getBaseContext())
+                );
                 return true;
             }
         });
