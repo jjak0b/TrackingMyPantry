@@ -112,6 +112,12 @@ public class RegisterProductViewModel extends AndroidViewModel {
         resetPurchaseInfo();
     }
 
+    public void setEmptyProduct() {
+        setProduct( new Product.Builder()
+                .setBarcode( getBarcode().getValue() )
+                .build());
+    }
+
     public void setBarcode(String barcode) {
         this.barcode.setValue( barcode );
         pantryRepository.updateMatchingProducts(barcode);

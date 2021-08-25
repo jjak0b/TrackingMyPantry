@@ -231,7 +231,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
         mViewModel.onUpdateMatchingProductsList().observe(getViewLifecycleOwner(), products -> {
             Log.e( "RegisterProductFragment", "updated products");
-            if( products != null && !products.isEmpty() ) {
+            if( products != null ) {
                 openBottomSheetDialog(view);
                 Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
             }

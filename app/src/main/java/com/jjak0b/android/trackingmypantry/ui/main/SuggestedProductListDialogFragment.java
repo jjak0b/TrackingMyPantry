@@ -7,14 +7,16 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -55,13 +57,41 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+        final View suggestedResultsContainer = view.findViewById(R.id.suggestedResultsContainer);
+        final Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
 
+        toolbar.setSubtitle(getResources().getQuantityString(R.plurals.matches_found, 0, 0) );
+        suggestedResultsContainer.setVisibility(View.GONE);
+
+        Runnable onNewProduct = () -> mViewModel.setEmptyProduct();
+
+        MenuItem menuItemNewProduct = toolbar.getMenu().findItem(R.id.action_new);
+
+        // this if it's in collapsed menu view
+        menuItemNewProduct.setOnMenuItemClickListener(item -> {
+            onNewProduct.run();
+            return true;
+        });
+
+        // this as custom action view
+        menuItemNewProduct.getActionView().setOnClickListener( v -> onNewProduct.run() );
+        
         loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
         mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
-            Log.e( "TEST2", "submitting new list" );
+            int size = products.size();
+            Log.e( "TEST2", "submitting new list of size: " + size );
+            toolbar.setSubtitle(getResources()
+                    .getQuantityString(R.plurals.matches_found, size, size));
+
+            if( size < 1 ){
+                suggestedResultsContainer.setVisibility(View.GONE);
+            }
+            else {
+                suggestedResultsContainer.setVisibility(View.VISIBLE);
+            }
             loadingBar.setVisibility( View.VISIBLE );
             listAdapter.submitList( products );
             loadingBar.setVisibility( View.GONE );
