@@ -26,12 +26,13 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         image = (ImageView) itemView.findViewById(R.id.cardThumbnail);
     }
 
-    public void bind(Product product, RegisterProductViewModel viewModel){
+    public void bind(@NonNull Product product, OnProductClickListener onProductClickListener ){
         title.setText( product.getName());
         description.setText(product.getDescription());
 
-        this.itemView.setOnClickListener( v -> {
-            viewModel.setProduct( product );
+        this.itemView.setOnClickListener(v -> {
+            if( onProductClickListener != null )
+                onProductClickListener.onClick(product);
         });
 
         if( product.getImg() != null ){
@@ -48,5 +49,10 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_suggested_product_list_dialog_list_dialog_item, parent, false);
         return new ProductViewHolder(view);
+    }
+
+    public interface OnProductClickListener {
+
+        void onClick(Product product);
     }
 }

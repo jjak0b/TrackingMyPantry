@@ -11,11 +11,11 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 
 public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> {
 
-    private RegisterProductViewModel viewModel;
+    private ProductViewHolder.OnProductClickListener onProductClickListener;
 
-    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback, @NonNull RegisterProductViewModel viewModel ) {
+    protected ProductListAdapter(@NonNull DiffUtil.ItemCallback<Product> diffCallback, ProductViewHolder.OnProductClickListener onProductClickListener ) {
         super(diffCallback);
-        this.viewModel = viewModel;
+        this.onProductClickListener = onProductClickListener;
     }
 
     @NonNull
@@ -27,7 +27,7 @@ public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Product current = getItem(position);
-        holder.bind(current, viewModel);
+        holder.bind(current, onProductClickListener);
     }
 
     static class ProductDiff extends DiffUtil.ItemCallback<Product> {
