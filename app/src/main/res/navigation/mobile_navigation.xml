@@ -11,11 +11,11 @@
         android:label="@string/menu_home"
         tools:layout="@layout/fragment_products_browser" >
         <action
-            android:id="@+id/openAddProductOptions"
-            app:destination="@id/registerProductBottomSheetDialogFragment" />
-        <action
             android:id="@+id/openProduct"
             app:destination="@id/pantriesBrowserFragment" />
+        <action
+            android:id="@+id/openRegisterProduct"
+            app:destination="@id/registerProductFragment" />
     </fragment>
 
     <fragment
@@ -59,10 +59,6 @@
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragment"
         android:label="register_product_fragment"
         tools:layout="@layout/fragment_register_product">
-        <argument
-            android:name="barcode"
-            app:argType="string"
-            app:nullable="true" />
         <action
             android:id="@+id/action_registerProductFragment_to_registerProductInstancesFragment"
             app:destination="@id/registerProductInstancesFragment" />
@@ -76,17 +72,6 @@
             android:id="@+id/action_registerProductFragment_to_suggestedProductListDialogFragment"
             app:destination="@id/suggestedProductListDialogFragment" />
     </fragment>
-    <dialog
-        android:id="@+id/registerProductBottomSheetDialogFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.MenuRegisterProductBottomSheetDialogFragment"
-        android:label="fragment_bottom_sheet_register_product"
-        tools:layout="@layout/fragment_bottom_sheet_register_new_product">
-        <action
-            android:id="@+id/action_registerProductBottomSheetDialogFragment_to_registerProductFragment"
-            app:destination="@id/registerProductFragment"
-            app:popUpTo="@id/registerProductBottomSheetDialogFragment"
-            app:popUpToInclusive="true" />
-    </dialog>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.SuggestedProductListDialogFragment"

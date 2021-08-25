@@ -71,7 +71,7 @@ public class ProductsBrowserFragment extends Fragment {
 
     private View.OnClickListener onFabClick = v -> {
         Navigation.findNavController(getView())
-                .navigate(ProductsBrowserFragmentDirections.openAddProductOptions());
+                .navigate(ProductsBrowserFragmentDirections.openRegisterProduct());
     };
 
     private ProductListAdapter.OnProductClick onProductClick = product -> {
