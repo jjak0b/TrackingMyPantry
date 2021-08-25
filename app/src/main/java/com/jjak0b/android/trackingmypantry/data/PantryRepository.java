@@ -86,11 +86,12 @@ public class PantryRepository {
     }
 
     public ListenableFuture<ProductsList> updateMatchingProducts(String barcode ) {
+        matchingProductList.postValue( null );
+        Log.e(TAG, "reset product list" );
+
         if( barcode == null ) {
             requestToken.postValue( null );
             Log.e(TAG, "reset request token" );
-            matchingProductList.postValue( new ArrayList<>(0) );
-            Log.e(TAG, "reset product list" );
             return null;
         }
         Log.e(TAG, "request product list by " + barcode );

@@ -58,9 +58,6 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         final View suggestedResultsContainer = view.findViewById(R.id.suggestedResultsContainer);
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
 
-        toolbar.setSubtitle(getResources().getQuantityString(R.plurals.matches_found, 0, 0) );
-        suggestedResultsContainer.setVisibility(View.GONE);
-
         Runnable onNewProduct = () -> mViewModel.setEmptyProduct();
 
         MenuItem menuItemNewProduct = toolbar.getMenu().findItem(R.id.action_new);
@@ -74,11 +71,16 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         // this as custom action view
         menuItemNewProduct.getActionView().setOnClickListener( v -> onNewProduct.run() );
 
-        loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
+        toolbar.setSubtitle(getString(R.string.loading));
+        suggestedResultsContainer.setVisibility(View.GONE);
+        loadingBar.setVisibility( View.VISIBLE );
+
         mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
+            if( products == null ) return;
+
             int size = products.size();
             Log.e( "TEST2", "submitting new list of size: " + size );
             toolbar.setSubtitle(getResources()

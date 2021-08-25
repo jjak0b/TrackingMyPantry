@@ -58,7 +58,7 @@ public class RegisterProductFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mProductViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        mPageViewModel = new ViewModelProvider(requireActivity()).get(PageViewModel.class);
+        mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
 
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);
         Button nextBtn = view.findViewById( R.id.continueBtn );

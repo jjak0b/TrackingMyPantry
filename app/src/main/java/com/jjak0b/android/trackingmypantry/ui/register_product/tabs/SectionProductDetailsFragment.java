@@ -105,14 +105,14 @@ public class SectionProductDetailsFragment extends Fragment {
 
         editBarcode.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                mViewModel.setBarcode( editBarcode.getText().toString() );
+                search(editBarcode.getText().toString());
                 return true;
             }
             return false;
         });
 
         barcodeInputLayout.setStartIconOnClickListener(v -> {
-            mViewModel.setBarcode( editBarcode.getText().toString() );
+            search( editBarcode.getText().toString() );
         });
 
         mViewModel.getBarcode().observe( getViewLifecycleOwner(), value -> {
@@ -230,13 +230,6 @@ public class SectionProductDetailsFragment extends Fragment {
             adapter.addAll( productTags );
         });
 
-        mViewModel.onUpdateMatchingProductsList().observe(getViewLifecycleOwner(), products -> {
-            Log.e( "RegisterProductFragment", "updated products");
-            if( products != null ) {
-                openBottomSheetDialog(view);
-                Log.e( "test", "OPEN bottom sheet with " + products.size() + " elements" );
-            }
-        });
         /* if using this order instead:
             setBarcode
             getProducts().observe
@@ -272,6 +265,11 @@ public class SectionProductDetailsFragment extends Fragment {
                 mViewModel.setBarcode( barcode );
             }
         }
+    }
+
+    private void search(String barcode) {
+        mViewModel.setBarcode( barcode );
+        openBottomSheetDialog(getView());
     }
 
     private void openBottomSheetDialog(View view) {
