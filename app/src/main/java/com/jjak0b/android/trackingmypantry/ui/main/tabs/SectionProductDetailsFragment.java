@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.main.tabs;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -31,6 +31,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
+import com.jjak0b.android.trackingmypantry.ui.main.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Product;

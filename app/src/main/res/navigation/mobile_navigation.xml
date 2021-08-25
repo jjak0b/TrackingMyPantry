@@ -95,18 +95,18 @@
 
     <fragment
         android:id="@+id/sectionProductDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductDetailsFragment"
         android:label="section_product_details_fragment"
         tools:layout="@layout/fragment_section_product_details">
     </fragment>
     <fragment
         android:id="@+id/registerProductInstancesFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductInstanceDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductInstanceDetailsFragment"
         android:label="fragment_section_product_instance_details"
         tools:layout="@layout/fragment_section_product_instance_details" />
     <fragment
         android:id="@+id/sectionProductPurchaseDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.SectionProductPurchaseDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductPurchaseDetailsFragment"
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment

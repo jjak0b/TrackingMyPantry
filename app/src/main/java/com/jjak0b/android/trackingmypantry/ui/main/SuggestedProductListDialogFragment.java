@@ -75,7 +75,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
 
         // this as custom action view
         menuItemNewProduct.getActionView().setOnClickListener( v -> onNewProduct.run() );
-        
+
         loadingBar.setVisibility( View.VISIBLE );
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );

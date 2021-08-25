@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.provider.CalendarContract;
 import android.util.Log;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
@@ -66,12 +68,12 @@ public class RegisterProductFragment extends Fragment {
         mProductViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(requireActivity()).get(PageViewModel.class);
 
-        ViewPager viewPager = view.findViewById(R.id.view_pager);
+        ViewPager2 viewPager = view.findViewById(R.id.view_pager);
         Button nextBtn = view.findViewById( R.id.continueBtn );
         TabLayout tabs = view.findViewById( R.id.tabs );
 
         ProductInfoSectionsPagerAdapter productInfoSectionsPagerAdapter =
-                new ProductInfoSectionsPagerAdapter(getActivity(), getActivity().getSupportFragmentManager(), mProductViewModel);
+                new ProductInfoSectionsPagerAdapter(getActivity(), mProductViewModel);
 
         // when product is not ready so allow only tab 0
         mProductViewModel.getProductBuilder().observe( getViewLifecycleOwner(), builder -> {
@@ -136,7 +138,14 @@ public class RegisterProductFragment extends Fragment {
         });
 
         viewPager.setAdapter(productInfoSectionsPagerAdapter);
-        tabs.setupWithViewPager(viewPager);
+
+        // tabs.setupWithViewPager(viewPager);
+        new TabLayoutMediator(tabs, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
+            @Override
+            public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
+                tab.setText( productInfoSectionsPagerAdapter.getTabTitle(position) );
+            }
+        }).attach();
 
     }
 

@@ -3,20 +3,25 @@ package com.jjak0b.android.trackingmypantry.ui.main;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductInstanceDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductPurchaseDetailsFragment;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
  * one of the sections/tabs/pages.
  */
-public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
+public class ProductInfoSectionsPagerAdapter extends FragmentStateAdapter {
 
     @StringRes
     private static final int[] TAB_TITLES = new int[]{
@@ -28,15 +33,20 @@ public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
     private RegisterProductViewModel vm;
     private int pageCount;
 
-    public ProductInfoSectionsPagerAdapter(Context context, FragmentManager fm, RegisterProductViewModel vm ) {
-        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT );
-        mContext = context;
+    public ProductInfoSectionsPagerAdapter(FragmentActivity fragmentActivity, RegisterProductViewModel vm ) {
+        super(fragmentActivity);
+        mContext = fragmentActivity;
         this.vm = vm;
         this.pageCount = 1;
     }
 
-    @Override
-    public Fragment getItem(int position) {
+
+    @StringRes
+    public int getTabTitle(int index) {
+        return TAB_TITLES[ index % getItemCount() ];
+    }
+
+    private Fragment getItem(int position) {
         switch ( position ){
             case 0:
                 return new SectionProductDetailsFragment();
@@ -51,24 +61,23 @@ public class ProductInfoSectionsPagerAdapter extends FragmentStatePagerAdapter {
         return null;
     }
 
-    @Nullable
-    @Override
-    public CharSequence getPageTitle(int position) {
-        return mContext.getResources().getString(TAB_TITLES[position]);
-    }
-
-
     public void setMaxEnabledTabs( int pageCount ){
         this.pageCount = pageCount;
         this.notifyDataSetChanged();
     }
 
-    @Override
-    public int getCount() {
-        return this.pageCount;
-    }
-
     public int getAbsolutePageCount() {
         return TAB_TITLES.length;
+    }
+
+    @NonNull
+    @Override
+    public Fragment createFragment(int position) {
+        return getItem(position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return this.pageCount;
     }
 }
