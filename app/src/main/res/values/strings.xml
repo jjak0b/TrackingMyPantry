@@ -54,7 +54,7 @@
     <!-- register product -->
     <string name="menu_register_product_action_scan">Scan barcode</string>
     <string name="menu_register_product_action_digit">Digit barcode</string>
-
+    <string name="register_product_title">Add new products to a pantry</string>
     <!-- product register form -->
     <string name="product_expire_date">Expire date</string>
     <string name="product_pantry_name">Pantry name</string>

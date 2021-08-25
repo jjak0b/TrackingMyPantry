@@ -57,7 +57,7 @@
     <fragment
         android:id="@+id/registerProductFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragment"
-        android:label="register_product_fragment"
+        android:label="@string/register_product_title"
         tools:layout="@layout/fragment_register_product">
         <action
             android:id="@+id/action_registerProductFragment_to_registerProductInstancesFragment"
