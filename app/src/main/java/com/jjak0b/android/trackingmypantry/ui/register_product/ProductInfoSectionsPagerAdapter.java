@@ -1,21 +1,18 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductDetailsFragment;
-import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductInstanceDetailsFragment;
-import com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductPurchaseDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductPurchaseDetailsFragment;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to

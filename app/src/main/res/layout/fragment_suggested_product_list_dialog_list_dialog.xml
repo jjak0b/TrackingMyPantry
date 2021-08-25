@@ -7,5 +7,5 @@
     android:clipToPadding="false"
     android:paddingTop="@dimen/list_item_spacing_half"
     android:paddingBottom="@dimen/list_item_spacing_half"
-    tools:context=".ui.main.SuggestedProductListDialogFragment"
+    tools:context=".ui.register_product.SuggestedProductListDialogFragment"
     tools:listitem="@layout/fragment_suggested_product_list_dialog_list_dialog_item" />

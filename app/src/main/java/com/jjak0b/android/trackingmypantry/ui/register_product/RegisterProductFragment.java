@@ -1,7 +1,5 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.register_product;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,10 +8,8 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
-import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,16 +23,12 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Calendar;
 
 import retrofit2.HttpException;
 

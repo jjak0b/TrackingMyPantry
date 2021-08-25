@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.main.tabs;
+package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
@@ -22,7 +22,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.ui.main.RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 import org.jetbrains.annotations.NotNull;

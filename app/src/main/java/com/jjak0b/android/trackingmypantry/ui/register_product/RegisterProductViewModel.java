@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.app.Application;
 

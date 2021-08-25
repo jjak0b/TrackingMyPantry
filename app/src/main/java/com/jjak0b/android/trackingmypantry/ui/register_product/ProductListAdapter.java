@@ -1,6 +1,5 @@
-package com.jjak0b.android.trackingmypantry.ui.main;
+package com.jjak0b.android.trackingmypantry.ui.register_product;
 
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;

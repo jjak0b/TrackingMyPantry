@@ -56,7 +56,7 @@
 
     <fragment
         android:id="@+id/registerProductFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.RegisterProductFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragment"
         android:label="register_product_fragment"
         tools:layout="@layout/fragment_register_product">
         <argument
@@ -89,24 +89,24 @@
     </dialog>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.SuggestedProductListDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.SuggestedProductListDialogFragment"
         android:label="fragment_suggested_product_list_dialog_list_dialog"
         tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" />
 
     <fragment
         android:id="@+id/sectionProductDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductDetailsFragment"
         android:label="section_product_details_fragment"
         tools:layout="@layout/fragment_section_product_details">
     </fragment>
     <fragment
         android:id="@+id/registerProductInstancesFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductInstanceDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment"
         android:label="fragment_section_product_instance_details"
         tools:layout="@layout/fragment_section_product_instance_details" />
     <fragment
         android:id="@+id/sectionProductPurchaseDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.main.tabs.SectionProductPurchaseDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductPurchaseDetailsFragment"
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment
