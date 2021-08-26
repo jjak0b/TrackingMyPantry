@@ -1,19 +1,24 @@
 package com.jjak0b.android.trackingmypantry.data.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import java.util.Objects;
 
 @Entity(
-    tableName = "productTags"
+        tableName = "productTags",
+        indices = {@Index(value = {"name"}, unique = true)}
 )
 public class ProductTag {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     long id;
+
+    @NonNull
     String name;
 
     @Ignore
