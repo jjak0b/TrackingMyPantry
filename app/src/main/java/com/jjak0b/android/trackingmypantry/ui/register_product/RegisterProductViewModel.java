@@ -233,7 +233,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         PurchaseInfo purchaseInfo = getProductPurchaseInfo().getValue();
         group.setPurchaseInfo( purchaseInfo );
 
-        ListenableFuture<List<Object>> futureResults = Futures.successfulAsList(
+        ListenableFuture<List<Object>> futureResults = Futures.allAsList(
                 pantryRepository.addProduct(p, assignedTags.getValue()),
                 pantryRepository.addPantry( pantry )
         );
@@ -246,7 +246,11 @@ public class RegisterProductViewModel extends AndroidViewModel {
                         Iterator<Object> it = results.iterator();
                         Product product = (Product) it.next();
                         Pantry pantry = (Pantry) it.next();
-                        return pantryRepository.addProductInstanceGroup(group, product, pantry);
+                        if( pantry != null && product != null )
+                            return pantryRepository.addProductInstanceGroup(group, product, pantry);
+                        else {
+                            return Futures.immediateFailedFuture(new NullPointerException());
+                        }
                     }
                 },
                 MoreExecutors.directExecutor()

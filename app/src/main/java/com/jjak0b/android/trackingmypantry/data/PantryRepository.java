@@ -328,7 +328,7 @@ public class PantryRepository {
             newGroup.setQuantity(quantity);
             entry.setQuantity(entry.getQuantity() - quantity);
 
-            ListenableFuture<List<Object>> futureList = Futures.successfulAsList(
+            ListenableFuture<List<Object>> futureList = Futures.allAsList(
                     pantryDB.getProductInstanceDao().updateAll(entry),
                     pantryDB.getProductInstanceDao().insertAll(newGroup)
             );
