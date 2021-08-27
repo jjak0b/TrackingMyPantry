@@ -48,6 +48,8 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-guava:$retrofit_version"
 
     implementation 'com.google.android.gms:play-services-maps:17.0.1'
+    implementation 'com.google.android.libraries.places:places:2.4.0'
+
     // room
     def room_version = "2.3.0"
     implementation "androidx.room:room-runtime:$room_version"
@@ -105,6 +107,11 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.github.koji-1009:ChronoDialogPreference:2.1.0'
     implementation 'com.github.invissvenska:NumberPickerPreference:1.0.3'
+    // Location Picker
+    implementation ('com.schibstedspain.android:leku:8.0.0') {
+        exclude group: 'com.google.android.gms'
+        exclude group: 'androidx.appcompat'
+    }
 
     // test
     testImplementation 'junit:junit:4.+'
