@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
                 TagAndProduct.class
         },
         version = 1,
-        exportSchema = false
+        exportSchema = true
 )
 @TypeConverters({Converters.class})
 public abstract class PantryDB extends RoomDatabase {
@@ -39,6 +39,7 @@ public abstract class PantryDB extends RoomDatabase {
     private static volatile PantryDB instance;
     private static final int nTHREADS = 4;
     private static final String DB_NAME = "PantryDB";
+    private static final String DB_SCHEMA_PATH = "database/" + DB_NAME + ".db";
 
     static final ListeningExecutorService databaseWriteExecutor =
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
@@ -68,6 +69,8 @@ public abstract class PantryDB extends RoomDatabase {
                             PantryDB.class,
                             DB_NAME
                     )
+                            // .createFromAsset(DB_SCHEMA_PATH)
+                            .fallbackToDestructiveMigration()
                             .addCallback(sRoomDatabaseCallback)
                             .build();
                 }
