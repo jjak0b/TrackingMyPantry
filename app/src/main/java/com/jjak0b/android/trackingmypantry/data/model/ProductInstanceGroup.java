@@ -20,12 +20,14 @@ import java.util.Objects;
             @ForeignKey(
                     entity = Product.class,
                     parentColumns = "id",
-                    childColumns = "product_id"
+                    childColumns = "product_id",
+                    onDelete = ForeignKey.CASCADE
             ),
             @ForeignKey(
                     entity = Pantry.class,
                     parentColumns = "pantry_id",
-                    childColumns = "pantry_id"
+                    childColumns = "pantry_id",
+                    onDelete = ForeignKey.SET_DEFAULT
             )
     }
 )
