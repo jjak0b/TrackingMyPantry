@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.pantries;
+package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries;
 
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.view.ViewCompat;
@@ -31,13 +31,9 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
 
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Queue;
 
 public class PantriesBrowserFragment extends Fragment {
 

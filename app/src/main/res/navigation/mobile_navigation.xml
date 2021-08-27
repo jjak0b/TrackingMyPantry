@@ -96,7 +96,7 @@
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment
         android:id="@+id/pantriesBrowserFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.PantriesBrowserFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.PantriesBrowserFragment"
         android:label="fragment_pantries_browser"
         tools:layout="@layout/fragment_pantries_browser" >
         <argument

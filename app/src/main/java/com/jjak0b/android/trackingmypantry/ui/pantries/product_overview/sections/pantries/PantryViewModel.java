@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.pantries;
+package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries;
 
 import androidx.lifecycle.ViewModel;
 

@@ -1,10 +1,9 @@
-package com.jjak0b.android.trackingmypantry.ui.pantries;
+package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries;
 
 import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.DiffUtil;
@@ -12,8 +11,6 @@ import androidx.recyclerview.widget.ListAdapter;
 
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGroups, PantryViewHolder> {
