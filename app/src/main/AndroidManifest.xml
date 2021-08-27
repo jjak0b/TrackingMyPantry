@@ -5,16 +5,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
-
-    <!-- TODO: remove unnecessary due to min sdk -->
-    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
-    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
-
-    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS"/>
-    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS"/>
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" /> <!-- TODO: remove unnecessary due to min sdk -->
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
     <uses-feature android:name="android.hardware.camera.any" />
 
@@ -30,15 +27,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TrackingMyPantry" >
+        android:theme="@style/Theme.TrackingMyPantry">
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+
         <activity
             android:name=".ui.auth.AuthActivity"
             android:label="@string/title_activity_auth"
             android:theme="@style/Theme.TrackingMyPantry.NoActionBar" />
         <activity
             android:name=".BarcodeScannerActivity"
-            android:theme="@style/Theme.TrackingMyPantry.NoActionBar"
-        />
+            android:theme="@style/Theme.TrackingMyPantry.NoActionBar" />
 
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
@@ -70,16 +75,18 @@
         <service
             android:name=".services.ExpireDateSyncService"
             android:enabled="true"
-            android:exported="true"
-        >
+            android:exported="true">
+
             <!--
                 normally the service tag should contains android:process=":sync" attribute
                 but Xiaomi devices have issues with this field, so i just remove removing it
             -->
             <intent-filter>
-                <action android:name="android.content.SyncAdapter"/>
+                <action android:name="android.content.SyncAdapter" />
             </intent-filter>
-            <meta-data android:name="android.content.SyncAdapter"
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
         </service>
     </application>
