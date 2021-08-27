@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/product_overview_navigation"
+    app:startDestination="@id/nav_product_pantries">
+
+    <fragment
+        android:id="@+id/nav_product_pantries"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.PantriesBrowserFragment"
+        android:label="pantries_browser_fragment"
+        tools:layout="@layout/fragment_pantries_browser" />
+    <fragment
+        android:id="@+id/nav_product_purchase_places"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations.PurchaseLocationsFragment"
+        android:label="purchase_locations_fragment"
+        tools:layout="@layout/purchase_locations_fragment" />
+</navigation>

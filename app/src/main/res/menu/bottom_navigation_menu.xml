@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_product_pantries"
+        android:enabled="true"
+        android:icon="@drawable/ic_baseline_move_to_inbox"
+        android:title="@string/product_section_pantries"/>
+    <item
+        android:id="@+id/nav_product_purchase_places"
+        android:enabled="true"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="@string/product_section_purchase_places"/>
+</menu>

@@ -30,6 +30,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
+import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -38,12 +39,14 @@ import java.util.List;
 public class PantriesBrowserFragment extends Fragment {
 
     private PantriesBrowserViewModel mViewModel;
+    private ProductOverviewViewModel mProductViewModel;
     private PantryListAdapter listAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
+        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
     }
 
     @Override
@@ -52,21 +55,10 @@ public class PantriesBrowserFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_pantries_browser, container, false);
     }
 
-    public static PantriesBrowserFragment newInstance(Product product ) {
-
-        Bundle args = new Bundle();
-        args.putString("productID", product.getId() );
-
-        PantriesBrowserFragment fragment = new PantriesBrowserFragment();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String productID = getArguments().getString("productID");
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.pantriesLoadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final TextView listInfo = (TextView) view.findViewById( R.id.listInfo );
@@ -76,11 +68,15 @@ public class PantriesBrowserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        if( productID != null ){
-            mViewModel.setProductID( productID );
-        }
+        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
+            Log.e( "MyPantries", "setting productID" );
+            if( productWithTags != null ){
+                mViewModel.setProductID(productWithTags.product.getId());
+            }
+        });
+
         mViewModel.getList().observe( getViewLifecycleOwner(), pantriesWGroups -> {
-            Log.e( "MyPantries", "submitting new list from " +  this.toString() + " " );
+            Log.e( "MyPantries", "submitting new list of " + pantriesWGroups.size() + "elements from " +  this.toString() + " " );
             if( pantriesWGroups.isEmpty() ){
                 listInfo.setVisibility( View.VISIBLE );
             }

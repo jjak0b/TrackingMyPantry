@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_products_browser" >
         <action
             android:id="@+id/openProduct"
-            app:destination="@id/pantriesBrowserFragment" />
+            app:destination="@id/productOverviewFragment" />
         <action
             android:id="@+id/openRegisterProduct"
             app:destination="@id/registerProductFragment" />
@@ -95,10 +95,10 @@
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment
-        android:id="@+id/pantriesBrowserFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.PantriesBrowserFragment"
-        android:label="fragment_pantries_browser"
-        tools:layout="@layout/fragment_pantries_browser" >
+        android:id="@+id/productOverviewFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewFragment"
+        android:label="fragment_product_overview"
+        tools:layout="@layout/product_oveview_fragment" >
         <argument
             android:name="productID"
             app:argType="string" />

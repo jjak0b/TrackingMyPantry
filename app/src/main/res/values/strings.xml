@@ -108,4 +108,8 @@
     <string name="feature_expiration_reminders_days_before_unit">\tDays</string>
     <string name="feature_expiration_reminders_time">Remind time</string>
 
+    <string name="pantries">Pantries</string>
+
+    <string name="product_section_pantries">@string/pantries</string>
+    <string name="product_section_purchase_places">Purchase places</string>
 </resources>
