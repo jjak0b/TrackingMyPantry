@@ -19,6 +19,7 @@ import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.User;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
@@ -97,8 +98,12 @@ public class AuthViewModel extends AndroidViewModel {
         return future;
     }
 
-    public ListenableFuture<String> authenticate() {
-        return loginRepository.requireAuthorization(false);
+    public ListenableFuture<User> authenticate() {
+        return Futures.transformAsync(
+                loginRepository.requireAuthorization(false),
+                loginRepository::getUserInfo,
+                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
+        );
     }
 
     public ListenableFuture register( String username, String email, String password ) {

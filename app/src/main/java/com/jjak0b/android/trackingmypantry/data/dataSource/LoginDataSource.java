@@ -6,6 +6,7 @@ import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteAuthAPIService;
 
 
@@ -50,5 +51,9 @@ public class LoginDataSource {
      */
     public ListenableFuture<AuthLoginResponse> login(@NotNull LoginCredentials credentials ) {
         return service.getAccessToken( credentials );
+    }
+
+    public ListenableFuture<User> whoAmI(@NotNull String authorization){
+        return service.whoAmI(authorization);
     }
 }

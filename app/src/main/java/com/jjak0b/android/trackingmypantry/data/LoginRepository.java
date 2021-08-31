@@ -6,10 +6,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -25,10 +27,12 @@ import com.jjak0b.android.trackingmypantry.data.model.API.AuthLoginResponse;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executors;
 
@@ -197,8 +201,13 @@ public class LoginRepository {
                 }
             }
             Account account = getAccount(name);
+
             if (account != null) {
-                setLoggedInUser(new LoggedAccount(account));
+                setLoggedInUser(new LoggedAccount.Builder()
+                        .setAccount(account)
+                        .setUser(this.buildUserFromExistingAccount(account))
+                        .build()
+                );
                 return true;
             }
         }
@@ -208,16 +217,68 @@ public class LoginRepository {
         return false;
     }
 
+    /**
+     * @Precondition: Create a bundle to store into an {Account}
+     * @param account
+     * @return
+     */
+    private static Bundle buildBundleFromUser(@NonNull User user) {
+        Bundle bundle = new Bundle();
+        bundle.putString("id", user.getId());
+        bundle.putString("username", user.getUsername());
+        return bundle;
+    }
+
+    /**
+     * @Precondition: Account must an already registered account into device
+     * @param account
+     * @return
+     */
+    private User buildUserFromExistingAccount(Account account) {
+        return new User(
+                mAccountManager.getUserData(account, "id"),
+                mAccountManager.getUserData(account, "username")
+        );
+    }
+
     public ListenableFuture<String> signIn(LoginCredentials credentials) {
         Log.d( TAG, "Signing in using " + credentials);
-        ListenableFuture<AuthLoginResponse> future = dataSource.login(credentials);
-        Futures.addCallback(
-                future,
-                new FutureCallback<AuthLoginResponse>() {
+        ListenableFuture<AuthLoginResponse> futureLogin = dataSource.login(credentials);
+
+
+        ListenableFuture<String> futureAccessToken = Futures.transform(
+                futureLogin,
+                new Function<AuthLoginResponse, String>() {
+                    @NullableDecl
                     @Override
-                    public void onSuccess(@NullableDecl AuthLoginResponse result) {
-                        LoggedAccount account = new LoggedAccount(new Account(credentials.getEmail(), Authenticator.ACCOUNT_TYPE) );
-                        mAccountManager.addAccountExplicitly( account.getAccount() , credentials.getPassword(), null );
+                    public String apply(@NullableDecl AuthLoginResponse input) {
+                        return input.getAccessToken();
+                    }
+                },
+                getExecutor()
+        );
+
+        ListenableFuture<User> futureUserInfo = Futures.transformAsync(futureAccessToken,
+                input -> {
+                    StringBuilder authBuilder = new StringBuilder()
+                            .append( "Bearer ")
+                            .append( input );
+                    return getUserInfo(authBuilder.toString());
+                },
+                getExecutor()
+        );
+
+        Futures.addCallback(futureUserInfo,
+                new FutureCallback<User>() {
+                    @Override
+                    public void onSuccess(User user) {
+                        LoggedAccount account = new LoggedAccount.Builder()
+                                .setAccount(new Account(credentials.getEmail(), Authenticator.ACCOUNT_TYPE))
+                                .setUser(user)
+                                .build();
+                        Bundle userdata = buildBundleFromUser(user);
+
+                        mAccountManager.addAccountExplicitly( account.getAccount() , credentials.getPassword(), userdata );
                         setLoggedInUser( account );
                     }
 
@@ -229,17 +290,11 @@ public class LoginRepository {
                 getExecutor()
         );
 
-        return Futures.transform(
-                future,
-                new Function<AuthLoginResponse, String>() {
-                    @NullableDecl
-                    @Override
-                    public String apply(@NullableDecl AuthLoginResponse input) {
-                        return input.getAccessToken();
-                    }
-                },
-                getExecutor()
-        );
+        return futureAccessToken;
+    }
+
+    public ListenableFuture<User> getUserInfo(@NotNull String accessToken) {
+        return dataSource.whoAmI(accessToken);
     }
 
     public ListenableFuture<RegisterCredentials> signUp(RegisterCredentials credentials ) {

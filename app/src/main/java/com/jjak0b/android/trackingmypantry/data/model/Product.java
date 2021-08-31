@@ -25,6 +25,10 @@ public class Product {
     @Expose
     private String barcode;
 
+    @ColumnInfo( name = "user_id")
+    @Expose
+    private String userId;
+
     @Expose
     private String name;
 
@@ -74,6 +78,7 @@ public class Product {
     public Product( @NotNull Product p) {
         this.id = p.id;
         this.barcode = p.barcode;
+        this.userId = p.userId;
         this.name = p.name;
         this.description = p.description;
         this.img = p.img;
@@ -105,6 +110,10 @@ public class Product {
         return updatedAt;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -133,11 +142,16 @@ public class Product {
         this.updatedAt = updatedAt;
     }
 
+    public void setUserId(String userId){
+        this.userId = userId;
+    }
+
     @Override
     public String toString() {
         return "Product{" +
                 "id='" + id + '\'' +
                 ", barcode='" + barcode + '\'' +
+                ", userID='" + userId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", img='" + img + '\'' +
@@ -154,6 +168,7 @@ public class Product {
             return Objects.equals( id, o.id)
             && Objects.equals( id, o.id)
             && Objects.equals( barcode, o.barcode)
+            && Objects.equals( userId, o.userId)
             && Objects.equals( name, o.name)
             && Objects.equals( description, o.description)
             && Objects.equals( img, o.img);
@@ -167,6 +182,7 @@ public class Product {
         private String description;
         private String barcode;
         private String productId;
+        private String userId;
         private String img;
 
         public Builder from( Product p ) {
@@ -176,6 +192,7 @@ public class Product {
                 setBarcode(p.getBarcode());
                 setProductId(p.getId());
                 setImg( p.getImg() );
+                setUserId(p.getUserId());
             }
             return this;
         }
@@ -198,6 +215,10 @@ public class Product {
 
         public String getImg() {
             return img;
+        }
+
+        public String getUserId() {
+            return userId;
         }
 
         public Builder setName(String name) {
@@ -225,8 +246,14 @@ public class Product {
             return this;
         }
 
+        public Builder setUserId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
         public Product build() {
             Product item = new Product( productId, barcode, name, description, img );
+            item.setUserId(userId);
             return item;
         }
     }

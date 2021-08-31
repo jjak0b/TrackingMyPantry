@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry;
 
 import android.Manifest;
+import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -13,6 +14,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
@@ -22,6 +25,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.Preferences;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
+import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
@@ -63,6 +67,8 @@ public class MainActivity extends AppCompatActivity  {
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -184,9 +190,33 @@ public class MainActivity extends AppCompatActivity  {
                 ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
             }
         });
+
+        initNavHeaderView(headerView);
+
         authenticate();
     }
 
+    private void initNavHeaderView(@NonNull View navHeaderView ){
+
+        TextView usernameView = navHeaderView.findViewById(R.id.login_info_username);
+        TextView emailView = navHeaderView.findViewById(R.id.login_info_email);
+        navHeaderView.setClickable(true);
+
+        authViewModel.getLoggedUser().observe(this, loggedAccount -> {
+            if( loggedAccount != null ) {
+                usernameView.setText(loggedAccount.getUsername());
+                emailView.setText(loggedAccount.getEmail());
+            }
+            navHeaderView.setOnClickListener( v -> {
+                if( loggedAccount != null ) {
+                    launchAccountChooser(loggedAccount.getAccount());
+                }
+                else {
+                    launchAccountChooser(null);
+                }
+            });
+        });
+    }
     private void requestFeatureExpirationReminders( ActivityResultLauncher<String[]> requestPermissionLauncher, SharedPreferences options) {
         new Permissions.FeatureRequestBuilder()
                 .setRationaleMessage(R.string.rationale_msg_features_calendar)
@@ -202,20 +232,20 @@ public class MainActivity extends AppCompatActivity  {
                 .show(this);
     }
 
-    private ListenableFuture<String> authenticate() {
-        ListenableFuture<String> future = authViewModel.authenticate();
+    private ListenableFuture<User> authenticate() {
+        ListenableFuture<User> future = authViewModel.authenticate();
         Futures.addCallback(
                 future,
-                new FutureCallback<String>() {
+                new FutureCallback<User>() {
                     @Override
-                    public void onSuccess(@NullableDecl String result) {
-
+                    public void onSuccess(@NullableDecl User result) {
+                        Log.d("Main", "authenticated with user: " + result);
                     }
 
                     @Override
                     public void onFailure(Throwable t) {
                         if( t instanceof NotLoggedInException ){
-                            launchAccountChooser();
+                            launchAccountChooser(null);
                         }
                         else {
                             authViewModel.setUIErrorFor( t, true);
@@ -227,10 +257,10 @@ public class MainActivity extends AppCompatActivity  {
         return future;
     }
 
-    private void launchAccountChooser() {
+    private void launchAccountChooser(Account selected) {
         Intent intent = AccountManager
                 .newChooseAccountIntent(
-                        null,
+                        selected,
                         null,
                         new String[]{Authenticator.ACCOUNT_TYPE},
                         getString(R.string.description_account_required),
