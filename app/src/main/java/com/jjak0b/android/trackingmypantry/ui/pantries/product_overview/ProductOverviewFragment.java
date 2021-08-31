@@ -15,7 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
@@ -47,6 +49,7 @@ public class ProductOverviewFragment extends Fragment {
 
         final BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_nav);
         final FloatingActionButton fab_edit = view.findViewById(R.id.fab_edit);
+        final ImageView appBarImage = view.findViewById(R.id.app_bar_image);
 
         NavHostFragment navHostFragment = (NavHostFragment) getChildFragmentManager()
                 .findFragmentById(R.id.product_navigation_host_fragment);
@@ -59,7 +62,17 @@ public class ProductOverviewFragment extends Fragment {
         mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(ProductOverviewViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
 
-        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), mSharedViewModelForNav::setProduct );
+        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
+            mSharedViewModelForNav.setProduct( productWithTags );
+            String imgURI = productWithTags != null ? productWithTags.product.getImg() : null;
+            Glide.with(view)
+                    .load(imgURI)
+                    .fitCenter()
+                    .placeholder(R.drawable.loading_spinner)
+                    .fallback(R.drawable.ic_baseline_product_placeholder)
+                    .into(appBarImage);
+
+        });
 
         String productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
                 .getProductID();
