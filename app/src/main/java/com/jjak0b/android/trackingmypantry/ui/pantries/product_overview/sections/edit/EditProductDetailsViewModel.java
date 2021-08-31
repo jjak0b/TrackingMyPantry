@@ -146,16 +146,17 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
             this.description.setValue(description);
     }
 
-    public ListenableFuture<Product> save() {
+    public ListenableFuture<ProductWithTags> save() {
 
-        Product product = productBuilder.getValue()
+        ProductWithTags productWithTags = new ProductWithTags();
+        productWithTags.product = productBuilder.getValue()
                 .setBarcode(getBarcode().getValue())
                 .setName(getName().getValue())
                 .setDescription(getDescription().getValue())
                 .setImg(getImage().getValue() != null ? ImageUtil.convert(getImage().getValue()) : null )
                 .build();
-
-        return pantryRepository.addProduct(product, getAssignedTags().getValue());
+        productWithTags.tags = getAssignedTags().getValue();
+        return pantryRepository.updateProduct( productWithTags );
     }
 
 }

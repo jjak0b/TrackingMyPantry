@@ -246,6 +246,34 @@ public class PantryRepository {
     };
 
 
+    public ListenableFuture<ProductWithTags> updateProduct(ProductWithTags productWithTags ) {
+
+        Product p = productWithTags.product;
+        List<ProductTag> tags = productWithTags.tags;
+
+        Log.d( TAG, "updateProduct: " + productWithTags );
+
+
+        ListenableFuture<ProductWithTags> beforeLocal = Futures.immediateFuture(productWithTags);
+
+        ListenableFuture<ProductWithTags> afterLocal = Futures.transform(
+                beforeLocal,
+                new Function<ProductWithTags, ProductWithTags>() {
+                    @Override
+                    public ProductWithTags apply(@NullableDecl ProductWithTags input) {
+                        pantryDB.getProductDao().updateProductWithTags(productWithTags);
+                        Log.d( TAG, "addProduct - added product to local" + input );
+                        expirationEventsRepository.updateExpiration(input.product.getId(), null, null);
+                        Log.d( TAG, "sync " + input );
+                        return input;
+                    }
+                },
+                pantryDB.getDBWriteExecutor()
+        );
+
+        return afterLocal;
+    }
+
     public ListenableFuture<Long> addProductInstanceGroup(ProductInstanceGroup instanceGroup, Product product, Pantry pantry ) {
         instanceGroup.setPantryId( pantry.getId() );
         instanceGroup.setProductId( product.getId() );

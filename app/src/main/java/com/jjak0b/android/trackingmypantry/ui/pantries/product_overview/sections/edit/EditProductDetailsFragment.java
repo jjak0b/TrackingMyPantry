@@ -49,6 +49,7 @@ import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
@@ -158,16 +159,16 @@ public class EditProductDetailsFragment extends Fragment {
         fabSave.setOnClickListener( v -> {
             Futures.addCallback(
                     mViewModel.save(),
-                    new FutureCallback<Product>() {
+                    new FutureCallback<ProductWithTags>() {
                         @Override
-                        public void onSuccess(@Nullable Product result) {
+                        public void onSuccess(@Nullable ProductWithTags result) {
                             Navigation.findNavController(view)
                                     .popBackStack();
                         }
 
                         @Override
                         public void onFailure(Throwable t) {
-
+                            Log.e("Edit product", "Failed save", t);
                         }
                     },
                     MoreExecutors.directExecutor()
