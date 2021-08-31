@@ -1,6 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -12,10 +14,15 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import android.text.Editable;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,16 +30,34 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
+
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.ui.maps.PlacesPluginActivity;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
-import com.schibstedspain.leku.LekuPoi;
-import com.schibstedspain.leku.LocationPickerActivity;
+
+import com.mapbox.api.geocoding.v5.models.CarmenFeature;
+import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.maps.SupportMapFragment;
+import com.mapbox.mapboxsdk.plugins.places.autocomplete.PlaceAutocomplete;
+import com.mapbox.mapboxsdk.plugins.places.autocomplete.model.PlaceOptions;
+import com.mapbox.mapboxsdk.plugins.places.picker.PlacePicker;
+import com.mapbox.mapboxsdk.plugins.places.picker.model.PlacePickerOptions;
+import com.mapbox.search.MapboxSearchSdk;
+import com.mapbox.search.SearchOptions;
+import com.mapbox.search.location.DefaultLocationProvider;
+import com.mapbox.search.ui.view.SearchBottomSheetView;
+import com.mapbox.search.ui.view.SearchMode;
+import com.mapbox.search.ui.view.favorite.FavoriteTemplate;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,44 +78,25 @@ public class SectionProductPurchaseDetailsFragment extends Fragment {
         locationPickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             int resultCode = result.getResultCode();
             Intent data = result.getData();
-            /*if (resultCode == Activity.RESULT_OK && data != null) {
-                Log.d("RESULT****", "OK")
-                if (requestCode == 1) {
-                    int latitude = data.getDoubleExtra( LocationPickerActivity.LATITUDE, 0.0)
-                    Log.d("LATITUDE****", latitude.toString())
-                    val longitude = data.getDoubleExtra(LocationPickerActivity.LONGITUDE, 0.0)
-                    Log.d("LONGITUDE****", longitude.toString())
-                    val address = data.getStringExtra(LocationPickerActivity.LOCATION_ADDRESS)
-                    Log.d("ADDRESS****", address.toString())
-                    val postalcode = data.getStringExtra(LocationPickerActivity.ZIPCODE)
-                    Log.d("POSTALCODE****", postalcode.toString())
-                    val bundle = data.getBundleExtra(LocationPickerActivity.TRANSITION_BUNDLE)
-                    Log.d("BUNDLE TEXT****", bundle.getString("test"))
-                    val fullAddress = data.getParcelableExtra<Address>(ADDRESS)
-                    if (fullAddress != null) {
-                        Log.d("FULL ADDRESS****", fullAddress.toString())
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                Log.d("RESULT****", "OK");
+                Bundle bundle = data.getExtras();
+                if (bundle != null) {
+                    for (String key : bundle.keySet()) {
+                        Log.e("RESULT", key + " : " + (bundle.get(key) != null ? bundle.get(key) : "NULL"));
                     }
-                    val timeZoneId = data.getStringExtra(LocationPickerActivity.TIME_ZONE_ID)
-                    Log.d("TIME ZONE ID****", timeZoneId)
-                    val timeZoneDisplayName = data.getStringExtra(LocationPickerActivity.TIME_ZONE_DISPLAY_NAME)
-                    Log.d("TIME ZONE NAME****", timeZoneDisplayName)
-                } else if (requestCode == 2) {
-                    val latitude = data.getDoubleExtra(LocationPickerActivity.LATITUDE, 0.0)
-                    Log.d("LATITUDE****", latitude.toString())
-                    val longitude = data.getDoubleExtra(LocationPickerActivity.LONGITUDE, 0.0)
-                    Log.d("LONGITUDE****", longitude.toString())
-                    val address = data.getStringExtra(LocationPickerActivity.LOCATION_ADDRESS)
-                    Log.d("ADDRESS****", address.toString())
-                    val lekuPoi = data.getParcelableExtra<LekuPoi >(LocationPickerActivity.LEKU_POI)
-                            Log.d("LekuPoi****", lekuPoi.toString())
                 }
+                CarmenFeature carmenFeature = PlacesPluginActivity.getPlace(data);
+
+                Log.d("RESULT", carmenFeature.toJson());
+
             }
             if (resultCode == Activity.RESULT_CANCELED) {
-                Log.d("RESULT****", "CANCELLED")
-            }*/
+                Log.d("RESULT****", "CANCELLED");
+            }
         });
-
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -151,32 +157,7 @@ public class SectionProductPurchaseDetailsFragment extends Fragment {
             };
 
             View.OnClickListener showLocationPickerOnClick = v -> {
-                try {
-                    ApplicationInfo appInfo = requireContext().getPackageManager()
-                            .getApplicationInfo(requireContext().getPackageName(), PackageManager.GET_META_DATA );
-                    String apiKey = appInfo.metaData.getString("com.google.android.geo.API_KEY");
-                    Intent locationPickerIntent = new LocationPickerActivity.Builder()
-                            // .withLocation(41.4036299, 2.1743558)
-                            .withGeolocApiKey(apiKey)
-                            .withGooglePlacesApiKey(apiKey)
-                            // .withSearchZone("es_ES")
-                            // .withSearchZone(SearchZoneRect(LatLng(26.525467, -18.910366), LatLng(43.906271, 5.394197)))
-                            .withDefaultLocaleSearchZone()
-                            .shouldReturnOkOnBackPressed()
-                            .withStreetHidden()
-                            .withCityHidden()
-                            .withZipCodeHidden()
-                            .withSatelliteViewHidden()
-                            .withGoogleTimeZoneEnabled()
-                            .withVoiceSearchHidden()
-                            .withUnnamedRoadHidden()
-                            .build(requireContext());
-
-                    locationPickerLauncher.launch(locationPickerIntent);
-                }
-                catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
+                locationPickerLauncher.launch(new Intent(getContext(), PlacesPluginActivity.class));
             };
 
             fieldTextWatchers[0] = new InputUtil.FieldTextWatcher() {
@@ -203,7 +184,7 @@ public class SectionProductPurchaseDetailsFragment extends Fragment {
             purchaseDateLayout.setEndIconOnClickListener( showDatePickerOnClick );
 
             editPurchaseLocation.setOnClickListener( showLocationPickerOnClick );
-            purchaseDateLayout.setEndIconOnClickListener( showLocationPickerOnClick );
+            purchaseLocationLayout.setEndIconOnClickListener( showLocationPickerOnClick );
 
             editPurchaseCost.addTextChangedListener( fieldTextWatchers[0]);
 

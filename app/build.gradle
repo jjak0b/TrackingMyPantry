@@ -47,8 +47,14 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation "com.squareup.retrofit2:adapter-guava:$retrofit_version"
 
-    implementation 'com.google.android.gms:play-services-maps:17.0.1'
-    implementation 'com.google.android.libraries.places:places:2.4.0'
+    // implementation "com.google.android.gms:play-services-location:18.0.0"
+    // implementation "com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.2"
+    // fix for plugin-places not supporting Android API 30
+    // implementation "com.mapbox.mapboxsdk:mapbox-android-telemetry:7.0.0"
+    implementation 'com.mapbox.maps:android:10.0.0-rc.7'
+    implementation "com.mapbox.search:mapbox-search-android-ui:1.0.0-beta.18"
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places-v9:0.12.0'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-markerview-v9:0.4.0'
 
     // room
     def room_version = "2.3.0"
@@ -107,13 +113,7 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.github.koji-1009:ChronoDialogPreference:2.1.0'
     implementation 'com.github.invissvenska:NumberPickerPreference:1.0.3'
-    // Location Picker
-    implementation ('com.schibstedspain.android:leku:8.0.0') {
-        exclude group: 'com.google.android.gms'
-        exclude group: 'androidx.appcompat'
-    }
 
-    // test
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
