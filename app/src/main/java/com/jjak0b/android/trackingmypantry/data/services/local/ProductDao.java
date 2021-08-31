@@ -8,6 +8,7 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
+import androidx.room.Update;
 
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -41,10 +42,23 @@ public abstract class ProductDao {
         insertAssignedTags( assignedTags );
     }
 
+    @Transaction
+    @Update
+    public void updateProductWithTags(ProductWithTags productWithTags){
+        insertTags(productWithTags.tags);
+        updateProduct(productWithTags.product);
+    }
+
+    @Update
+    abstract void updateProduct(Product p);
+
+    @Update
+    abstract void updateTags(List<ProductTag> tags);
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract void insertProduct(Product p);
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract long[] insertTags(List<ProductTag> tags);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
