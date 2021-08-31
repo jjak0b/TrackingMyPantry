@@ -102,6 +102,9 @@
         <argument
             android:name="productID"
             app:argType="string" />
+        <action
+            android:id="@+id/action_edit_product_details"
+            app:destination="@id/editProductDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
@@ -110,5 +113,9 @@
     <action
         android:id="@+id/action_settings"
         app:destination="@id/settingsFragment" />
+    <fragment
+        android:id="@+id/editProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.edit.EditProductDetailsFragment"
+        android:label="EditProductDetailsFragment" />
 
 </navigation>

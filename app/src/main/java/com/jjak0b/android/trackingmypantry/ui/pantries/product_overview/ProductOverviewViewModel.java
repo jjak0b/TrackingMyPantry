@@ -23,15 +23,14 @@ public class ProductOverviewViewModel extends AndroidViewModel {
 
     private PantryRepository pantryRepository;
     private MutableLiveData<String> productID;
-    private LiveData<List<PantryWithProductInstanceGroups>> list;
-    private LiveData<ProductWithTags> mProduct;
+    private MutableLiveData<ProductWithTags> mProduct;
 
     public ProductOverviewViewModel(@NonNull Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
         productID = new MutableLiveData<>();
 
-        mProduct = Transformations.switchMap(
+        mProduct = (MutableLiveData<ProductWithTags>)Transformations.switchMap(
                 productID,
                 id -> pantryRepository.getProductWithTags(id));
     }
@@ -42,5 +41,9 @@ public class ProductOverviewViewModel extends AndroidViewModel {
 
     public LiveData<ProductWithTags> getProduct() {
         return mProduct;
+    }
+
+    public void setProduct( ProductWithTags product ) {
+        mProduct.setValue(product);
     }
 }

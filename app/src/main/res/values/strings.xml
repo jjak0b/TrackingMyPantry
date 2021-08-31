@@ -32,6 +32,7 @@
     <string name="error_generic_failed_network">"Unable %1$s due to a network error"</string>
     <string name="error_generic_failed_unknown">"Unable %1$s due to an expected error"</string>
     <string name="to_authenticate">"to authenticate"</string>
+    <string name="error_unable_to_take_picture">Error: Unable to take a picture</string>
 
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>

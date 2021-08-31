@@ -121,6 +121,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapReadyCal
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        markerViewManager.onDestroy();
+        if( markerViewManager != null )
+            markerViewManager.onDestroy();
     }
 }

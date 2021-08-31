@@ -17,11 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
 
 public class ProductOverviewFragment extends Fragment {
 
-    private ProductOverviewViewModel mViewModel;
+    private ProductOverviewViewModel mSharedViewModelForNav;
+    private ProductOverviewViewModel mSharedViewModel;
+
     private final static String TAG = "ProductOverview";
     public static ProductOverviewFragment newInstance() {
         return new ProductOverviewFragment();
@@ -43,16 +46,27 @@ public class ProductOverviewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         final BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_nav);
+        final FloatingActionButton fab_edit = view.findViewById(R.id.fab_edit);
 
         NavHostFragment navHostFragment = (NavHostFragment) getChildFragmentManager()
                 .findFragmentById(R.id.product_navigation_host_fragment);
         NavigationUI.setupWithNavController(bottomNavigationView, navHostFragment.getNavController());
 
-        mViewModel = new ViewModelProvider(navHostFragment).get(ProductOverviewViewModel.class);
+        fab_edit.setOnClickListener( v -> Navigation.findNavController(view)
+                .navigate(ProductOverviewFragmentDirections.actionEditProductDetails())
+        );
 
-        String productID = getArguments().getString("productID");
+        mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(ProductOverviewViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+
+        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), mSharedViewModelForNav::setProduct );
+
+        String productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
+                .getProductID();
+
         Log.e(TAG, "setting ProductID " + productID);
-        mViewModel.setProductID(productID);
+        mSharedViewModel.setProductID(productID);
+
     }
 
 }

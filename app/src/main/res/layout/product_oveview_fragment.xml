@@ -27,6 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
+                android:contentDescription="@string/tab_product_details"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_baseline_product_placeholder" />
 
@@ -38,15 +39,15 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fab_edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|end"
         android:layout_margin="@dimen/fab_margin"
+        android:contentDescription="@string/tab_product_details"
         app:layout_anchor="@+id/appbar"
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@android:drawable/ic_menu_edit" />
-
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/product_navigation_host_fragment"
@@ -63,6 +64,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:menu="@menu/bottom_navigation_menu" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

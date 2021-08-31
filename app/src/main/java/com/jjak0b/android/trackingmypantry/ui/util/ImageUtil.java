@@ -1,8 +1,17 @@
 package com.jjak0b.android.trackingmypantry.ui.util;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Base64;
+
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
 
@@ -25,5 +34,26 @@ public class ImageUtil
 
 
         return "data:image/jpeg;base64," + Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
+    }
+
+    public static class ActivityResultContractTakePicture extends ActivityResultContract<Void, Bitmap> {
+        @NonNull
+        @Override
+        public Intent createIntent(@NonNull Context context, Void input) {
+            return new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        }
+
+        @Override
+        public Bitmap parseResult(int resultCode, @Nullable Intent intent) {
+            if (resultCode == Activity.RESULT_OK ) {
+                Bundle extras = intent.getExtras();
+                Bitmap imageBitmap = (Bitmap) extras.get("data");
+
+                if( imageBitmap != null ){
+                    return imageBitmap;
+                }
+            }
+            return null;
+        }
     }
 }
