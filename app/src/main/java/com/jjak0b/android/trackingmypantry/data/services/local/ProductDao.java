@@ -3,7 +3,9 @@ package com.jjak0b.android.trackingmypantry.data.services.local;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -42,18 +44,11 @@ public abstract class ProductDao {
         insertAssignedTags( assignedTags );
     }
 
-    @Transaction
     @Update
-    public void updateProductWithTags(ProductWithTags productWithTags){
-        insertTags(productWithTags.tags);
-        updateProduct(productWithTags.product);
-    }
+    public abstract ListenableFuture<Void> updateProduct(Product p);
 
     @Update
-    abstract void updateProduct(Product p);
-
-    @Update
-    abstract void updateTags(List<ProductTag> tags);
+    public abstract void updateTags(List<ProductTag> tags);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract void insertProduct(Product p);
@@ -62,11 +57,18 @@ public abstract class ProductDao {
     abstract long[] insertTags(List<ProductTag> tags);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract ListenableFuture<Void> insertAssignedTags(List<TagAndProduct> assignedTags );
+    public abstract ListenableFuture<Void> insertAssignedTags(List<TagAndProduct> assignedTags );
+
+    @Delete
+    public abstract ListenableFuture<Void> removeAssignedTags(List<TagAndProduct> assignedTags );
 
     @Transaction
     @Query( "SELECT * FROM products WHERE id = (:product_id)")
     public abstract LiveData<ProductWithTags> getProductWithTags( String product_id );
+
+
+    @Query( "SELECT * FROM assignedTags WHERE product_id = (:product_id)")
+    public abstract ListenableFuture<List<TagAndProduct>> getProductAssignedTags(String product_id);
 
     @Transaction
     @Query( "SELECT * FROM products")

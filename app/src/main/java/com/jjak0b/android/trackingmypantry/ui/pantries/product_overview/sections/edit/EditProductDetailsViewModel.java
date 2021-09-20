@@ -2,14 +2,12 @@ package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.section
 
 import android.app.Application;
 import android.graphics.Bitmap;
-import android.view.animation.Transformation;
 
 import androidx.arch.core.util.Function;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-import androidx.lifecycle.ViewModel;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
@@ -146,7 +144,7 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
             this.description.setValue(description);
     }
 
-    public ListenableFuture<ProductWithTags> save() {
+    public ListenableFuture<Void> submit() {
 
         ProductWithTags productWithTags = new ProductWithTags();
         productWithTags.product = productBuilder.getValue()
@@ -156,7 +154,8 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
                 .setImg(getImage().getValue() != null ? ImageUtil.convert(getImage().getValue()) : null )
                 .build();
         productWithTags.tags = getAssignedTags().getValue();
-        return pantryRepository.updateProduct( productWithTags );
+
+        return pantryRepository.updateProductLocal(productWithTags);
     }
 
 }

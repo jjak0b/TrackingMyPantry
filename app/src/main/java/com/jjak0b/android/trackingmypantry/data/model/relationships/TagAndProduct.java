@@ -67,4 +67,12 @@ public class TagAndProduct {
         this.fk_productId = p.getId();
         this.fk_tagId = t.getId();
     }
+
+    @Override
+    public String toString() {
+        return "TagAndProduct{" +
+                "fk_productId='" + fk_productId + '\'' +
+                ", fk_tagId=" + fk_tagId +
+                '}';
+    }
 }

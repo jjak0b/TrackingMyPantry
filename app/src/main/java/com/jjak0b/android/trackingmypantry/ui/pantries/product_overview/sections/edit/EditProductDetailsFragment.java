@@ -1,36 +1,24 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.edit;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.CallSuper;
 import androidx.annotation.DrawableRes;
-import androidx.annotation.StringRes;
-import androidx.lifecycle.LiveData;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
-import androidx.navigation.ui.NavigationUI;
 
-import android.provider.MediaStore;
 import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -42,14 +30,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
-import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
@@ -147,7 +131,7 @@ public class EditProductDetailsFragment extends Fragment {
         });
 
         ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_dropdown_item_1line);
+                android.R.layout.simple_spinner_dropdown_item);
         chipsInput.setAdapter( adapter );
         chipsInput.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
         chipsInput.setOnFocusChangeListener( (v, hasFocus) -> {
@@ -157,11 +141,18 @@ public class EditProductDetailsFragment extends Fragment {
         });
 
         fabSave.setOnClickListener( v -> {
+            // setOnFocusChangeListener is not triggered while clicking on save
+            if( chipsInput.hasFocus() ) {
+                chipsInput.clearFocus();
+                mViewModel.setAssignedTags(ChipTagUtil.newTagsInstanceFromChips(chipsInput.getAllChips()));
+            }
+
+            InputUtil.hideKeyboard(requireActivity());
             Futures.addCallback(
-                    mViewModel.save(),
-                    new FutureCallback<ProductWithTags>() {
+                    mViewModel.submit(),
+                    new FutureCallback<Void>() {
                         @Override
-                        public void onSuccess(@Nullable ProductWithTags result) {
+                        public void onSuccess(@Nullable Void result) {
                             Navigation.findNavController(view)
                                     .popBackStack();
                         }
@@ -171,15 +162,25 @@ public class EditProductDetailsFragment extends Fragment {
                             Log.e("Edit product", "Failed save", t);
                         }
                     },
-                    MoreExecutors.directExecutor()
+                    ContextCompat.getMainExecutor(getContext())
             );
         });
 
         mProductViewModel.getProduct().observe(getViewLifecycleOwner(), mViewModel::setProduct );
 
-        mViewModel.getBarcode().observe(getViewLifecycleOwner(), editBarcode::setText );
-        mViewModel.getName().observe(getViewLifecycleOwner(), editName::setText );
-        mViewModel.getDescription().observe(getViewLifecycleOwner(), editDescription::setText );
+        mViewModel.getBarcode().observe(getViewLifecycleOwner(), s -> {
+            editBarcode.setText(s);
+            editBarcode.setSelection(s.length());
+        });
+
+        mViewModel.getName().observe(getViewLifecycleOwner(), s -> {
+            editName.setText(s);
+            editName.setSelection(s.length());
+        });
+        mViewModel.getDescription().observe(getViewLifecycleOwner(), s -> {
+            editDescription.setText(s);
+            editDescription.setSelection(s.length());
+        });
         mViewModel.getImage().observe( getViewLifecycleOwner(), bitmap -> {
             Glide.with(view)
                     .load(bitmap)

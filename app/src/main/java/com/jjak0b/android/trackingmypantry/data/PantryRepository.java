@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.data;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
@@ -28,7 +29,9 @@ import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
+import com.jjak0b.android.trackingmypantry.data.services.local.ProductDao;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import java.util.ArrayList;
@@ -246,32 +249,29 @@ public class PantryRepository {
     };
 
 
-    public ListenableFuture<ProductWithTags> updateProduct(ProductWithTags productWithTags ) {
+    public ListenableFuture<Void> updateProductLocal(@NonNull ProductWithTags productWithTags ) {
 
-        Product p = productWithTags.product;
-        List<ProductTag> tags = productWithTags.tags;
+        Log.d(TAG, "updateProduct: " + productWithTags);
+        final ProductDao dao = pantryDB.getProductDao();
 
-        Log.d( TAG, "updateProduct: " + productWithTags );
-
-
-        ListenableFuture<ProductWithTags> beforeLocal = Futures.immediateFuture(productWithTags);
-
-        ListenableFuture<ProductWithTags> afterLocal = Futures.transform(
-                beforeLocal,
-                new Function<ProductWithTags, ProductWithTags>() {
-                    @Override
-                    public ProductWithTags apply(@NullableDecl ProductWithTags input) {
-                        pantryDB.getProductDao().updateProductWithTags(productWithTags);
-                        Log.d( TAG, "addProduct - added product to local" + input );
-                        expirationEventsRepository.updateExpiration(input.product.getId(), null, null);
-                        Log.d( TAG, "sync " + input );
-                        return input;
-                    }
+        ListenableFuture<Void> afterRemove = Futures.transformAsync(
+                dao.getProductAssignedTags(productWithTags.product.getId()),
+                input -> {
+                    Log.d(TAG, "removing tags :" + input);
+                    return dao.removeAssignedTags(input);
                 },
                 pantryDB.getDBWriteExecutor()
         );
 
-        return afterLocal;
+        return Futures.transform(
+                afterRemove,
+                input -> {
+                    Log.d(TAG, "inserting tags :" + productWithTags.tags);
+                    dao.insertProductAndAssignedTags( productWithTags.product, productWithTags.tags);
+                    return null;
+                },
+                pantryDB.getDBWriteExecutor()
+        );
     }
 
     public ListenableFuture<Long> addProductInstanceGroup(ProductInstanceGroup instanceGroup, Product product, Pantry pantry ) {
