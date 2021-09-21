@@ -1,7 +1,12 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
@@ -31,6 +36,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
+import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.edit.EditProductDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.R;
@@ -38,17 +44,75 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 public class SectionProductDetailsFragment extends Fragment {
 
     private RegisterProductViewModel mViewModel;
-    static final String TAG = SectionProductDetailsFragment.class.getName();
+    static final String TAG = "RegisterProductFragment";
+    private ActivityResultLauncher<Void> takePictureLauncher;
+    private ActivityResultLauncher<String[]> requestCameraPermissionsLauncher;
+    private ActivityResultLauncher<Intent> scanLauncher;
+    private ActivityResultLauncher<String[]> requestScanCameraPermissionsLauncher;
     final String ARG_BARCODE = "barcode";
-    final int REQUEST_BARCODE_SCAN = 2;
-    final int REQUEST_IMAGE_CAPTURE = 1;
     final int BITMAP_SIZE = 256;
     private ImageView photoPreview;
     private final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+
+        Bundle args = getArguments();
+        if( args != null ) {
+            String barcode = args.getString(ARG_BARCODE);
+            if (barcode != null) {
+                if( !barcode.equals( mViewModel.getBarcode().getValue() ) ) {
+                    Log.e(TAG, "barcode " + barcode);
+                    mViewModel.setBarcode(barcode);
+                }
+            }
+        }
+
+        requestScanCameraPermissionsLauncher = registerForActivityResult( new ActivityResultContracts.RequestMultiplePermissions(), areGranted -> {
+            if( !areGranted.containsValue(false) ) {
+                startScanner();
+            }
+        });
+
+        scanLauncher = registerForActivityResult( new ActivityResultContracts.StartActivityForResult(), result -> {
+            if( result.getResultCode() == Activity.RESULT_OK ) {
+                if( result.getData() != null ){
+                    String barcode = result.getData().getStringExtra(BarcodeScannerActivity.BARCODE);
+                    mViewModel.setBarcode( barcode );
+                }
+            }
+        });
+
+        requestCameraPermissionsLauncher = registerForActivityResult( new ActivityResultContracts.RequestMultiplePermissions(), areGranted -> {
+            if( !areGranted.containsValue(false) ) {
+                takePicture();
+            }
+        });
+
+        takePictureLauncher = registerForActivityResult( new ImageUtil.ActivityResultContractTakePicture(), bitmap -> {
+            if( bitmap != null ){
+                mViewModel.getProductBuilder().observe(getViewLifecycleOwner(), new Observer<Product.Builder>() {
+                    @Override
+                    public void onChanged(Product.Builder builder) {
+                        if( builder != null ){
+                            Bitmap imageBitmap = Bitmap.createScaledBitmap(bitmap, BITMAP_SIZE, BITMAP_SIZE, false);
+                            photoPreview.setImageBitmap( imageBitmap );
+                            mViewModel.getProductBuilder().getValue()
+                                    .setImg( ImageUtil.convert( imageBitmap ) );
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -57,29 +121,11 @@ public class SectionProductDetailsFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        Log.d( "RegisterProductFragment", "onDestroyView");
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Log.e( "RegisterProductFragment", "onViewCreated");
-        Log.e( "TEST", getViewLifecycleOwner().toString() );
-        mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        Bundle args = getArguments();
-        if( args != null ) {
-            String barcode = args.getString(ARG_BARCODE);
-            if (barcode != null) {
-                if( !barcode.equals( mViewModel.getBarcode().getValue() ) ) {
-                    Log.e("RegisterProductFragment", "barcode " + barcode);
-                    // mViewModel.setBarcode(null);
-                    mViewModel.setBarcode(barcode);
-                }
-            }
-        }
+        Log.e( TAG, "onViewCreated");
+        Log.e( TAG, getViewLifecycleOwner().toString() );
 
         final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
@@ -116,7 +162,7 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         mViewModel.getBarcode().observe( getViewLifecycleOwner(), value -> {
-            Log.e( "RegisterProductFragment", "updated barcode "  + value);
+            Log.e( TAG, "updated barcode "  + value);
             editBarcode.setText( value );
         });
 
@@ -128,24 +174,23 @@ public class SectionProductDetailsFragment extends Fragment {
         }
         else{
             photoPreviewBtn.setOnClickListener(v -> {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                try {
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                } catch (ActivityNotFoundException e) {
-                    // TODO: display error state to the user: no available app to use to get a picture
-                    Toast.makeText(getContext(), "Unable to take a photo", Toast.LENGTH_LONG ).show();
+                boolean hasPermissions = new Permissions.FeatureRequestBuilder()
+                        .setRationaleMessage(R.string.register_product_take_photo)
+                        .setOnPositive(requestScanCameraPermissionsLauncher, new String[]{ Manifest.permission.CAMERA} )
+                        .setOnNegative(R.string.error_unable_to_take_picture, null)
+                        .show(requireContext());
+                if( hasPermissions ){
+                    takePicture();
                 }
             });
 
             barcodeInputLayout.setEndIconOnClickListener( v -> {
-                Intent scanIntent = new Intent(getActivity(), BarcodeScannerActivity.class);
-
-                try {
-                    this.startActivityForResult(scanIntent, REQUEST_BARCODE_SCAN);
-                }
-                catch (ActivityNotFoundException e) {
-                    // TODO: display error state to the user: no available app to scan
-                    Toast.makeText(getContext(), "Unable to scan barcode", Toast.LENGTH_LONG ).show();
+                boolean hasPermissions = new Permissions.FeatureRequestBuilder()
+                        .setRationaleMessage(R.string.menu_register_product_action_scan)
+                        .setOnPositive(requestScanCameraPermissionsLauncher, new String[]{ Manifest.permission.CAMERA} )
+                        .show(requireContext());
+                if( hasPermissions ){
+                    startScanner();
                 }
             });
         }
@@ -245,28 +290,6 @@ public class SectionProductDetailsFragment extends Fragment {
          */
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK ) {
-            Bundle extras = data.getExtras();
-
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            if( imageBitmap != null ){
-                imageBitmap = Bitmap.createScaledBitmap(imageBitmap, BITMAP_SIZE, BITMAP_SIZE, false);
-                photoPreview.setImageBitmap( imageBitmap );
-                mViewModel.getProductBuilder().getValue()
-                        .setImg( ImageUtil.convert( imageBitmap ) );
-            }
-        }
-        else if( requestCode == REQUEST_BARCODE_SCAN ){
-            if( resultCode == Activity.RESULT_OK ) {
-                String barcode = data.getStringExtra(BarcodeScannerActivity.BARCODE);
-                mViewModel.setBarcode( barcode );
-            }
-        }
-    }
-
     private void search(String barcode) {
         mViewModel.setBarcode( barcode );
         openBottomSheetDialog(getView());
@@ -276,8 +299,8 @@ public class SectionProductDetailsFragment extends Fragment {
         Bundle bottomSheetBundle = new Bundle();
         bottomSheetBundle.putString( ARG_BARCODE, mViewModel.getBarcode().getValue() );
         NavController navController = NavHostFragment.findNavController( this );
-        Log.e( "RegiserPoductFragment" , "OPENING");
-        Log.e( "RegiserPoductFragment" , "CD: " + navController.getCurrentDestination());
+        Log.e( TAG , "OPENING");
+        Log.e( TAG , "CD: " + navController.getCurrentDestination());
 
         if( navController
                 .getCurrentDestination()
@@ -290,14 +313,32 @@ public class SectionProductDetailsFragment extends Fragment {
 
     private void closeBottomSheetDialog(View view) {
         NavController navController = NavHostFragment.findNavController( this );
-        Log.e( "RegiserPoductFragment" , "CLOSING");
-        Log.e( "RegiserPoductFragment" , "CD: " + navController.getCurrentDestination());
+        Log.e( TAG , "CLOSING");
+        Log.e( TAG , "CD: " + navController.getCurrentDestination());
         if( navController
                 .getCurrentDestination()
                 .getId() == R.id.suggestedProductListDialogFragment )
         {
             navController
                     .popBackStack(R.id.suggestedProductListDialogFragment, true);
+        }
+    }
+
+    private void takePicture() {
+        try {
+            takePictureLauncher.launch(null);
+        }
+        catch (ActivityNotFoundException e) {
+            Toast.makeText(getContext(), R.string.error_unable_to_take_picture, Toast.LENGTH_LONG ).show();
+        }
+    }
+
+    private void startScanner() {
+        try {
+            scanLauncher.launch(new Intent(getContext(), BarcodeScannerActivity.class));
+        }
+        catch (ActivityNotFoundException e) {
+            Toast.makeText(getContext(), "Unable to scan barcode", Toast.LENGTH_LONG ).show();
         }
     }
 }

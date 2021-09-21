@@ -36,7 +36,7 @@ public abstract class PantryDao {
     abstract void moveInstanceToPantry(ProductInstanceLocation... update);
 
     @Insert(
-            onConflict = OnConflictStrategy.REPLACE
+            onConflict = OnConflictStrategy.IGNORE
     )
     public abstract ListenableFuture<Long> addPantry(Pantry pantry);
 
