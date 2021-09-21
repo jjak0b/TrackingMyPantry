@@ -44,6 +44,25 @@ public abstract class ProductDao {
         insertAssignedTags( assignedTags );
     }
 
+    @Transaction
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    public void updateProductAndAssignedTags(Product p, List<ProductTag> tags ){
+        updateProduct(p);
+        long[] tag_ids = insertTags(tags); // insert missing
+        int size = tag_ids.length;
+
+        ArrayList<TagAndProduct> assignedTags = new ArrayList<>( size );
+
+        int i = 0;
+        for (ProductTag tag : tags) {
+            long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
+            assignedTags.add( new TagAndProduct( p.getId(), tagId ) );
+            i++;
+        }
+
+        insertAssignedTags( assignedTags );
+    }
+
     @Update
     public abstract ListenableFuture<Void> updateProduct(Product p);
 

@@ -267,7 +267,7 @@ public class PantryRepository {
                 afterRemove,
                 input -> {
                     Log.d(TAG, "inserting tags :" + productWithTags.tags);
-                    dao.insertProductAndAssignedTags( productWithTags.product, productWithTags.tags);
+                    dao.updateProductAndAssignedTags( productWithTags.product, productWithTags.tags);
                     return null;
                 },
                 pantryDB.getDBWriteExecutor()

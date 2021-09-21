@@ -147,12 +147,18 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
     public ListenableFuture<Void> submit() {
 
         ProductWithTags productWithTags = new ProductWithTags();
-        productWithTags.product = productBuilder.getValue()
-                .setBarcode(getBarcode().getValue())
+        Product.Builder builder = productBuilder.getValue()
                 .setName(getName().getValue())
-                .setDescription(getDescription().getValue())
-                .setImg(getImage().getValue() != null ? ImageUtil.convert(getImage().getValue()) : null )
-                .build();
+                .setDescription(getDescription().getValue());
+
+        if( !Objects.equals(getBarcode().getValue(), originalProduct.getValue().product.getBarcode() )){
+            builder.setBarcode(getBarcode().getValue());
+        }
+        if( getImage().getValue() != null ) {
+            builder.setImg(ImageUtil.convert(getImage().getValue()));
+        }
+
+        productWithTags.product = builder.build();
         productWithTags.tags = getAssignedTags().getValue();
 
         return pantryRepository.updateProductLocal(productWithTags);
