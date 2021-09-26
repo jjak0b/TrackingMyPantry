@@ -30,16 +30,16 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/text_margin"
         android:hint="@string/product_purchase_date"
-        app:endIconDrawable="@android:drawable/ic_menu_today"
-        app:endIconMode="custom">
+        app:endIconMode="none"
+        app:startIconDrawable="@android:drawable/ic_menu_today">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextPurchaseDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
+            android:editable="false"
             android:imeOptions="actionNext"
-            android:inputType="date" />
+            android:inputType="none" />
 
 
     </com.google.android.material.textfield.TextInputLayout>
@@ -50,15 +50,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/product_purchase_location"
-        app:endIconDrawable="@android:drawable/ic_dialog_map"
-        app:endIconMode="custom">
+        app:endIconMode="clear_text"
+        app:startIconDrawable="@android:drawable/ic_dialog_map">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:editable="false"
             android:imeOptions="actionNext"
-            android:inputType="text" />
+            android:inputType="none" />
 
 
     </com.google.android.material.textfield.TextInputLayout>

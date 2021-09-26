@@ -43,14 +43,13 @@ public class ProductInstanceGroup {
     @ColumnInfo( name = "pantry_id")
     long pantryId;
 
-    @ColumnInfo( name = "quantity")
+    @ColumnInfo( name = "quantity", defaultValue = "1" )
     int quantity;
-
-    @Embedded(prefix = "purchaseInfo")
-    PurchaseInfo purchaseInfo;
 
     // instance info
     Date expiryDate;
+
+    @ColumnInfo( name = "currentAmountPercent", defaultValue = "100" )
     int currentAmountPercent;
 
     public long getId() {
@@ -75,14 +74,6 @@ public class ProductInstanceGroup {
 
     public void setPantryId(long pantryId) {
         this.pantryId = pantryId;
-    }
-
-    public PurchaseInfo getPurchaseInfo() {
-        return purchaseInfo;
-    }
-
-    public void setPurchaseInfo(PurchaseInfo purchaseInfo) {
-        this.purchaseInfo = purchaseInfo;
     }
 
     public Date getExpiryDate() {
@@ -119,7 +110,6 @@ public class ProductInstanceGroup {
                 Objects.equals(productId, that.productId)  &&
                 Objects.equals(quantity, that.quantity) &&
                 Objects.equals(currentAmountPercent, that.currentAmountPercent) &&
-                Objects.equals(purchaseInfo, that.purchaseInfo) &&
                 Objects.equals(expiryDate, that.expiryDate);
     }
 
@@ -129,7 +119,6 @@ public class ProductInstanceGroup {
         newO.setPantryId(o.getPantryId());
         newO.setProductId(o.getProductId());
         newO.setQuantity(o.getQuantity());
-        newO.setPurchaseInfo(o.getPurchaseInfo());
         newO.setExpiryDate(o.getExpiryDate());
         newO.setCurrentAmountPercent(o.getCurrentAmountPercent());
         return newO;

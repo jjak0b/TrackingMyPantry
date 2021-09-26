@@ -22,14 +22,15 @@ import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.services.local.ProductDao;
 
@@ -445,5 +446,21 @@ public class PantryRepository {
     }
     public ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(long... groupID) {
         return pantryDB.getProductInstanceDao().getInfoOfAll(groupID);
+    }
+
+    public LiveData<Place> getPlace(String placeId) {
+        return pantryDB.getPlaceDao().getPlace(placeId);
+    }
+
+    public ListenableFuture<Void> addPlace(Place place) {
+        return pantryDB.getPlaceDao().insertPlace(place);
+    }
+
+    public ListenableFuture<Long> addPurchaseInfo(PurchaseInfo purchaseInfo) {
+        return pantryDB.getPurchaseInfoDao().insertPurchaseInfo(purchaseInfo);
+    }
+
+    public LiveData<List<PurchaseInfo>> getAllPurchaseInfo(@NonNull String productID) {
+        return pantryDB.getPurchaseInfoDao().getAllPurchaseInfo(productID);
     }
 }

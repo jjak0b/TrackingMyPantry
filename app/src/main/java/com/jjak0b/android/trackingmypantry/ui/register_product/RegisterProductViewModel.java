@@ -15,6 +15,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
@@ -56,6 +57,8 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     private MutableLiveData<PurchaseInfo> productPurchaseInfo;
 
+    private MutableLiveData<Place> purchasePlace;
+
     public RegisterProductViewModel(Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
@@ -96,6 +99,18 @@ public class RegisterProductViewModel extends AndroidViewModel {
         productInstancesCount = new MutableLiveData<>(1);
         productInstance = new MutableLiveData<>(null);
         productPurchaseInfo = new MutableLiveData<>(null);
+        purchasePlace = (MutableLiveData<Place>)Transformations.switchMap(
+                this.productPurchaseInfo,
+                new Function<PurchaseInfo, LiveData<Place>>() {
+                    @Override
+                    public LiveData<Place> apply(PurchaseInfo input) {
+                        if( input != null && input.getPlaceId() != null )
+                            return pantryRepository.getPlace(input.getPlaceId());
+                        else
+                            return new MutableLiveData<>(null);
+                    }
+                }
+        );
     }
 
     @Override
@@ -145,10 +160,12 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     public void resetPurchaseInfo(){
         productPurchaseInfo.setValue( new PurchaseInfo(
+                "",
                 0f,
                 Calendar.getInstance().getTime(),
                 null
         ));
+        purchasePlace.setValue(null);
     }
 
     public LiveData<List<Pantry>> getAvailablePantries(){
@@ -214,6 +231,15 @@ public class RegisterProductViewModel extends AndroidViewModel {
         assignedPantry.setValue( p );
     }
 
+    public void setPurchasePlace( Place place ) {
+        if( !Objects.equals(place, purchasePlace.getValue()) )
+            purchasePlace.setValue(place);
+    }
+
+    public LiveData<Place> getPurchasePlace() {
+        return purchasePlace;
+    }
+
     public ListenableFuture<ProductInstanceGroup> registerProduct() {
         Product p = new Product.Builder()
                 .from(
@@ -231,15 +257,15 @@ public class RegisterProductViewModel extends AndroidViewModel {
         Pantry pantry = getPantry().getValue();
         ProductInstanceGroup group = getProductInstance().getValue();
         PurchaseInfo purchaseInfo = getProductPurchaseInfo().getValue();
-        group.setPurchaseInfo( purchaseInfo );
+        Place purchasePlace = getPurchasePlace().getValue();
+        ListenableFuture<Product> futureProduct = pantryRepository.addProduct(p, assignedTags.getValue());
 
-        ListenableFuture<List<Object>> futureResults = Futures.allAsList(
-                pantryRepository.addProduct(p, assignedTags.getValue()),
+        ListenableFuture<List<Object>> futureProductInstanceGroupParams = Futures.allAsList(
+                futureProduct,
                 pantryRepository.addPantry( pantry )
         );
-
         ListenableFuture<Long> futureProductInstanceGroupID = Futures.transformAsync(
-                futureResults,
+                futureProductInstanceGroupParams,
                 new AsyncFunction<List<Object>, Long>() {
                     @Override
                     public ListenableFuture<Long> apply(@NullableDecl List<Object> results) {
@@ -255,8 +281,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
                 },
                 MoreExecutors.directExecutor()
         );
-
-        return Futures.transform(
+        ListenableFuture<ProductInstanceGroup> futureGroupWithId = Futures.transform(
                 futureProductInstanceGroupID,
                 new com.google.common.base.Function<Long, ProductInstanceGroup>() {
                     @NullableDecl
@@ -268,6 +293,52 @@ public class RegisterProductViewModel extends AndroidViewModel {
                 },
                 MoreExecutors.directExecutor()
         );
+
+        ListenableFuture<List<Object>> futurePurchaseInfoParams = Futures.allAsList(
+                pantryRepository.addPlace(purchasePlace),
+                futureProduct
+        );
+        ListenableFuture<Long> futureAddPurchaseInfo = Futures.transformAsync(
+                futurePurchaseInfoParams,
+                new AsyncFunction<List<Object>, Long>() {
+                    @Override
+                    public ListenableFuture<Long> apply(@NullableDecl List<Object> results) {
+                        Iterator<Object> it = results.iterator();
+                        Place place = (Place) it.next();
+                        Product product = (Product) it.next();
+
+                        if( purchaseInfo != null ) {
+                            if( product != null ){
+                                purchaseInfo.setProductId(product.getId());
+                            }
+
+                            if( place != null ){
+                                purchaseInfo.setPlaceId(place.getId());
+                            }
+
+                            return pantryRepository.addPurchaseInfo(purchaseInfo);
+                        }
+                        else {
+                            return Futures.immediateFailedFuture(new NullPointerException());
+                        }
+                    }
+                },
+                MoreExecutors.directExecutor()
+        );
+
+        ListenableFuture<ProductInstanceGroup> futureGroupWithIdAndInfo = Futures.transform(
+                futureAddPurchaseInfo,
+                new com.google.common.base.Function<Long, ProductInstanceGroup>() {
+                    @NullableDecl
+                    @Override
+                    public ProductInstanceGroup apply(@NullableDecl Long id) {
+                        return group;
+                    }
+                },
+                MoreExecutors.directExecutor()
+        );
+
+        return futureGroupWithIdAndInfo;
     }
 
     public LiveData<ProductWithTags> getProduct() {
