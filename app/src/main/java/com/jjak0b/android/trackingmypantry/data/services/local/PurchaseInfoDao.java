@@ -6,11 +6,13 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 
 import java.util.List;
 
@@ -28,7 +30,8 @@ public interface PurchaseInfoDao {
     @Update(onConflict = OnConflictStrategy.IGNORE)
     ListenableFuture<Void> updatePurchaseInfo(PurchaseInfo... purchaseInfo);
 
+    @Transaction
     @Query("SELECT * FROM purchaseInfo WHERE product_id = :product_id" )
-    LiveData<List<PurchaseInfo>> getAllPurchaseInfo(@NonNull String product_id);
+    LiveData<List<PurchaseInfoWithPlace>> getAllPurchaseInfo(@NonNull String product_id);
 }
 

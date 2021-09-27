@@ -6,6 +6,10 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.maps.MapboxMap;
+import com.mapbox.maps.ResourceOptions;
+import com.mapbox.maps.ResourceOptionsManager;
+import com.mapbox.maps.TileStoreUsageMode;
 import com.mapbox.search.MapboxSearchSdk;
 import com.mapbox.search.location.DefaultLocationProvider;
 
@@ -26,7 +30,9 @@ public class MyApplication extends Application {
                     mApiKey,
                     new DefaultLocationProvider(this)
             );
-            Mapbox.getInstance(this, mApiKey);
+            // Mapbox.getInstance(this, mApiKey);
+            ResourceOptionsManager.Companion
+                    .getDefault(this, mApiKey);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
