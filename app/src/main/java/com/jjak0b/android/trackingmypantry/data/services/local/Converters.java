@@ -5,6 +5,7 @@ import androidx.room.TypeConverter;
 
 import com.jjak0b.android.trackingmypantry.ui.util.PlaceAdapter;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
+import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.GeoJson;
 import com.mapbox.geojson.Geometry;
 import com.mapbox.geojson.gson.GeometryGeoJson;
@@ -24,12 +25,12 @@ public class Converters {
     }
 
     @TypeConverter
-    public static String GeoJsonToJson(GeoJson geometry){
-        return geometry.toJson();
+    public static String FeatureToJson(Feature feature){
+        return feature.toJson();
     }
 
     @TypeConverter
-    public static GeoJson GeoJsonFromJson(String geoJson){
-        return GeometryGeoJson.fromJson(geoJson);
+    public static Feature JsonToFeature(String geoJson){
+        return Feature.fromJson(geoJson);
     }
 }

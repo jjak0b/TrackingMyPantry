@@ -30,7 +30,9 @@ public class MyApplication extends Application {
                     mApiKey,
                     new DefaultLocationProvider(this)
             );
-            // Mapbox.getInstance(this, mApiKey);
+            // Required for old plugins: search plugin
+            Mapbox.getInstance(this, mApiKey);
+            // Required for v10 api
             ResourceOptionsManager.Companion
                     .getDefault(this, mApiKey);
         } catch (PackageManager.NameNotFoundException e) {

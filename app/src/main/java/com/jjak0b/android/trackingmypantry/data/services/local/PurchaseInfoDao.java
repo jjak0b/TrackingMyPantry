@@ -30,8 +30,7 @@ public interface PurchaseInfoDao {
     @Update(onConflict = OnConflictStrategy.IGNORE)
     ListenableFuture<Void> updatePurchaseInfo(PurchaseInfo... purchaseInfo);
 
-    @Transaction
-    @Query("SELECT * FROM purchaseInfo WHERE product_id = :product_id" )
+    @Query("SELECT * FROM purchaseInfo as I INNER JOIN places AS P ON I.place_id = P.id WHERE I.product_id = :product_id" )
     LiveData<List<PurchaseInfoWithPlace>> getAllPurchaseInfo(@NonNull String product_id);
 }
 

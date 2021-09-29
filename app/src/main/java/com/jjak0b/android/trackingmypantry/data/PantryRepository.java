@@ -453,8 +453,12 @@ public class PantryRepository {
         return pantryDB.getPlaceDao().getPlace(placeId);
     }
 
-    public ListenableFuture<Void> addPlace(Place place) {
-        return pantryDB.getPlaceDao().insertPlace(place);
+    public ListenableFuture<Place> addPlace(Place place) {
+        return Futures.transform(
+                pantryDB.getPlaceDao().insertPlace(place),
+                input -> place,
+                MoreExecutors.directExecutor()
+        );
     }
 
     public ListenableFuture<Long> addPurchaseInfo(PurchaseInfo purchaseInfo) {

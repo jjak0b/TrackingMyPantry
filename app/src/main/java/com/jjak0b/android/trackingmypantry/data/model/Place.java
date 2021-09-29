@@ -2,24 +2,30 @@ package com.jjak0b.android.trackingmypantry.data.model;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.mapbox.geojson.BoundingBox;
+import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.GeoJson;
+import com.mapbox.geojson.Geometry;
+
 @Entity(
         tableName = "places"
 )
-public class Place {
+public class Place implements GeoJson {
     @PrimaryKey
     @NonNull
-    String id;
+    private String id;
 
-    String name;
+    private String name;
 
-    GeoJson geometry;
+    @NonNull
+    private Feature feature;
 
-    public Place(@NonNull String id, GeoJson geometry, String name) {
+    public Place(@NonNull String id, @NonNull Feature feature, String name) {
         this.id = id;
-        this.geometry = geometry;
+        this.feature = feature;
         this.name = name;
     }
 
@@ -32,7 +38,23 @@ public class Place {
         return name;
     }
 
-    public GeoJson getGeometry() {
-        return geometry;
+    @NonNull
+    public Feature getFeature() {
+        return feature;
+    }
+
+    @Override
+    public String type() {
+        return feature.type();
+    }
+
+    @Override
+    public String toJson() {
+        return feature.toJson();
+    }
+
+    @Override
+    public BoundingBox bbox() {
+        return feature.bbox();
     }
 }

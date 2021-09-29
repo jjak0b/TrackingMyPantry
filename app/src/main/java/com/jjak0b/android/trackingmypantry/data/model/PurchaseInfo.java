@@ -108,4 +108,15 @@ public class PurchaseInfo {
                 Float.compare(that.cost, cost) == 0;
     }
 
+
+    @Override
+    public String toString() {
+        return "PurchaseInfo{" +
+                "id=" + id +
+                ", purchaseDate=" + purchaseDate +
+                ", cost=" + cost +
+                ", productId='" + productId + '\'' +
+                ", placeId='" + placeId + '\'' +
+                '}';
+    }
 }

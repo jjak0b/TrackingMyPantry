@@ -29,6 +29,7 @@ import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductVi
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 import com.jjak0b.android.trackingmypantry.ui.util.PlaceAdapter;
+import com.mapbox.geojson.Point;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -57,7 +58,13 @@ public class SectionProductPurchaseDetailsFragment extends Fragment {
             int resultCode = result.getResultCode();
             Intent data = result.getData();
             if (resultCode == Activity.RESULT_OK && data != null) {
-                mViewModel.setPurchasePlace(PlaceAdapter.from(PlacesPluginActivity.getPlace(data)));
+
+                Log.e("CFeature: ", PlacesPluginActivity.getPlace(data).toJson());
+                Place place = PlaceAdapter.from(PlacesPluginActivity.getPlace(data));
+
+                Log.e("Feature: ", Point.fromJson(place.getFeature().geometry().toJson()).toJson() );
+
+                mViewModel.setPurchasePlace(place);
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 mViewModel.setPurchasePlace(null);
