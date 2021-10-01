@@ -11,15 +11,20 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:windowBackground">@mipmap/ic_launcher_foreground</item>
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.TrackingMyPantry.NoActionBar">
+    <style name="Theme.TrackingMyPantry.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.TrackingMyPantry.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.TrackingMyPantry.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar" />
 
-    <style name="Theme.TrackingMyPantry.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.TrackingMyPantry.PopupOverlay" parent="Theme.MaterialComponents.Light" />
+
+    <style name="Theme.TrackingMyPantry.SplashTheme" parent="Theme.TrackingMyPantry.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_theme</item>
+    </style>
 </resources>
