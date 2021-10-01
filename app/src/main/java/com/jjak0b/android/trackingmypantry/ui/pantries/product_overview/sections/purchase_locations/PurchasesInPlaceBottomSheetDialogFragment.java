@@ -31,7 +31,7 @@ import java.util.List;
 public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialogFragment {
 
     private PurchasesInPlaceViewModel mViewModel;
-
+    private final static String TAG = "PurchasesHistoryFragment";
     public static PurchasesInPlaceBottomSheetDialogFragment newInstance() {
         return new PurchasesInPlaceBottomSheetDialogFragment();
     }
@@ -88,23 +88,23 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         dataSet.setHighlightEnabled(true);
         dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
         LineData lineData = new LineData(dataSet);
-        viewChart.setData(lineData);
 
         ValueFormatter xAxisFormatter = new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-                if( value < 0 ) return null;
-                PurchaseInfo info = purchases.get((int) value);
+                int index = (int) value;
+                if( value < 0 || value >= purchases.size() ) return "";
+
+                PurchaseInfo info = purchases.get(index);
                 if( info != null )
                     return dateFormat.format(info.getPurchaseDate());
-                return null;
+                return "N/A";
             }
         };
-
         XAxis xAxis = viewChart.getXAxis();
-        xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
         xAxis.setValueFormatter(xAxisFormatter);
-
-        viewChart.invalidate();
+        xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
+        viewChart.setData(lineData);
+        viewChart.notifyDataSetChanged();
     }
 }

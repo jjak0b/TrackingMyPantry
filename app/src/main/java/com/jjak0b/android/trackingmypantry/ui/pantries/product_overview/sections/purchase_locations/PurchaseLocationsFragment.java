@@ -171,22 +171,27 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                             .withTextField(place.getName());
                     annotationsOptions.add(pointAnnotationOptions);
 
-                    pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener() {
+                    PointAnnotation pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions);
+                    pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), place){
                         @Override
                         public boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation) {
                             // TODO: for this use case should be better a "PlaceWithPurchases" POJO class
 
-                            mPurchasesInPlaceViewModel.setPurchases(purchasesMap.get(place.getId()));
+                            if( pointAnnotation.getId() == getAnnotationID()) {
+                                Log.d(TAG, "Click on Place " + getPlace().getId());
+                                mPurchasesInPlaceViewModel.setPurchases(purchasesMap.get(getPlace().getId()));
+                                Navigation.findNavController(requireView())
+                                        .navigate(PurchaseLocationsFragmentDirections.actionShowPurchasesInPlace());
 
-                            Navigation.findNavController(requireView())
-                                    .navigate(PurchaseLocationsFragmentDirections.actionShowPurchasesInPlace());
-
-                            return true;
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
                         }
                     });
                 }
 
-                pointAnnotationManager.create(annotationsOptions);
                 mapView.getMapboxMap()
                         .setCamera( new CameraOptions.Builder()
                                 .zoom(DEFAULT_CAMERA_ZOOM)
@@ -196,5 +201,26 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
 
             }
         });
+    }
+
+    private abstract class OnPointAnnotationClickListener implements com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener {
+        private Place place;
+        private long annotationID;
+        public OnPointAnnotationClickListener(long annotationID, @NonNull Place place) {
+            this.place = place;
+            this.annotationID = annotationID;
+            Log.d("d", "reg " + getPlace().getId());
+        }
+
+        public Place getPlace() {
+            return place;
+        }
+
+        public long getAnnotationID() {
+            return annotationID;
+        }
+
+        @Override
+        public abstract boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation);
     }
 }
