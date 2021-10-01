@@ -31,12 +31,18 @@ android {
         }
     }
     compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
+
+    // Desugar some Java 8+ API
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+
     // 3. Android - Use Guava in your implementation only:
     implementation 'com.google.guava:guava:30.1.1-android'
 
@@ -51,10 +57,10 @@ dependencies {
     // implementation "com.mapbox.mapboxsdk:mapbox-android-sdk:9.6.2"
     // fix for plugin-places not supporting Android API 30
     // implementation "com.mapbox.mapboxsdk:mapbox-android-telemetry:7.0.0"
-    implementation 'com.mapbox.maps:android:10.0.0-rc.7'
-    implementation "com.mapbox.search:mapbox-search-android-ui:1.0.0-beta.18"
+    implementation 'com.mapbox.maps:android:10.0.0-rc.9'
+    implementation "com.mapbox.search:mapbox-search-android-ui:1.0.0-beta.19"
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-places-v9:0.12.0'
-    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-markerview-v9:0.4.0'
+    implementation 'com.mapbox.plugin:maps-annotation:10.0.0-rc.9'
 
     // room
     def room_version = "2.3.0"
@@ -113,6 +119,7 @@ dependencies {
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.github.koji-1009:ChronoDialogPreference:2.1.0'
     implementation 'com.github.invissvenska:NumberPickerPreference:1.0.3'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

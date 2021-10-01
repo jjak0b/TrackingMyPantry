@@ -14,5 +14,14 @@
         android:id="@+id/nav_product_purchase_places"
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations.PurchaseLocationsFragment"
         android:label="purchase_locations_fragment"
-        tools:layout="@layout/purchase_locations_fragment" />
+        tools:layout="@layout/purchase_locations_fragment" >
+        <action
+            android:id="@+id/actionShowPurchasesInPlace"
+            app:destination="@id/purchasesBottomSheetDialogFragment" />
+    </fragment>
+    <dialog
+        android:id="@+id/purchasesBottomSheetDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations.PurchasesInPlaceBottomSheetDialogFragment"
+        android:label="@string/product_section_purchase_places_overview"
+        tools:layout="@layout/purchases_bottom_sheet_dialog_fragment" />
 </navigation>

@@ -1,39 +1,60 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations;
 
-import androidx.fragment.app.FragmentTransaction;
+import androidx.annotation.DrawableRes;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.model.Place;
+import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.MapboxMapOptions;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.maps.SupportMapFragment;
-import com.mapbox.mapboxsdk.plugins.markerview.MarkerView;
-import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager;
+import com.jjak0b.android.trackingmypantry.ui.util.GeoUtils;
 
-public class PurchaseLocationsFragment extends Fragment implements OnMapReadyCallback{
+import com.mapbox.geojson.BoundingBox;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.Point;
+import com.mapbox.maps.CameraOptions;
+import com.mapbox.maps.MapboxMap;
 
+import com.mapbox.maps.MapView;
+import com.mapbox.maps.Style;
+import com.mapbox.maps.plugin.Plugin;
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin;
+import com.mapbox.maps.plugin.annotation.AnnotationType;
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
+import com.mapbox.maps.plugin.annotation.generated.*;
+import com.mapbox.maps.plugin.delegates.listeners.OnMapLoadedListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedListener {
+
+    private final static String TAG = "PurchaseLocationsFragment";
     private PurchaseLocationsViewModel mViewModel;
     private ProductOverviewViewModel mProductViewModel;
-    private MarkerViewManager markerViewManager;
-    private SupportMapFragment mapFragment;
+    private PurchasesInPlaceViewModel mPurchasesInPlaceViewModel;
+    private MapView mapView;
+    private static final Point DEFAULT_CAMERA_POINT = Point.fromLngLat(12.483333, 41.9 ); // Rome
+    private static final double DEFAULT_CAMERA_ZOOM = 7.0;
+    @DrawableRes
+    private static final int DEFAULT_MARKER_ICON = R.drawable.mapbox_marker_icon_default;
+    private Bitmap DEFAULT_MARKER_BITMAP;
+    private PointAnnotationManager pointAnnotationManager;
 
     public static PurchaseLocationsFragment newInstance() {
         return new PurchaseLocationsFragment();
@@ -43,7 +64,11 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapReadyCal
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PurchaseLocationsViewModel.class);
+        mPurchasesInPlaceViewModel = new ViewModelProvider(requireParentFragment()).get(PurchasesInPlaceViewModel.class);
         mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        if( DEFAULT_MARKER_BITMAP == null ){
+            DEFAULT_MARKER_BITMAP = BitmapFactory.decodeResource(getResources(), DEFAULT_MARKER_ICON);
+        }
     }
 
     @Override
@@ -57,71 +82,145 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapReadyCal
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (savedInstanceState == null) {
 
-            // Create fragment
-            final FragmentTransaction transaction = getChildFragmentManager()
-                .beginTransaction();
+        mProductViewModel.getProduct().observe( getViewLifecycleOwner(), productWithTags -> {
+            if( productWithTags == null ){
+                mViewModel.setProduct(null);
+            }
+            else {
+                mViewModel.setProduct(productWithTags.product);
+            }
+        });
 
-            // Build mapboxMap
-            MapboxMapOptions options = MapboxMapOptions.createFromAttributes(requireContext(), null);
-            options.camera(new CameraPosition.Builder()
-                    .target(new LatLng(-52.6885, -70.1395))
-                    .zoom(9)
-                    .build());
+        mapView = view.findViewById(R.id.mapView);
+        MapboxMap mapboxMap = mapView.getMapboxMap();
 
-            // Create map fragment
-            mapFragment = SupportMapFragment.newInstance(options);
+        mapboxMap.setCamera(new CameraOptions.Builder()
+                .center(DEFAULT_CAMERA_POINT)
+                .zoom(DEFAULT_CAMERA_ZOOM)
+                .build()
+        );
+        mapboxMap.addOnMapLoadedListener(this);
+        mapboxMap.loadStyleUri(Style.MAPBOX_STREETS, null, null);
 
-            // Add map fragment to parent container
-            transaction.add(R.id.container, mapFragment, "com.mapbox.map");
-            transaction.commit();
-        }
-        else {
-            mapFragment = (SupportMapFragment) getChildFragmentManager()
-                    .findFragmentByTag("com.mapbox.map");
-        }
+        AnnotationPlugin annotationApi = mapView.getPlugin(Plugin.MAPBOX_ANNOTATION_PLUGIN_ID);
+        pointAnnotationManager = (PointAnnotationManager) annotationApi
+                .createAnnotationManager(mapView, AnnotationType.PointAnnotation, null);
 
-
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
     }
 
-
     /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera.
-     * In this case, we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to
-     * install it inside the SupportMapFragment. This method will only be triggered once the
-     * user has installed Google Play services and returned to the app.
+     * Invoked when the Map's style has been fully loaded, and the Map has rendered all visible tiles.
      */
     @Override
-    public void onMapReady(@NonNull MapboxMap mapboxMap) {
+    public void onMapLoaded() {
+        ViewGroup container = requireView().findViewById(R.id.layout_container);
 
-        mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
-            @Override
-            public void onStyleLoaded(@NonNull Style style) {
-                markerViewManager = new MarkerViewManager( (MapView) mapFragment.getView(), mapboxMap);
-                LatLng sydney = new LatLng(-34, 151);
+        mViewModel.getPurchaseInfoList().observe(getViewLifecycleOwner(), purchaseInfos -> {
+            if( purchaseInfos == null ){
+                pointAnnotationManager.deleteAll();
+            }
+            else {
+                pointAnnotationManager.deleteAll();
 
-                TextView customView = new TextView(getContext());
-                customView.setText("Sydney");
-                markerViewManager.addMarker( new MarkerView(
-                        sydney, customView
-                ));
-                mapboxMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+                double north = -90.0;
+                double south = 90.0;
+                double west = 180.0;
+                double east = -180.0;
+
+                ArrayList<PointAnnotationOptions> annotationsOptions = new ArrayList<>(purchaseInfos.size());
+                HashMap<String, Place> placeHashMap = new HashMap<>( (int)Math.floor(purchaseInfos.size()*0.75)+1 );
+                HashMap<String, ArrayList<PurchaseInfo>>  purchasesMap = new HashMap<>((int)Math.floor(purchaseInfos.size()*0.75)+1);
+                for ( PurchaseInfoWithPlace purchaseInfo : purchaseInfos ) {
+                    if( purchaseInfo.place == null) continue;
+
+                    String placeID = purchaseInfo.place.getId();
+
+                    ArrayList<PurchaseInfo> purchasesInLocation = purchasesMap.get(placeID);
+
+                    if( purchasesInLocation == null ){
+                        purchasesInLocation = new ArrayList<>();
+                        purchasesMap.put(placeID, purchasesInLocation);
+                    }
+                    purchasesInLocation.add(purchaseInfo.info);
+
+
+                    Place place = placeHashMap.get(placeID);
+                    if( place == null ){
+                        place = purchaseInfo.place;
+                        placeHashMap.put(placeID, place);
+                    }
+
+                    Point placeCenter = GeoUtils.getCenter(place.getFeature());
+                    north = Math.max(north, placeCenter.latitude());
+                    south = Math.min(south, placeCenter.latitude());
+                    west = Math.min(west, placeCenter.longitude());
+                    east = Math.max(east, placeCenter.longitude());
+                }
+
+                BoundingBox bbox = BoundingBox.fromLngLats(west, south, east, north);
+
+                for ( Place place : placeHashMap.values() ) {
+                    Log.e("Place", place.toJson() );
+                    Feature feature = place.getFeature();
+
+
+                    PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
+                            .withPoint(GeoUtils.getCenter(feature))
+                            .withIconImage(DEFAULT_MARKER_BITMAP)
+                            .withTextField(place.getName());
+                    annotationsOptions.add(pointAnnotationOptions);
+
+                    PointAnnotation pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions);
+                    pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), place){
+                        @Override
+                        public boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation) {
+                            // TODO: for this use case should be better a "PlaceWithPurchases" POJO class
+
+                            if( pointAnnotation.getId() == getAnnotationID()) {
+                                Log.d(TAG, "Click on Place " + getPlace().getId());
+                                mPurchasesInPlaceViewModel.setPurchases(purchasesMap.get(getPlace().getId()));
+                                Navigation.findNavController(requireView())
+                                        .navigate(PurchaseLocationsFragmentDirections.actionShowPurchasesInPlace());
+
+                                return true;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                    });
+                }
+
+                mapView.getMapboxMap()
+                        .setCamera( new CameraOptions.Builder()
+                                .zoom(DEFAULT_CAMERA_ZOOM)
+                                .center(GeoUtils.getCenter(bbox))
+                                .build()
+                        );
 
             }
         });
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if( markerViewManager != null )
-            markerViewManager.onDestroy();
+    private abstract class OnPointAnnotationClickListener implements com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener {
+        private Place place;
+        private long annotationID;
+        public OnPointAnnotationClickListener(long annotationID, @NonNull Place place) {
+            this.place = place;
+            this.annotationID = annotationID;
+            Log.d("d", "reg " + getPlace().getId());
+        }
+
+        public Place getPlace() {
+            return place;
+        }
+
+        public long getAnnotationID() {
+            return annotationID;
+        }
+
+        @Override
+        public abstract boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation);
     }
 }

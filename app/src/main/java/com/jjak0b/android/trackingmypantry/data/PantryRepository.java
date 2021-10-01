@@ -22,14 +22,16 @@ import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
 import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.services.local.ProductDao;
 
@@ -445,5 +447,25 @@ public class PantryRepository {
     }
     public ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(long... groupID) {
         return pantryDB.getProductInstanceDao().getInfoOfAll(groupID);
+    }
+
+    public LiveData<Place> getPlace(String placeId) {
+        return pantryDB.getPlaceDao().getPlace(placeId);
+    }
+
+    public ListenableFuture<Place> addPlace(Place place) {
+        return Futures.transform(
+                pantryDB.getPlaceDao().insertPlace(place),
+                input -> place,
+                MoreExecutors.directExecutor()
+        );
+    }
+
+    public ListenableFuture<Long> addPurchaseInfo(PurchaseInfo purchaseInfo) {
+        return pantryDB.getPurchaseInfoDao().insertPurchaseInfo(purchaseInfo);
+    }
+
+    public LiveData<List<PurchaseInfoWithPlace>> getAllPurchaseInfo(@NonNull String productID) {
+        return pantryDB.getPurchaseInfoDao().getAllPurchaseInfo(productID);
     }
 }

@@ -12,9 +12,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
 
 import java.util.concurrent.Executors;
@@ -25,7 +27,9 @@ import java.util.concurrent.Executors;
                 ProductInstanceGroup.class,
                 ProductTag.class,
                 Pantry.class,
-                TagAndProduct.class
+                TagAndProduct.class,
+                Place.class,
+                PurchaseInfo.class
         },
         version = 1,
         exportSchema = true
@@ -35,6 +39,8 @@ public abstract class PantryDB extends RoomDatabase {
     abstract public ProductDao getProductDao();
     abstract public ProductInstanceDao getProductInstanceDao();
     abstract public PantryDao getPantryDao();
+    abstract public PlaceDao getPlaceDao();
+    abstract public PurchaseInfoDao getPurchaseInfoDao();
 
     private static volatile PantryDB instance;
     private static final int nTHREADS = 4;
