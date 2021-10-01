@@ -326,19 +326,14 @@ public class RegisterProductViewModel extends AndroidViewModel {
                 MoreExecutors.directExecutor()
         );
 
-        ListenableFuture<ProductInstanceGroup> futureGroupWithIdAndInfo = Futures.transform(
-                futureAddPurchaseInfo,
-                new com.google.common.base.Function<Long, ProductInstanceGroup>() {
-                    @NullableDecl
-                    @Override
-                    public ProductInstanceGroup apply(@NullableDecl Long id) {
-                        return group;
-                    }
+        return Futures.transform( Futures.allAsList(futureGroupWithId, futureAddPurchaseInfo),
+                input -> {
+                    Iterator<Object> it = input.iterator();
+                    ProductInstanceGroup item1 = (ProductInstanceGroup) it.next();
+                    return item1;
                 },
                 MoreExecutors.directExecutor()
         );
-
-        return futureGroupWithIdAndInfo;
     }
 
     public LiveData<ProductWithTags> getProduct() {
