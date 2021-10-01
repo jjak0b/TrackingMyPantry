@@ -51,7 +51,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
     private static final Point DEFAULT_CAMERA_POINT = Point.fromLngLat(12.483333, 41.9 ); // Rome
     private static final double DEFAULT_CAMERA_ZOOM = 7.0;
     @DrawableRes
-    private static final int DEFAULT_MARKER_ICON = R.drawable.ic_red_marker;
+    private static final int DEFAULT_MARKER_ICON = R.drawable.mapbox_marker_icon_default;
     private PointAnnotationManager pointAnnotationManager;
 
     public static PurchaseLocationsFragment newInstance() {
