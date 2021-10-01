@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries;
 
 import androidx.appcompat.widget.PopupMenu;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -15,10 +16,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -139,7 +142,7 @@ public class PantriesBrowserFragment extends Fragment {
         popup.setOnMenuItemClickListener( item -> {
             switch (item.getItemId()) {
                 case R.id.option_delete:
-                    deleteEntry(row, tableAdapter);
+                    deleteEntry(row, tableAdapter, anchor);
                 default:
                     if( pantriesViewGroupID == item.getGroupId() ){
 
@@ -191,9 +194,15 @@ public class PantriesBrowserFragment extends Fragment {
     // queue used to store pending entry to be deleted
     private LinkedList<ProductInstanceGroup> deletionQueue = new LinkedList<>();
 
-    private void deleteEntry(int position, ProductInstanceGroupTableViewAdapter tableAdapter) {
+    private void deleteEntry(int position, ProductInstanceGroupTableViewAdapter tableAdapter, View anchor) {
 
         final Snackbar snackbar = Snackbar.make(requireView(), R.string.product_entry_removed_from_pantry, Snackbar.LENGTH_LONG);
+        // set snackbar anchor to entry view item
+        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)snackbar.getView().getLayoutParams();
+        layoutParams.setAnchorId(anchor.getId());
+        layoutParams.anchorGravity = Gravity.BOTTOM;
+        snackbar.getView().setLayoutParams(layoutParams);
+
         ProductInstanceGroup entry = tableAdapter.getRowItem( position );
         snackbar.setAction(R.string.action_undo, new View.OnClickListener() {
             @Override
