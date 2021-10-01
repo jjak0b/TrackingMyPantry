@@ -101,11 +101,11 @@ public class PantriesBrowserFragment extends Fragment {
 
         @Override
         public void onItemLongClicked(int pantryPosition, View pantryView, int pantryItemPosition, View pantryItemView, ProductInstanceGroupTableViewAdapter pantryItemsAdapter) {
-            openPopupMenuForEntry(pantryItemView, pantryItemPosition, pantryItemsAdapter );
+            openPopupMenuForEntry(pantryView, pantryItemView, pantryItemPosition, pantryItemsAdapter );
         }
     };
 
-    private void openPopupMenuForEntry(View anchor, int row, final ProductInstanceGroupTableViewAdapter tableAdapter){
+    private void openPopupMenuForEntry(View parentAnchor, View anchor, int row, final ProductInstanceGroupTableViewAdapter tableAdapter){
         PopupMenu popup = new PopupMenu(getContext(), anchor);
         popup.getMenuInflater()
                 .inflate( R.menu.popup_menu_product_instance_group_operations, popup.getMenu() );
@@ -142,7 +142,7 @@ public class PantriesBrowserFragment extends Fragment {
         popup.setOnMenuItemClickListener( item -> {
             switch (item.getItemId()) {
                 case R.id.option_delete:
-                    deleteEntry(row, tableAdapter, anchor);
+                    deleteEntry(row, tableAdapter, parentAnchor);
                 default:
                     if( pantriesViewGroupID == item.getGroupId() ){
 
