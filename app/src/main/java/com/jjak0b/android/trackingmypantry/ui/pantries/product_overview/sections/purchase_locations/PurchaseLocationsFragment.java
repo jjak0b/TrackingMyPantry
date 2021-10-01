@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.section
 import androidx.annotation.DrawableRes;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
@@ -52,6 +53,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
     private static final double DEFAULT_CAMERA_ZOOM = 7.0;
     @DrawableRes
     private static final int DEFAULT_MARKER_ICON = R.drawable.mapbox_marker_icon_default;
+    private Bitmap DEFAULT_MARKER_BITMAP;
     private PointAnnotationManager pointAnnotationManager;
 
     public static PurchaseLocationsFragment newInstance() {
@@ -64,6 +66,9 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
         mViewModel = new ViewModelProvider(this).get(PurchaseLocationsViewModel.class);
         mPurchasesInPlaceViewModel = new ViewModelProvider(requireParentFragment()).get(PurchasesInPlaceViewModel.class);
         mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        if( DEFAULT_MARKER_BITMAP == null ){
+            DEFAULT_MARKER_BITMAP = BitmapFactory.decodeResource(getResources(), DEFAULT_MARKER_ICON);
+        }
     }
 
     @Override
@@ -162,8 +167,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
 
                     PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
                             .withPoint(GeoUtils.getCenter(feature))
-                            .withIconImage(BitmapFactory
-                                    .decodeResource(getResources(), DEFAULT_MARKER_ICON))
+                            .withIconImage(DEFAULT_MARKER_BITMAP)
                             .withTextField(place.getName());
                     annotationsOptions.add(pointAnnotationOptions);
 
