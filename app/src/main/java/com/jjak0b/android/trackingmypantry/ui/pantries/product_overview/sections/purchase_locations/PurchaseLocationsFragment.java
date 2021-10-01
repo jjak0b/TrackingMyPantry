@@ -44,7 +44,7 @@ import java.util.HashMap;
 
 public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedListener {
 
-
+    private final static String TAG = "PurchaseLocationsFragment";
     private PurchaseLocationsViewModel mViewModel;
     private ProductOverviewViewModel mProductViewModel;
     private PurchasesInPlaceViewModel mPurchasesInPlaceViewModel;
