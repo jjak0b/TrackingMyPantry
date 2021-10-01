@@ -295,7 +295,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
         );
 
         ListenableFuture<List<Object>> futurePurchaseInfoParams = Futures.allAsList(
-                pantryRepository.addPlace(purchasePlace),
+                purchasePlace != null ? pantryRepository.addPlace(purchasePlace) : Futures.immediateFuture(null),
                 futureProduct
         );
         ListenableFuture<Long> futureAddPurchaseInfo = Futures.transformAsync(
