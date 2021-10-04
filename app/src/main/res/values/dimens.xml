@@ -29,4 +29,9 @@
     <dimen name="default_column_header_height">55dp</dimen>
     <dimen name="table_cell_vertical_padding">8dp</dimen>
     <dimen name="table_cell_horizontal_padding">16dp</dimen>
+
+    <dimen name="graph_line_chart_axis_text_size">5dp</dimen>
+    <dimen name="graph_line_chart_value_text_size">5dp</dimen>
+    <dimen name="graph_line_chart_axis_text_rotation_degree" format="float">-45.0</dimen>
+    <dimen name="graph_line_chart_line_widht">1.5dp</dimen>
 </resources>

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,8 +54,11 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         super.onViewCreated(view, savedInstanceState);
 
         LineChart viewChart = view.findViewById(R.id.chart);
+        viewChart.setAutoScaleMinMaxEnabled(true);
+        viewChart.setDrawGridBackground(false);
+        viewChart.setDescription(null);
         ProgressBar loadingBar = view.findViewById(R.id.purchasesLoadingBar);
-
+        loadingBar.setVisibility(View.VISIBLE);
         mViewModel.getPurchases().observe(getViewLifecycleOwner(), purchaseInfos -> {
             if( purchaseInfos == null) return;
             setupChart(purchaseInfos, viewChart);
@@ -84,10 +88,13 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         }
 
         LineDataSet dataSet = new LineDataSet(entries, getString(R.string.product_cost) );
-        dataSet.setLineWidth(3f);
-        dataSet.setHighlightEnabled(true);
         dataSet.setAxisDependency(YAxis.AxisDependency.LEFT);
+        dataSet.setLineWidth(getResources().getDimension(R.dimen.graph_line_chart_line_widht));
+
         LineData lineData = new LineData(dataSet);
+        lineData.setDrawValues(false);
+        lineData.setValueTextSize(getResources().getDimension(R.dimen.graph_line_chart_value_text_size));
+        lineData.setHighlightEnabled(true);
 
         ValueFormatter xAxisFormatter = new ValueFormatter() {
             @Override
@@ -102,8 +109,25 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
             }
         };
         XAxis xAxis = viewChart.getXAxis();
+        xAxis.setEnabled(true);
         xAxis.setValueFormatter(xAxisFormatter);
         xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
+        xAxis.setTextSize(getResources().getDimension(R.dimen.graph_line_chart_axis_text_size));
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        TypedValue rotationAngle = new TypedValue();
+        getResources().getValue(R.dimen.graph_line_chart_axis_text_rotation_degree, rotationAngle, true);
+        xAxis.setLabelRotationAngle(rotationAngle.getFloat());
+
+        YAxis yAxis = viewChart.getAxis( dataSet.getAxisDependency() );
+        yAxis.setEnabled(true);
+        yAxis.setGranularity(xAxis.getGranularity());
+        yAxis.setTextSize(getResources().getDimension(R.dimen.graph_line_chart_axis_text_size));
+        yAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        yAxis.setDrawZeroLine(false);
+
+        viewChart.getAxis(YAxis.AxisDependency.LEFT).setEnabled(true);
+        viewChart.getAxis(YAxis.AxisDependency.RIGHT).setEnabled(false);
+
         viewChart.setData(lineData);
         viewChart.notifyDataSetChanged();
     }
