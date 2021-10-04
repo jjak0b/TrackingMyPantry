@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -134,6 +135,10 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
 
         viewChart.getAxis(YAxis.AxisDependency.LEFT).setEnabled(true);
         viewChart.getAxis(YAxis.AxisDependency.RIGHT).setEnabled(false);
+
+        Legend legend = new Legend();
+        legend.setTextSize(textSizeDP);
+        legend.setDrawInside(false);
 
         viewChart.setData(lineData);
         viewChart.notifyDataSetChanged();
