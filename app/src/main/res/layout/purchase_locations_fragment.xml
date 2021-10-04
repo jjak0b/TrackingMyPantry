@@ -14,8 +14,7 @@
         android:layout_height="match_parent"
         android:fadeScrollbars="false"
         android:fillViewport="true"
-        android:scrollbarFadeDuration="5000"
-        android:scrollbarSize="50dp"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical">
 
@@ -24,7 +23,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.mapbox.maps.MapView
+            <com.jjak0b.android.trackingmypantry.ui.InterceptedTouchMapView
                 android:id="@+id/mapView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
