@@ -7,13 +7,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
-import androidx.lifecycle.ViewModel;
 
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 
 import java.util.List;
 import java.util.Objects;
