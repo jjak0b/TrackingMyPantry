@@ -29,9 +29,9 @@ import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 import com.jjak0b.android.trackingmypantry.data.services.local.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.services.local.ProductDao;
 
@@ -465,7 +465,7 @@ public class PantryRepository {
         return pantryDB.getPurchaseInfoDao().insertPurchaseInfo(purchaseInfo);
     }
 
-    public LiveData<List<PurchaseInfoWithPlace>> getAllPurchaseInfo(@NonNull String productID) {
+    public LiveData<List<PlaceWithPurchases>> getAllPurchaseInfo(@NonNull String productID) {
         return pantryDB.getPurchaseInfoDao().getAllPurchaseInfo(productID);
     }
 }

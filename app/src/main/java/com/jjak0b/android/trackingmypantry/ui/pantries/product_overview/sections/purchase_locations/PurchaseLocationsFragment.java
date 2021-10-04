@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.GeoUtils;
@@ -118,6 +119,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
 
         mViewModel.getPurchaseInfoList().observe(getViewLifecycleOwner(), purchaseInfos -> {
             if( purchaseInfos == null ){
+                pointAnnotationManager.getClickListeners().clear();
                 pointAnnotationManager.deleteAll();
             }
             else {
@@ -129,42 +131,24 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                 double east = -180.0;
 
                 ArrayList<PointAnnotationOptions> annotationsOptions = new ArrayList<>(purchaseInfos.size());
-                HashMap<String, Place> placeHashMap = new HashMap<>( (int)Math.floor(purchaseInfos.size()*0.75)+1 );
-                HashMap<String, ArrayList<PurchaseInfo>>  purchasesMap = new HashMap<>((int)Math.floor(purchaseInfos.size()*0.75)+1);
-                for ( PurchaseInfoWithPlace purchaseInfo : purchaseInfos ) {
-                    if( purchaseInfo.place == null) continue;
+                // HashMap<String, Place> placeHashMap = new HashMap<>( (int)Math.floor(purchaseInfos.size()*0.75)+1 );
+                // HashMap<String, ArrayList<PurchaseInfo>>  purchasesMap = new HashMap<>((int)Math.floor(purchaseInfos.size()*0.75)+1);
+                for ( PlaceWithPurchases placeWithPurchases : purchaseInfos ) {
+                    Place place = placeWithPurchases.place;
+                    if( place == null) continue;
 
-                    String placeID = purchaseInfo.place.getId();
-
-                    ArrayList<PurchaseInfo> purchasesInLocation = purchasesMap.get(placeID);
-
-                    if( purchasesInLocation == null ){
-                        purchasesInLocation = new ArrayList<>();
-                        purchasesMap.put(placeID, purchasesInLocation);
-                    }
-                    purchasesInLocation.add(purchaseInfo.info);
-
-
-                    Place place = placeHashMap.get(placeID);
-                    if( place == null ){
-                        place = purchaseInfo.place;
-                        placeHashMap.put(placeID, place);
-                    }
+                    String placeID = placeWithPurchases.place.getId();
 
                     Point placeCenter = GeoUtils.getCenter(place.getFeature());
                     north = Math.max(north, placeCenter.latitude());
                     south = Math.min(south, placeCenter.latitude());
                     west = Math.min(west, placeCenter.longitude());
                     east = Math.max(east, placeCenter.longitude());
-                }
 
-                BoundingBox bbox = BoundingBox.fromLngLats(west, south, east, north);
-
-                for ( Place place : placeHashMap.values() ) {
                     Log.e("Place", place.toJson() );
                     Feature feature = place.getFeature();
 
-
+                    // create waypoint on view
                     PointAnnotationOptions pointAnnotationOptions = new PointAnnotationOptions()
                             .withPoint(GeoUtils.getCenter(feature))
                             .withIconImage(DEFAULT_MARKER_BITMAP)
@@ -172,17 +156,18 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                     annotationsOptions.add(pointAnnotationOptions);
 
                     PointAnnotation pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions);
-                    pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), place){
+                    pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), placeWithPurchases){
                         @Override
                         public boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation) {
-                            // TODO: for this use case should be better a "PlaceWithPurchases" POJO class
-
                             if( pointAnnotation.getId() == getAnnotationID()) {
-                                Log.d(TAG, "Click on Place " + getPlace().getId());
-                                mPurchasesInPlaceViewModel.setPurchases(purchasesMap.get(getPlace().getId()));
+                                mapView.getMapboxMap()
+                                        .setCamera( new CameraOptions.Builder()
+                                                .center(GeoUtils.getCenter(getPlaceWithPurchases().place.getFeature()))
+                                                .build()
+                                        );
+                                mPurchasesInPlaceViewModel.setPurchases(getPlaceWithPurchases().purchases);
                                 Navigation.findNavController(requireView())
                                         .navigate(PurchaseLocationsFragmentDirections.actionShowPurchasesInPlace());
-
                                 return true;
                             }
                             else {
@@ -191,6 +176,8 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                         }
                     });
                 }
+
+                BoundingBox bbox = BoundingBox.fromLngLats(west, south, east, north);
 
                 mapView.getMapboxMap()
                         .setCamera( new CameraOptions.Builder()
@@ -204,16 +191,15 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
     }
 
     private abstract class OnPointAnnotationClickListener implements com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener {
-        private Place place;
+        private PlaceWithPurchases placeWithPurchases;
         private long annotationID;
-        public OnPointAnnotationClickListener(long annotationID, @NonNull Place place) {
-            this.place = place;
+        public OnPointAnnotationClickListener(long annotationID, @NonNull PlaceWithPurchases placeWithPurchases) {
+            this.placeWithPurchases = placeWithPurchases;
             this.annotationID = annotationID;
-            Log.d("d", "reg " + getPlace().getId());
         }
 
-        public Place getPlace() {
-            return place;
+        public PlaceWithPurchases getPlaceWithPurchases() {
+            return placeWithPurchases;
         }
 
         public long getAnnotationID() {

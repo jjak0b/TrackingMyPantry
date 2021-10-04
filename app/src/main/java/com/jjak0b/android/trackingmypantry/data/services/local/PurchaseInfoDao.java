@@ -10,9 +10,8 @@ import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
 
 import java.util.List;
 
@@ -31,6 +30,6 @@ public interface PurchaseInfoDao {
     ListenableFuture<Void> updatePurchaseInfo(PurchaseInfo... purchaseInfo);
 
     @Query("SELECT * FROM purchaseInfo as I INNER JOIN places AS P ON I.place_id = P.id WHERE I.product_id = :product_id" )
-    LiveData<List<PurchaseInfoWithPlace>> getAllPurchaseInfo(@NonNull String product_id);
+    LiveData<List<PlaceWithPurchases>> getAllPurchaseInfo(@NonNull String product_id);
 }
 

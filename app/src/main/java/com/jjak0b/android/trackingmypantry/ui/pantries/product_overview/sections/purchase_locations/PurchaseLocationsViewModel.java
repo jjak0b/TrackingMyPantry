@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PurchaseInfoWithPlace;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
 
     private PantryRepository pantryRepository;
     private MutableLiveData<Product> product;
-    private LiveData<List<PurchaseInfoWithPlace>> purchaseInfoList;
+    private LiveData<List<PlaceWithPurchases>> purchaseInfoList;
 
     public PurchaseLocationsViewModel(Application application) {
         super(application);
@@ -30,9 +31,9 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
         product = new MutableLiveData<>(null);
         purchaseInfoList = Transformations.switchMap(
                 product,
-                new Function<Product, LiveData<List<PurchaseInfoWithPlace>>>() {
+                new Function<Product, LiveData<List<PlaceWithPurchases>>>() {
                     @Override
-                    public LiveData<List<PurchaseInfoWithPlace>> apply(Product input) {
+                    public LiveData<List<PlaceWithPurchases>> apply(Product input) {
                         if( product != null )
                             return pantryRepository.getAllPurchaseInfo(input.getId());
                         else
@@ -48,7 +49,7 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
             this.product.setValue(product);
     }
 
-    public LiveData<List<PurchaseInfoWithPlace>> getPurchaseInfoList() {
+    public LiveData<List<PlaceWithPurchases>> getPurchaseInfoList() {
         return purchaseInfoList;
     }
 }
