@@ -38,8 +38,6 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
 import com.mapbox.maps.plugin.annotation.generated.*;
 import com.mapbox.maps.plugin.delegates.listeners.OnMapLoadedListener;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedListener {
 
@@ -113,7 +111,6 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
      */
     @Override
     public void onMapLoaded() {
-        ViewGroup container = requireView().findViewById(R.id.layout_container);
 
         mViewModel.getPurchaseInfoList().observe(getViewLifecycleOwner(), purchaseInfos -> {
             if( purchaseInfos == null ){
@@ -128,14 +125,9 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                 double west = 180.0;
                 double east = -180.0;
 
-                ArrayList<PointAnnotationOptions> annotationsOptions = new ArrayList<>(purchaseInfos.size());
-                // HashMap<String, Place> placeHashMap = new HashMap<>( (int)Math.floor(purchaseInfos.size()*0.75)+1 );
-                // HashMap<String, ArrayList<PurchaseInfo>>  purchasesMap = new HashMap<>((int)Math.floor(purchaseInfos.size()*0.75)+1);
                 for ( PlaceWithPurchases placeWithPurchases : purchaseInfos ) {
                     Place place = placeWithPurchases.place;
                     if( place == null) continue;
-
-                    String placeID = placeWithPurchases.place.getId();
 
                     Point placeCenter = GeoUtils.getCenter(place.getFeature());
                     north = Math.max(north, placeCenter.latitude());
@@ -151,7 +143,6 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                             .withPoint(GeoUtils.getCenter(feature))
                             .withIconImage(DEFAULT_MARKER_BITMAP)
                             .withTextField(place.getName());
-                    annotationsOptions.add(pointAnnotationOptions);
 
                     PointAnnotation pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions);
                     pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), placeWithPurchases){
