@@ -7,7 +7,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,6 +80,11 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         final DateFormat dateFormat = android.text.format.DateFormat
                 .getDateFormat(requireContext());
 
+        // convert any dimension to px and so to dp based on Display metrics set on device
+        float textSizePX = getResources()
+                .getDimensionPixelSize(R.dimen.graph_line_chart_axis_text_size);
+        float textSizeDP = textSizePX / getResources().getDisplayMetrics().density;
+
         ArrayList<PurchaseInfo> purchases = new ArrayList<>(unsortedPurchases);
         ArrayList<Entry> entries = new ArrayList<>(purchases.size());
 
@@ -93,7 +100,7 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
 
         LineData lineData = new LineData(dataSet);
         lineData.setDrawValues(false);
-        lineData.setValueTextSize(getResources().getDimension(R.dimen.graph_line_chart_value_text_size));
+        lineData.setValueTextSize(textSizeDP);
         lineData.setHighlightEnabled(true);
 
         ValueFormatter xAxisFormatter = new ValueFormatter() {
@@ -112,7 +119,7 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         xAxis.setEnabled(true);
         xAxis.setValueFormatter(xAxisFormatter);
         xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
-        xAxis.setTextSize(getResources().getDimension(R.dimen.graph_line_chart_axis_text_size));
+        xAxis.setTextSize(textSizeDP);
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         TypedValue rotationAngle = new TypedValue();
         getResources().getValue(R.dimen.graph_line_chart_axis_text_rotation_degree, rotationAngle, true);
@@ -121,7 +128,7 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         YAxis yAxis = viewChart.getAxis( dataSet.getAxisDependency() );
         yAxis.setEnabled(true);
         yAxis.setGranularity(xAxis.getGranularity());
-        yAxis.setTextSize(getResources().getDimension(R.dimen.graph_line_chart_axis_text_size));
+        yAxis.setTextSize(textSizeDP);
         yAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
         yAxis.setDrawZeroLine(false);
 
