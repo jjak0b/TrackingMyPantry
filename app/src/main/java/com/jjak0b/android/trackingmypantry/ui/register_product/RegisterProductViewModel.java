@@ -135,6 +135,7 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     public void setBarcode(String barcode) {
         this.barcode.setValue( barcode );
+        // TODO: Notify View on fail
         pantryRepository.updateMatchingProducts(barcode);
     }
 
@@ -151,7 +152,13 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     public void resetProductInstance(){
         ProductInstanceGroup pi = new ProductInstanceGroup();
-        pi.setExpiryDate( new Date() );
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        Date date = calendar.getTime();
+        pi.setExpiryDate( calendar.getTime() );
         pi.setPantryId( 0 );
         pi.setQuantity( 1 );
         productInstance.setValue( pi );
@@ -159,10 +166,15 @@ public class RegisterProductViewModel extends AndroidViewModel {
     }
 
     public void resetPurchaseInfo(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         productPurchaseInfo.setValue( new PurchaseInfo(
                 "",
                 0f,
-                Calendar.getInstance().getTime(),
+                calendar.getTime(),
                 null
         ));
         purchasePlace.setValue(null);

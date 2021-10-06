@@ -33,6 +33,7 @@ public class PurchaseInfo {
     @PrimaryKey(autoGenerate = true)
     long id;
 
+    @ColumnInfo( defaultValue = "CURRENT_TIMESTAMP" )
     Date purchaseDate;
 
     @ColumnInfo( defaultValue = "0" )

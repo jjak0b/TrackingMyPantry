@@ -281,10 +281,11 @@ public class PantryRepository {
         instanceGroup.setProductId( product.getId() );
 
         return Futures.transform(
-                pantryDB.getProductInstanceDao().insertAll( instanceGroup ),
+                pantryDB.getDBWriteExecutor()
+                        .submit(() -> pantryDB.getProductInstanceDao().mergeInsert( instanceGroup )),
                 input -> {
-                    expirationEventsRepository.insertExpiration(input[0]);
-                    return input[0];
+                    expirationEventsRepository.insertExpiration(input);
+                    return input;
                 },
                 getExecutor()
         );
@@ -360,7 +361,8 @@ public class PantryRepository {
 
             ListenableFuture<List<Object>> futureList = Futures.allAsList(
                     pantryDB.getProductInstanceDao().updateAll(entry),
-                    pantryDB.getProductInstanceDao().insertAll(newGroup)
+                    pantryDB.getDBWriteExecutor()
+                            .submit(() -> pantryDB.getProductInstanceDao().mergeInsert(newGroup))
             );
 
             Futures.addCallback(
@@ -369,7 +371,7 @@ public class PantryRepository {
                         @Override
                         public void onSuccess(@NullableDecl List<Object> results) {
                             expirationEventsRepository.updateExpiration(null, null, entry.getId() );
-                            expirationEventsRepository.insertExpiration(((long[]) results.get(1))[0]);
+                            expirationEventsRepository.insertExpiration((Long) results.get(1));
                         }
 
                         @Override

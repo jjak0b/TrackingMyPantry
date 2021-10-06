@@ -1,16 +1,11 @@
 package com.jjak0b.android.trackingmypantry.data.model;
 
-import android.location.Location;
-
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
-import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 import androidx.room.PrimaryKey;
-import androidx.room.Relation;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.Objects;
@@ -36,21 +31,28 @@ public class ProductInstanceGroup {
     @ColumnInfo( name = "id")
     long id;
 
-    @NotNull
+    @NonNull
     @ColumnInfo( name = "product_id")
     String productId;
 
     @ColumnInfo( name = "pantry_id")
     long pantryId;
 
-    @ColumnInfo( name = "quantity", defaultValue = "1" )
+    @ColumnInfo( defaultValue = "1" )
     int quantity;
 
     // instance info
+    @ColumnInfo( defaultValue = "CURRENT_TIMESTAMP" )
     Date expiryDate;
 
-    @ColumnInfo( name = "currentAmountPercent", defaultValue = "100" )
+    @IntRange(from = 0, to = 100)
+    @ColumnInfo( defaultValue = "100" )
     int currentAmountPercent;
+
+    public ProductInstanceGroup(){
+        this.quantity = 1;
+        this.currentAmountPercent = 100;
+    }
 
     public long getId() {
         return id;
