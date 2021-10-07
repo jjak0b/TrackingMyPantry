@@ -14,4 +14,8 @@
         <item quantity="one">%1$d match found</item>
         <item quantity="other">%1$d matches found</item>
     </plurals>
+    <plurals name="expire">
+        <item quantity="one">Expires on %1$s</item>
+        <item quantity="other">Expire on %1$s</item>
+    </plurals>
 </resources>

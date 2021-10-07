@@ -64,6 +64,7 @@
     <string name="product_purchase_location">Purchase location</string>
     <string name="product_quantity">Quantity</string>
     <string name="product_unconsumed_amount">Unconsumed amount</string>
+    <string name="product_groups_quantity_lefts">Remaining: </string>
     <string name="action_register_product">Register product</string>
     <string name="action_next_product_section">Continue</string>
     <string name="pantries_no_pantry_available">there is no pantry that contains this product</string>
