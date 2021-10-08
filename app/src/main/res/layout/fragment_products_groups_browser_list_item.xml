@@ -39,7 +39,7 @@
                         android:orientation="vertical">
 
                         <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/product_purchase_date"
+                            android:id="@+id/expireDateLayout"
                             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -51,6 +51,7 @@
                             app:startIconDrawable="@android:drawable/ic_menu_today">
 
                             <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/expireDateInput"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:editable="false"
@@ -89,7 +90,7 @@
                                 android:clickable="false">
 
                                 <com.google.android.material.chip.Chip
-                                    android:id="@+id/chip4"
+                                    android:id="@+id/chipQuantity"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="1" />
@@ -124,6 +125,7 @@
                         app:srcCompat="@drawable/ic_baseline_product_empty" />
 
                     <com.google.android.material.slider.Slider
+                        android:id="@+id/amountPercentBar"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"

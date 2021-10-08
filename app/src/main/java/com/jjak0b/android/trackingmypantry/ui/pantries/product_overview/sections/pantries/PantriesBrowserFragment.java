@@ -34,6 +34,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
+import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserViewModel;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -44,12 +45,14 @@ public class PantriesBrowserFragment extends Fragment {
     private PantriesBrowserViewModel mViewModel;
     private ProductOverviewViewModel mProductViewModel;
     private PantryListAdapter listAdapter;
+    private ProductsGroupsBrowserViewModel mProductsGroupsBrowserViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
         mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        mProductsGroupsBrowserViewModel = new ViewModelProvider(this).get(ProductsGroupsBrowserViewModel.class);
     }
 
     @Override
@@ -95,13 +98,14 @@ public class PantriesBrowserFragment extends Fragment {
 
     final PantryInteractionsListener pantryInteractionsListener = new PantryInteractionsListener() {
         @Override
-        public void onItemClicked(int pantryPosition, View pantryView, int pantryItemPosition, View pantryItemView, ProductInstanceGroupTableViewAdapter pantryItemsAdapter) {
-
+        public void onItemClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {
+            mProductsGroupsBrowserViewModel.setGroups(content);
+            PantriesBrowserFragmentDirections.actionShowPantryContent();
         }
 
         @Override
-        public void onItemLongClicked(int pantryPosition, View pantryView, int pantryItemPosition, View pantryItemView, ProductInstanceGroupTableViewAdapter pantryItemsAdapter) {
-            openPopupMenuForEntry(pantryView, pantryItemView, pantryItemPosition, pantryItemsAdapter );
+        public void onItemLongClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {
+
         }
     };
 
