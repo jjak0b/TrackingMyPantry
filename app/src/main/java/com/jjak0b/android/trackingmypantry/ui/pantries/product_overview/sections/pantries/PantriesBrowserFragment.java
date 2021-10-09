@@ -12,6 +12,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -52,7 +55,7 @@ public class PantriesBrowserFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
         mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
-        mProductsGroupsBrowserViewModel = new ViewModelProvider(this).get(ProductsGroupsBrowserViewModel.class);
+        mProductsGroupsBrowserViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsGroupsBrowserViewModel.class);
     }
 
     @Override
@@ -99,8 +102,13 @@ public class PantriesBrowserFragment extends Fragment {
     final PantryInteractionsListener pantryInteractionsListener = new PantryInteractionsListener() {
         @Override
         public void onItemClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {
-            mProductsGroupsBrowserViewModel.setGroups(content);
-            PantriesBrowserFragmentDirections.actionShowPantryContent();
+            NavController navController = Navigation.findNavController(requireView());
+            NavDirections direction = PantriesBrowserFragmentDirections.actionShowPantryContent();
+            if( navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getAction(direction.getActionId()) != null ){
+                mProductsGroupsBrowserViewModel.setGroups(content);
+                navController.navigate(direction);
+            }
         }
 
         @Override

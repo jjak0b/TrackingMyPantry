@@ -33,21 +33,12 @@ import java.util.List;
 public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
 
     private TextView title;
-    private TextView description;
-    private ImageView image;
     private Chip badge;
-    private ChipGroup tags;
-    private ImageButton actionExpandBtn;
-    private ViewGroup tableContainer;
-    private TableView tableView;
 
     public PantryViewHolder(@NonNull View itemView ) {
         super(itemView);
         title = itemView.findViewById(R.id.cardTitle);
         badge = itemView.findViewById(R.id.cardBadge);
-        actionExpandBtn = itemView.findViewById(R.id.actionExpandBtn);
-        tableView = itemView.findViewById(R.id.tableView);
-        Log.e("a", "new instance " + this.toString());
     }
 
     @Override
@@ -55,7 +46,6 @@ public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
         super.bindTo(viewModel);
 
         PantryWithProductInstanceGroups pantryWGroups = getViewModel().getItem();
-        Log.e("a", "bind " + pantryWGroups + " to " + this.toString() );
         PantryInteractionsListener listener = getViewModel().getInteractionsListener();
         Pantry pantry = pantryWGroups.pantry;
         List<ProductInstanceGroup> pantryItems = pantryWGroups.instances;
@@ -63,6 +53,7 @@ public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
 
         title.setText( pantry.getName() );
         badge.setText( String.valueOf(pantryItems.size()) );
+        itemView.setClickable(true);
         itemView.setOnClickListener(v -> {
             listener.onItemClicked(
                     getBindingAdapterPosition(),

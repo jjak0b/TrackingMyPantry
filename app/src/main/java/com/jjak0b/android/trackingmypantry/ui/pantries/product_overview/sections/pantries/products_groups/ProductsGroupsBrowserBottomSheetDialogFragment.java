@@ -6,7 +6,9 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelStore;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,12 +40,22 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsGroupsBrowserViewModel.class);
-        listAdapter = new ProductInstanceGroupListAdapter( new ProductInstanceGroupListAdapter.ProductDiff(), interactionsListener );
+        listAdapter = new ProductInstanceGroupListAdapter(new ProductInstanceGroupListAdapter.ProductDiff(), interactionsListener) {
+            @NonNull
+            @Override
+            public ViewModelStore getViewModelStore() {
+                return requireParentFragment().getViewModelStore();
+            }
+        };
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        RecyclerView recyclerView = view.findViewById(R.id.list);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(listAdapter);
 
         mViewModel.getGroups().observe(getViewLifecycleOwner(), productInstanceGroups -> {
             listAdapter.submitList(productInstanceGroups);

@@ -37,7 +37,7 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
     @Override
     public void onBindViewHolder(@NonNull PantryViewHolder holder, int position) {
         PantryViewModel viewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext())
-                .get( String.valueOf(getItemId(position)), PantryViewModel.class );
+                .get( PantryViewModel.class.getName() + getItemId(position), PantryViewModel.class );
         viewModel.setItem(getItem(position));
         viewModel.setInteractionsListener(interactionsListener);
         holder.bindTo(viewModel);
@@ -47,14 +47,12 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
         @Override
         public boolean areItemsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
             boolean isSame = oldItem.pantry.getId() == newItem.pantry.getId();
-            Log.e( "p", "is same items " + isSame );
             return  isSame;
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
             boolean isSame = Objects.equals( oldItem, newItem );
-            Log.e( "p", "is same cont " + isSame );
             return  isSame;
         }
     }

@@ -1,6 +1,5 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups;
 
-import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,7 +15,7 @@ import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections
 
 import java.util.Objects;
 
-public class ProductInstanceGroupListAdapter extends ListAdapter<ProductInstanceGroup, ProductInstanceGroupViewHolder> {
+public abstract class ProductInstanceGroupListAdapter extends ListAdapter<ProductInstanceGroup, ProductInstanceGroupViewHolder> implements ViewModelStoreOwner {
     private ProductInstanceGroupInteractionsListener interactionsListener;
 
     protected ProductInstanceGroupListAdapter(@NonNull DiffUtil.ItemCallback<ProductInstanceGroup> diffCallback, ProductInstanceGroupInteractionsListener listener ) {
@@ -39,8 +38,9 @@ public class ProductInstanceGroupListAdapter extends ListAdapter<ProductInstance
 
     @Override
     public void onBindViewHolder(@NonNull ProductInstanceGroupViewHolder holder, int position) {
-        ProductInstanceGroupViewModel viewModel = new ViewModelProvider((ViewModelStoreOwner) holder.itemView.getContext())
-                .get( String.valueOf(getItemId(position)), ProductInstanceGroupViewModel.class );
+
+        ProductInstanceGroupViewModel viewModel = new ViewModelProvider(this)
+                .get( ProductInstanceGroupViewModel.class.getName() + getItemId(position), ProductInstanceGroupViewModel.class );
         viewModel.setItem(getItem(position));
         viewModel.setInteractionsListener(interactionsListener);
         holder.bindTo(viewModel);
