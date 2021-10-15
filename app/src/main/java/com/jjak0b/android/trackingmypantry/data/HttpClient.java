@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HttpClient {
     private static Retrofit client;
-    private static final String BASE_URL = "https://lam21.modron.network/";
+    private static final String BASE_URL = "https://lam21.iot-prism-lab.cs.unibo.it/";
 
     public static Retrofit getInstance() {
         if (client == null) {
