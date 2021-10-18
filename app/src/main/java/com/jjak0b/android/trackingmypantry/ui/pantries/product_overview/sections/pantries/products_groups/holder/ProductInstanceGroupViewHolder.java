@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.holder;
 
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 
 import com.google.android.material.chip.Chip;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.jjak0b.android.trackingmypantry.R;
@@ -43,7 +45,6 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
         super.bindTo(viewModel);
 
         ProductInstanceGroup group = getViewModel().getItem();
-        ProductInstanceGroupInteractionsListener listener = getViewModel().getInteractionsListener();
 
         expireDate.setText(DateFormat
                 .getDateFormat(itemView.getContext())
@@ -51,12 +52,67 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
         );
         badge.setText(String.valueOf(group.getQuantity()));
         totalAmountPercentBar.setValue(group.getCurrentAmountPercent());
+        setupInteractions();
     }
 
     public static ProductInstanceGroupViewHolder create(ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_products_groups_browser_list_item, parent, false);
         return new ProductInstanceGroupViewHolder(view);
+    }
+
+    private void setupInteractions(){
+        setupConsume();
+        setupRemove();
+    }
+
+    private void setupConsume() {
+        ProductInstanceGroup group = getViewModel().getItem();
+        ProductInstanceGroupInteractionsListener listener = getViewModel().getInteractionsListener();
+
+        consumeBtn.setClickable(true);
+        consumeBtn.setOnClickListener(v -> {
+            final int INDEX_AMOUNT = 0;
+            int parameters[] = new int[] {
+                    group.getCurrentAmountPercent()
+            };
+
+            View dialogView = LayoutInflater
+                    .from(v.getContext()).inflate(R.layout.dialog_consume_amount, null);
+
+            dialogView.findViewById(R.id.empty)
+                    .setOnClickListener(v1 -> parameters[INDEX_AMOUNT] = 0);
+            dialogView.findViewById(R.id.full)
+                    .setOnClickListener(v1 -> parameters[INDEX_AMOUNT] = group.getCurrentAmountPercent() );
+            Slider slider = dialogView.findViewById(R.id.amountPercentSlider);
+            slider.setValueFrom(0);
+            slider.setValueTo(parameters[INDEX_AMOUNT]);
+            slider.setValue(parameters[INDEX_AMOUNT]);
+            slider.addOnChangeListener((slider1, value, fromUser) -> {
+                if( fromUser ){
+                    Log.d("set", "value " + value);
+                    parameters[INDEX_AMOUNT] = (int) value;
+                }
+            });
+
+            new MaterialAlertDialogBuilder(itemView.getContext())
+                    .setCancelable(true)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.option_consume, (dialog, which) -> {
+                        listener.onConsume(
+                                getBindingAdapterPosition(),
+                                group,
+                                group.getCurrentAmountPercent() - parameters[INDEX_AMOUNT]
+                        );
+                    })
+                    .setView(dialogView)
+                    .create()
+                    .show();
+        });
+    }
+
+    private void setupRemove() {
+
     }
 
 }

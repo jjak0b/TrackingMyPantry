@@ -10,4 +10,7 @@ import java.util.List;
 public interface ProductInstanceGroupInteractionsListener {
     void onItemClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content);
     void onItemLongClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content);
+    void onConsume( int groupPosition, ProductInstanceGroup group, int amount);
+    void onRemove( int groupPosition, ProductInstanceGroup group, int quantity);
+    void onMove( int groupPosition, ProductInstanceGroup group);
 }

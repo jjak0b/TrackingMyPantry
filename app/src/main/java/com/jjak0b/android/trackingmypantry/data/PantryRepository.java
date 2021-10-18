@@ -276,9 +276,11 @@ public class PantryRepository {
         );
     }
 
-    public ListenableFuture<Long> addProductInstanceGroup(ProductInstanceGroup instanceGroup, Product product, Pantry pantry ) {
+    public ListenableFuture<Long> addProductInstanceGroup(@NonNull ProductInstanceGroup instanceGroup, @Nullable Product product, @NonNull Pantry pantry ) {
         instanceGroup.setPantryId( pantry.getId() );
-        instanceGroup.setProductId( product.getId() );
+        if( product != null ) {
+            instanceGroup.setProductId(product.getId());
+        }
 
         return Futures.transform(
                 pantryDB.getDBWriteExecutor()
@@ -309,6 +311,24 @@ public class PantryRepository {
                getExecutor()
        );
        return future;
+    }
+
+    public ListenableFuture<Void> updateProductInstanceGroup(@NonNull ProductInstanceGroup entry) {
+        ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
+        Futures.addCallback(
+                future,
+                new FutureCallback<Void>() {
+                    @Override
+                    public void onSuccess(@NullableDecl Void result) {
+                        expirationEventsRepository.updateExpiration(null, null, entry.getId());
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) { }
+                },
+                getExecutor()
+        );
+        return future;
     }
 
     public ListenableFuture<Void> updateAndMergeProductInstanceGroup( ProductInstanceGroup entry ){

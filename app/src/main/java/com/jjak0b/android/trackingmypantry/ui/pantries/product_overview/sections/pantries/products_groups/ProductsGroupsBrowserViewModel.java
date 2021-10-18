@@ -7,7 +7,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
@@ -47,7 +49,43 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
         return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
     }
 
-    public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amount){
-        return pantryRepository.updateAndMergeProductInstanceGroup(entry);
+    public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amountPercent){
+
+        ProductInstanceGroup updatedEntry = ProductInstanceGroup.from(entry);
+
+        // add the consumed entry as new entry and update quantity of old one
+        if( entry.getQuantity() > 1 ) {
+
+            ProductInstanceGroup consumedEntry = ProductInstanceGroup.from(entry);
+            consumedEntry.setId(0);
+            consumedEntry.setCurrentAmountPercent(updatedEntry.getCurrentAmountPercent()-amountPercent);
+            consumedEntry.setQuantity(1);
+
+            updatedEntry.setQuantity(updatedEntry.getQuantity()-consumedEntry.getQuantity());
+
+            return Futures.transform(
+                    Futures.allAsList(
+                            pantryRepository.updateProductInstanceGroup(updatedEntry),
+                            pantryRepository.addProductInstanceGroup(
+                                    consumedEntry,
+                                    null,
+                                    Pantry.creteDummy(updatedEntry.getPantryId())
+                            )
+                    ),
+                    input -> null,
+                    MoreExecutors.directExecutor()
+            );
+        }
+        // we have only 1 entry so just update it
+        else {
+            updatedEntry.setCurrentAmountPercent(entry.getCurrentAmountPercent()-amountPercent);
+
+            if( updatedEntry.getCurrentAmountPercent() > 0 ){
+                return pantryRepository.updateAndMergeProductInstanceGroup(updatedEntry);
+            }
+            else {
+                return pantryRepository.deleteProductInstanceGroup(updatedEntry);
+            }
+        }
     }
 }
