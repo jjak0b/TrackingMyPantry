@@ -117,5 +117,15 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                     ContextCompat.getMainExecutor(requireContext())
             );
         }
+
+        @Override
+        public void onRemove(int groupPosition, ProductInstanceGroup group, int quantity) {
+            
+        }
+
+        @Override
+        public void onMove(int groupPosition, ProductInstanceGroup group) {
+
+        }
     };
 }
