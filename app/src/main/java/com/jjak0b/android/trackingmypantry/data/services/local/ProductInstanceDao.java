@@ -87,6 +87,24 @@ public abstract class ProductInstanceDao {
         }
     }
 
+    @Transaction
+    public void mergeUpdate(ProductInstanceGroup group) {
+        ProductInstanceGroup match = getFirstMatchingGroup(
+                group.getProductId(),
+                group.getPantryId(),
+                group.getCurrentAmountPercent(),
+                group.getExpiryDate()
+        );
+
+        if( match != null && group.getId() == match.getId() ) {
+            match.setQuantity(match.getQuantity()+group.getQuantity());
+            update(match);
+        }
+        else {
+            update(group);
+        }
+    }
+
     @Insert
     public abstract ListenableFuture<long[]> insertAll(ProductInstanceGroup... instances);
 

@@ -311,16 +311,15 @@ public class PantryRepository {
        return future;
     }
 
-    public ListenableFuture<Void> updatedProductInstanceGroup( ProductInstanceGroup... entry ){
-        ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
+    public ListenableFuture<Void> updateAndMergeProductInstanceGroup( ProductInstanceGroup entry ){
+        ListenableFuture<Void> future = pantryDB.getDBWriteExecutor()
+                .submit(() -> { pantryDB.getProductInstanceDao().mergeUpdate(entry); return null; });
         Futures.addCallback(
                 future,
                 new FutureCallback<Void>() {
                     @Override
                     public void onSuccess(@NullableDecl Void result) {
-                        for (ProductInstanceGroup group : entry) {
-                            expirationEventsRepository.updateExpiration(null, null, group.getId());
-                        }
+                        expirationEventsRepository.updateExpiration(null, null, entry.getId());
                     }
 
                     @Override
@@ -335,22 +334,7 @@ public class PantryRepository {
 
         if( quantity >= entry.getQuantity() ){
             entry.setPantryId(pantry.getId());
-            ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
-
-            Futures.addCallback(
-                    future,
-                    new FutureCallback<Void>() {
-                        @Override
-                        public void onSuccess(@NullableDecl Void result) {
-                            expirationEventsRepository.updateExpiration(null, null, entry.getId() );
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {}
-                    },
-                    getExecutor()
-            );
-            return future;
+            return updateAndMergeProductInstanceGroup(entry);
         }
         else {
             ProductInstanceGroup newGroup = ProductInstanceGroup.from(entry);
