@@ -9,7 +9,11 @@
         android:id="@+id/nav_product_pantries"
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.PantriesBrowserFragment"
         android:label="pantries_browser_fragment"
-        tools:layout="@layout/fragment_pantries_browser" />
+        tools:layout="@layout/fragment_pantries_browser" >
+        <action
+            android:id="@+id/actionShowPantryContent"
+            app:destination="@id/productsGroupsBottomSheetDialogFragment" />
+    </fragment>
     <fragment
         android:id="@+id/nav_product_purchase_places"
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations.PurchaseLocationsFragment"
@@ -24,4 +28,9 @@
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.purchase_locations.PurchasesInPlaceBottomSheetDialogFragment"
         android:label="@string/product_section_purchase_places_overview"
         tools:layout="@layout/purchases_bottom_sheet_dialog_fragment" />
+    <dialog
+        android:id="@+id/productsGroupsBottomSheetDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserBottomSheetDialogFragment"
+        android:label="products_groups_browser_bottom_sheet_dialog_fragment"
+        tools:layout="@layout/fragment_products_groups_browser" />
 </navigation>
