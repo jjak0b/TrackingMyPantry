@@ -30,7 +30,10 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
     }
 
     public void setGroups(List<ProductInstanceGroup> groups){
-        if( groups instanceof ArrayList ){
+        if( groups == null ){
+            this.groups.postValue(null);
+        }
+        else if( groups instanceof ArrayList ){
             this.groups.postValue(groups);
         }
         else {

@@ -81,6 +81,12 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         });
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mViewModel.setGroups(null);
+    }
+
     final ProductInstanceGroupInteractionsListener interactionsListener = new ProductInstanceGroupInteractionsListener() {
         @Override
         public void onItemClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {

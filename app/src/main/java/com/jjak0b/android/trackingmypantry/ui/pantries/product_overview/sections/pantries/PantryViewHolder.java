@@ -1,31 +1,17 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.evrencoskun.tableview.TableView;
-import com.evrencoskun.tableview.listener.SimpleTableViewListener;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipGroup;
 import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
-import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
-
-import net.cachapa.expandablelayout.ExpandableLayout;
 
 import java.util.List;
 
@@ -58,8 +44,7 @@ public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
             listener.onItemClicked(
                     getBindingAdapterPosition(),
                     itemView,
-                    pantry,
-                    pantryItems
+                    pantryWGroups
             );
         });
     }

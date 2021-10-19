@@ -24,24 +24,13 @@ import android.view.LayoutInflater;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.ui.pantries.product_instance_group_table.ProductInstanceGroupTableViewAdapter;
+import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserViewModel;
-
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 public class PantriesBrowserFragment extends Fragment {
 
@@ -97,22 +86,32 @@ public class PantriesBrowserFragment extends Fragment {
             listAdapter.submitList( pantriesWGroups );
             loadingBar.setVisibility( View.GONE );
         });
+
+        // update groups browser on current pantry update
+        mViewModel.getCurrentPantry().observe(getViewLifecycleOwner(), pantryWithProductInstanceGroups -> {
+            if( pantryWithProductInstanceGroups == null ){
+                mProductsGroupsBrowserViewModel.setGroups(null);
+            }
+            else {
+                mProductsGroupsBrowserViewModel.setGroups(pantryWithProductInstanceGroups.instances);
+            }
+        });
     }
 
     final PantryInteractionsListener pantryInteractionsListener = new PantryInteractionsListener() {
         @Override
-        public void onItemClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {
+        public void onItemClicked(int pantryPosition, View pantryView, PantryWithProductInstanceGroups item) {
             NavController navController = Navigation.findNavController(requireView());
             NavDirections direction = PantriesBrowserFragmentDirections.actionShowPantryContent();
             if( navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getAction(direction.getActionId()) != null ){
-                mProductsGroupsBrowserViewModel.setGroups(content);
+                mViewModel.setCurrentPantry(item);
                 navController.navigate(direction);
             }
         }
 
         @Override
-        public void onItemLongClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content) {
+        public void onItemLongClicked(int pantryPosition, View pantryView, PantryWithProductInstanceGroups item) {
 
         }
     };
