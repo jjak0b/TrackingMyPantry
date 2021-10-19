@@ -313,14 +313,16 @@ public class PantryRepository {
        return future;
     }
 
-    public ListenableFuture<Void> updateProductInstanceGroup(@NonNull ProductInstanceGroup entry) {
-        ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entry);
+    public ListenableFuture<Void> updateProductInstanceGroup(@NonNull ProductInstanceGroup... entries) {
+        ListenableFuture<Void> future = pantryDB.getProductInstanceDao().updateAll(entries);
         Futures.addCallback(
                 future,
                 new FutureCallback<Void>() {
                     @Override
                     public void onSuccess(@NullableDecl Void result) {
-                        expirationEventsRepository.updateExpiration(null, null, entry.getId());
+                        for (ProductInstanceGroup entry : entries) {
+                            expirationEventsRepository.updateExpiration(null, null, entry.getId());
+                        }
                     }
 
                     @Override

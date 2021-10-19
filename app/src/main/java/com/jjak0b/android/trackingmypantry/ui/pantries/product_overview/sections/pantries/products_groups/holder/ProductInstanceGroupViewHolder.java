@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
+import android.widget.NumberPicker;
 
 import androidx.annotation.NonNull;
 
@@ -112,7 +112,29 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
     }
 
     private void setupRemove() {
+        ProductInstanceGroup group = getViewModel().getItem();
+        ProductInstanceGroupInteractionsListener listener = getViewModel().getInteractionsListener();
 
+        removeBtn.setClickable(true);
+        removeBtn.setOnClickListener(v -> {
+            NumberPicker quantityPicker = new NumberPicker(itemView.getContext());
+            quantityPicker.setMinValue(1);
+            quantityPicker.setMaxValue(group.getQuantity());
+            new MaterialAlertDialogBuilder(itemView.getContext())
+                    .setView(quantityPicker)
+                    .setCancelable(true)
+                    .setTitle(R.string.product_quantity)
+                    .setNegativeButton(android.R.string.cancel , null )
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        listener.onRemove(
+                                getBindingAdapterPosition(),
+                                group,
+                                quantityPicker.getValue()
+                        );
+                    })
+                    .create()
+                    .show();
+        });
     }
 
 }
