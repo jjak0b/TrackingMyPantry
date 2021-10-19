@@ -82,6 +82,8 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
 
         mViewModel.getGroups().observe(getViewLifecycleOwner(), productInstanceGroups -> {
             listAdapter.submitList(productInstanceGroups);
+            recyclerView.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
         });
     }
 
