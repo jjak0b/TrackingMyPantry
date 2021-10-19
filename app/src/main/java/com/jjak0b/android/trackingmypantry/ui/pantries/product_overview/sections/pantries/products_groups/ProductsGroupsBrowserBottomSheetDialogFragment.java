@@ -131,7 +131,36 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
 
         @Override
         public void onRemove(int groupPosition, ProductInstanceGroup group, int quantity) {
-            deleteEntry(groupPosition, quantity, listAdapter, null);
+            mViewModel.delete(group, quantity);
+
+            recyclerView.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+
+            Futures.addCallback(mViewModel.delete(group, quantity),
+                    new FutureCallback<Void>() {
+                        @Override
+                        public void onSuccess(@Nullable Void result) {
+                            recyclerView.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
+                            // Toast.makeText(requireContext(),
+                            //         "Yum",
+                            //         Toast.LENGTH_SHORT
+                            // ).show();*/
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                            Log.e(TAG, "Unable to delete " + group.toString() + ", cause: ", t);
+                            recyclerView.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.error_generic_failed_unknown, getString(R.string.option_remove_entry)),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    },
+                    ContextCompat.getMainExecutor(requireContext())
+            );
         }
 
         @Override
@@ -226,45 +255,6 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         popup.show();
     }
 
-    // queue used to store pending entry to be deleted
-    private LinkedList<ProductInstanceGroup> deletionQueue = new LinkedList<>();
-
-    private void deleteEntry(int position, int quantity, ProductInstanceGroupListAdapter adapter, View anchor) {
-
-        final Snackbar snackbar = Snackbar.make(requireDialog().getWindow().getDecorView(), R.string.product_entry_removed_from_pantry, Snackbar.LENGTH_LONG);
-        // set snackbar anchor to entry view item
-
-        if( anchor != null ) {
-            CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams)snackbar.getView().getLayoutParams();
-            layoutParams.setAnchorId(anchor.getId());
-            layoutParams.anchorGravity = Gravity.BOTTOM;
-            snackbar.getView().setLayoutParams(layoutParams);
-        }
-
-
-
-        ProductInstanceGroup entry = adapter.getCurrentList().get(position);
-        snackbar.setAction(R.string.action_undo, view -> mViewModel.undoLastDeletionAtIndex(position));
-        snackbar.addCallback(new Snackbar.Callback() {
-            @Override
-            public void onShown(Snackbar sb) {
-                mViewModel.delete(entry, position, quantity);
-
-                super.onShown(sb);
-            }
-
-            @Override
-            public void onDismissed(Snackbar transientBottomBar, int event) {
-                if (event == DISMISS_EVENT_TIMEOUT ||
-                        event == DISMISS_EVENT_SWIPE ||
-                        event == DISMISS_EVENT_ACTION
-                ) {
-                    mViewModel.completeDeletions();
-                }
-            }
-        });
-        snackbar.show();
-    }
 
 
 }

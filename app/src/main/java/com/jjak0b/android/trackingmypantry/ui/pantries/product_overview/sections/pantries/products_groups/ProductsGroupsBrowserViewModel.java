@@ -22,15 +22,11 @@ import java.util.function.Predicate;
 public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
     private PantryRepository pantryRepository;
     private MutableLiveData<List<ProductInstanceGroup>> groups;
-    // for deletion we use integer entry value as entry updated value
-    // and integer value as quantity removed
-    private MutableLiveData<LinkedList<PendingDeletionEntry<ProductInstanceGroup, Integer>>> pendingDeletions;
 
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
         groups = new MutableLiveData<>(null);
-        pendingDeletions = new MutableLiveData<>(new LinkedList<>());
     }
 
     public void setGroups(List<ProductInstanceGroup> groups){
@@ -50,9 +46,6 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
     protected void onCleared() {
         this.groups.setValue(null);
         this.groups = null;
-        // this.clearDeletionQueue();
-        this.pendingDeletions.setValue(null);
-        this.pendingDeletions = null;
         super.onCleared();
     }
 
@@ -64,77 +57,17 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
         return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
     }
 
-    public void delete( ProductInstanceGroup entry, int position, int quantity){
-
+    public ListenableFuture<Void> delete( ProductInstanceGroup entry, int quantity){
 
         // remove the item on adapter
         if( entry.getQuantity() <= quantity){
-            groups.getValue()
-                    .remove(position);
-            pendingDeletions.getValue()
-                    .addLast(new PendingDeletionEntry<>(entry, null, PendingDeletionEntry.IS_DELETE));
+            return pantryRepository.deleteProductInstanceGroup(entry);
         }
         else {
-            ProductInstanceGroup removedGroup = ProductInstanceGroup.from(entry);
-            removedGroup.setQuantity(quantity);
-
-            ProductInstanceGroup updatedGroup = groups.getValue()
-                    .get(position);
+            ProductInstanceGroup updatedGroup = ProductInstanceGroup.from(entry);
             updatedGroup.setQuantity( updatedGroup.getQuantity() - quantity );
-
-            pendingDeletions.getValue()
-                    .addLast(new PendingDeletionEntry<>(updatedGroup, quantity, PendingDeletionEntry.IS_UPDATE));
+            return pantryRepository.updateProductInstanceGroup(updatedGroup);
         }
-
-        setGroups(groups.getValue()); // update view
-    }
-
-    public void undoLastDeletionAtIndex(int position) {
-        ProductInstanceGroup groupAtIndex = groups.getValue().get(position);
-        PendingDeletionEntry<ProductInstanceGroup, Integer> lastRemovedPendingEntry = pendingDeletions.getValue().removeLast();
-        ProductInstanceGroup lastRemoved =  lastRemovedPendingEntry.getEntry();
-
-        if(lastRemovedPendingEntry.is(PendingDeletionEntry.IS_DELETE)) {
-            groups.getValue().add(position, lastRemoved);
-        }
-        else if( groupAtIndex != null ){
-            // if we split it on deletion, then re-merge it
-            groupAtIndex.setQuantity(groupAtIndex.getQuantity() + lastRemovedPendingEntry .getMetadata());
-        }
-
-        // update
-        setGroups(groups.getValue()); // update view
-    }
-
-    void completeDeletions() {
-
-        Stack<ProductInstanceGroup> listToDelete = new Stack<>();
-        Stack<ProductInstanceGroup> listToUpdate= new Stack<>();
-
-        for ( PendingDeletionEntry<ProductInstanceGroup, Integer> pendingDeletionEntry : pendingDeletions.getValue() ) {
-            if(pendingDeletionEntry.is(PendingDeletionEntry.IS_DELETE)){
-                listToDelete.add(pendingDeletionEntry.getEntry());
-            }
-            else if( pendingDeletionEntry.is(PendingDeletionEntry.IS_UPDATE)){
-                listToUpdate.add(pendingDeletionEntry.getEntry());
-            }
-        }
-
-        Object[] from2Del = listToDelete.toArray();
-        ProductInstanceGroup[] toDel = new ProductInstanceGroup[from2Del.length];
-        System.arraycopy(from2Del, 0, toDel, 0, from2Del.length);
-
-        Object[] from2Up = listToUpdate.toArray();
-        ProductInstanceGroup[] toUpd = new ProductInstanceGroup[from2Up.length];
-        System.arraycopy(from2Up, 0, toUpd, 0, from2Up.length);
-
-        Futures.allAsList(
-                pantryRepository.updateProductInstanceGroup(toUpd),
-                pantryRepository.deleteProductInstanceGroup(toDel)
-        );
-
-        pendingDeletions.getValue().clear();
-        pendingDeletions.setValue(null);
     }
 
     public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amountPercent){
@@ -175,32 +108,5 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
                 return pantryRepository.deleteProductInstanceGroup(updatedEntry);
             }
         }
-    }
-}
-
-class PendingDeletionEntry<T, MD> {
-    public static final int IS_UPDATE = 0;
-    public static final int IS_DELETE = 1;
-
-    private int type;
-    private T entry;
-    private MD metadata;
-
-    public PendingDeletionEntry( T entry, MD metadata, int type ){
-        this.entry = entry;
-        this.type = type;
-        this.metadata = metadata;
-    }
-
-    public boolean is( int type ){
-        return this.type == type;
-    }
-
-    public T getEntry() {
-        return entry;
-    }
-
-    public MD getMetadata() {
-        return metadata;
     }
 }
