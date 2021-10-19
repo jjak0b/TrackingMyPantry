@@ -167,8 +167,10 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         @Override
         public void onMore(int groupPosition, ProductInstanceGroup group, PopupMenu popup) {
             LiveData<List<Pantry>> livePantries = mViewModel.getAvailablePantries();
+            popup.getMenu().clear();
             popup.getMenuInflater()
                     .inflate( R.menu.popup_menu_product_instance_group_operations, popup.getMenu() );
+
             popup.setOnMenuItemClickListener( item -> {
                 switch (item.getItemId()) {
                     case R.id.option_move_to:
