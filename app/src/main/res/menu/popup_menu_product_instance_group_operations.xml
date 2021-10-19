@@ -4,14 +4,5 @@
         android:id="@+id/option_move_to"
         android:icon="@drawable/ic_baseline_move_to_inbox"
         android:title="@string/option_move_to_pantry" >
-        <menu>
-
-        </menu>
-
     </item>
-    <item
-        android:id="@+id/option_delete"
-        android:icon="@drawable/ic_baseline_delete"
-        android:title="@string/option_remove_entry"
-    />
 </menu>

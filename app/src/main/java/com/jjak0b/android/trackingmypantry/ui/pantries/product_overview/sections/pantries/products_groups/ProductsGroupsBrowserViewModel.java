@@ -42,6 +42,10 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
         return groups;
     }
 
+    public LiveData<List<Pantry>> getAvailablePantries() {
+        return pantryRepository.getPantries();
+    }
+
     @Override
     protected void onCleared() {
         this.groups.setValue(null);

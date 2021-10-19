@@ -1,11 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups;
 
 import androidx.appcompat.widget.PopupMenu;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -17,9 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
@@ -28,16 +23,15 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetDialogFragment {
@@ -169,61 +163,22 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         public void onMove(int groupPosition, ProductInstanceGroup group) {
 
         }
-    };
 
-    private void openPopupMenuForEntry(View parentAnchor, View anchor, int row, final ProductInstanceGroupListAdapter adapter){
-        PopupMenu popup = new PopupMenu(getContext(), anchor);
-        popup.getMenuInflater()
-                .inflate( R.menu.popup_menu_product_instance_group_operations, popup.getMenu() );
-        SubMenu pantryListSubMenu = popup.getMenu()
-                .findItem(R.id.option_move_to)
-                .getSubMenu();
-        int pantriesViewGroupID = ViewCompat.generateViewId();
-        LiveData<List<Pantry>> livePantries = null;// mViewModel.getPantries();
-
-        // observe pantry list to fill submenu entries as destinations
-        Observer<List<Pantry>> observer = new Observer<List<Pantry>>() {
-            @Override
-            public void onChanged(List<Pantry> pantries) {
-                boolean isNotEmpty = pantries != null && !pantries.isEmpty();
-                popup.getMenu()
-                        .findItem( R.id.option_move_to )
-                        .setEnabled(isNotEmpty);
-                if(isNotEmpty){
-                    pantryListSubMenu.removeGroup(pantriesViewGroupID);
-                    Iterator<Pantry> it = pantries.iterator();
-                    int i = 0;
-                    int itemID;
-                    Pantry p;
-                    while( it.hasNext() ){
-                        p = it.next();
-                        itemID = ViewCompat.generateViewId();
-                        pantryListSubMenu.add( pantriesViewGroupID, itemID, i, p.toString() );
-                        i++;
-                    }
-                }
-            }
-        };
-
-        popup.setOnMenuItemClickListener( item -> {
-            switch (item.getItemId()) {
-                case R.id.option_delete:
-
-                default:
-                    if( pantriesViewGroupID == item.getGroupId() ){
-
-                        int index = item.getOrder();
-                        // get pantry data and observe it until first update to perform operation
-                        livePantries.observe(getViewLifecycleOwner(), new Observer<List<Pantry>>() {
-                            @Override
-                            public void onChanged(List<Pantry> pantries) {
-                                Pantry pantry = pantries != null ? pantries.get(index) : null;
-                                ProductInstanceGroup entry = adapter.getCurrentList().get(row);
-                                if( pantry != null && entry != null ) {
+        @Override
+        public void onMore(int groupPosition, ProductInstanceGroup group, PopupMenu popup) {
+            LiveData<List<Pantry>> livePantries = mViewModel.getAvailablePantries();
+            popup.getMenuInflater()
+                    .inflate( R.menu.popup_menu_product_instance_group_operations, popup.getMenu() );
+            popup.setOnMenuItemClickListener( item -> {
+                switch (item.getItemId()) {
+                    case R.id.option_move_to:
+                        new SelectItemDialogBuilder<Pantry>(requireContext())
+                                .loadOn( livePantries, getViewLifecycleOwner(), pantry -> {
 
                                     NumberPicker quantityPicker = new NumberPicker(requireContext());
                                     quantityPicker.setMinValue(1);
-                                    quantityPicker.setMaxValue(entry.getQuantity());
+                                    quantityPicker.setMaxValue(group.getQuantity());
+
                                     new MaterialAlertDialogBuilder(requireContext())
                                             .setView(quantityPicker)
                                             .setCancelable(true)
@@ -231,32 +186,24 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                                             .setNegativeButton(android.R.string.cancel , null )
                                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                                                 mViewModel.moveProductInstanceGroupToPantry(
-                                                        entry, pantry, quantityPicker.getValue()
+                                                        group, pantry, quantityPicker.getValue()
                                                 );
-                                            })
-                                            .setOnDismissListener(dialog -> {
-                                                livePantries.removeObserver( this::onChanged );
                                             })
                                             .create()
                                             .show();
-                                }
-                            }
-                        });
+                                })
+                                .setCancelable(true)
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .create()
+                                .show();
                         return true;
-                    }
-                    return false;
-            }
-        });
+                    default:
+                        return false;
+                }
+            });
+            popup.show();
 
-        popup.setOnDismissListener( menu -> {
-            livePantries.removeObserver(observer);
-        });
-
-        livePantries.observe( getViewLifecycleOwner(), observer);
-
-        popup.show();
-    }
-
-
+        }
+    };
 
 }

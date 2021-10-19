@@ -2,6 +2,8 @@ package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.section
 
 import android.view.View;
 
+import androidx.appcompat.widget.PopupMenu;
+
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 
@@ -13,4 +15,5 @@ public interface ProductInstanceGroupInteractionsListener {
     void onConsume( int groupPosition, ProductInstanceGroup group, int amount);
     void onRemove( int groupPosition, ProductInstanceGroup group, int quantity);
     void onMove( int groupPosition, ProductInstanceGroup group);
+    void onMore(int groupPosition, ProductInstanceGroup group, PopupMenu popupMenu);
 }

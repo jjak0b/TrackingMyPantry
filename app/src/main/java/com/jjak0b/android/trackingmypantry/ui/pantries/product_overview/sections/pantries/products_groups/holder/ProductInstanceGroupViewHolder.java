@@ -3,12 +3,15 @@ package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.section
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.NumberPicker;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.core.view.ViewCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -64,6 +67,7 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
     private void setupInteractions(){
         setupConsume();
         setupRemove();
+        setupMore();
     }
 
     private void setupConsume() {
@@ -134,6 +138,21 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
                     })
                     .create()
                     .show();
+        });
+    }
+
+    private void setupMore(){
+        ProductInstanceGroup group = getViewModel().getItem();
+        ProductInstanceGroupInteractionsListener listener = getViewModel().getInteractionsListener();
+
+        PopupMenu popup = new PopupMenu(itemView.getContext(), moreBtn);
+
+        moreBtn.setOnClickListener(v -> {
+            listener.onMore(
+                    getBindingAdapterPosition(),
+                    group,
+                    popup
+            );
         });
     }
 
