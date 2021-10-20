@@ -11,7 +11,7 @@ import androidx.room.Relation;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.util.List;
 
@@ -51,19 +51,19 @@ class TagWithProducts {
         }
 )
 public class TagAndProduct {
-    @NotNull
+    @NonNull
     @ColumnInfo(name = "product_id", index = true)
     public String fk_productId;
 
     @ColumnInfo(name = "tag_id", index = true )
     public long fk_tagId;
 
-    public TagAndProduct(@NotNull String fk_productId, long fk_tagId) {
+    public TagAndProduct(@NonNull String fk_productId, long fk_tagId) {
         this.fk_productId = fk_productId;
         this.fk_tagId = fk_tagId;
     }
 
-    public TagAndProduct(@NotNull Product p, @NotNull ProductTag t ) {
+    public TagAndProduct(@NonNull Product p, @NonNull ProductTag t ) {
         this.fk_productId = p.getId();
         this.fk_tagId = t.getId();
     }

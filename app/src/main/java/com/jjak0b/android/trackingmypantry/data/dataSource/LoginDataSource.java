@@ -10,7 +10,7 @@ import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteAuthAPIService;
 
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 
@@ -40,7 +40,7 @@ public class LoginDataSource {
      * @param credentials
      * @return
      */
-    public ListenableFuture<RegisterCredentials> register(@NotNull RegisterCredentials credentials) {
+    public ListenableFuture<RegisterCredentials> register(@NonNull RegisterCredentials credentials) {
         return service.createUser( credentials );
     }
 
@@ -49,11 +49,11 @@ public class LoginDataSource {
      * @param credentials
      * @return
      */
-    public ListenableFuture<AuthLoginResponse> login(@NotNull LoginCredentials credentials ) {
+    public ListenableFuture<AuthLoginResponse> login(@NonNull LoginCredentials credentials ) {
         return service.getAccessToken( credentials );
     }
 
-    public ListenableFuture<User> whoAmI(@NotNull String authorization){
+    public ListenableFuture<User> whoAmI(@NonNull String authorization){
         return service.whoAmI(authorization);
     }
 }

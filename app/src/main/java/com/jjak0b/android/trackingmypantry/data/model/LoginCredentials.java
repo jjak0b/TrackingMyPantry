@@ -2,7 +2,7 @@ package com.jjak0b.android.trackingmypantry.data.model;
 
 import com.google.gson.annotations.Expose;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -23,21 +23,21 @@ public class LoginCredentials {
 
     private Date tokenExpireDate;
 
-    public LoginCredentials(@NotNull LoginCredentials credentials, @NotNull String accessToken ) {
+    public LoginCredentials(@NonNull LoginCredentials credentials, @NonNull String accessToken ) {
         this( credentials.email, credentials.password, accessToken );
     }
 
-    public LoginCredentials(@NotNull String email, @NotNull String password) {
+    public LoginCredentials(@NonNull String email, @NonNull String password) {
         this.email = email;
         this.password = password;
     }
 
-    public LoginCredentials(@NotNull String email, @NotNull String password, @NotNull String accessToken ) {
+    public LoginCredentials(@NonNull String email, @NonNull String password, @NonNull String accessToken ) {
         this( email, password );
         this.accessToken = accessToken;
     }
 
-    public LoginCredentials(@NotNull LoginCredentials credentials, @NotNull String accessToken, @NotNull Date tokenExpireDate) {
+    public LoginCredentials(@NonNull LoginCredentials credentials, @NonNull String accessToken, @NonNull Date tokenExpireDate) {
         this( credentials, accessToken );
         this.tokenExpireDate = tokenExpireDate;
     }

@@ -28,7 +28,7 @@ import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.Preferences;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -347,7 +347,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         return newCalendar;
     }
 
-    ContentProviderOperation createEvent(long calendarID, Account account, @NotNull ProductInstanceGroupInfo entry) {
+    ContentProviderOperation createEvent(long calendarID, Account account, @NonNull ProductInstanceGroupInfo entry) {
         return new EventCreator(ContentProviderOperation.newInsert(asSyncAdapter(CalendarContract.Events.CONTENT_URI, account)))
                 .setItem(entry)
                 .assembleBuilder()
@@ -355,7 +355,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 .build();
     }
 
-    ContentProviderOperation updateEvent( long eventID, Account account, @NotNull ProductInstanceGroupInfo entry) {
+    ContentProviderOperation updateEvent( long eventID, Account account, @NonNull ProductInstanceGroupInfo entry) {
         return new EventCreator(
                 ContentProviderOperation.newUpdate(
                         asSyncAdapter(

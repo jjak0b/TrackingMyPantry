@@ -26,7 +26,7 @@ import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
 
@@ -54,7 +54,7 @@ public class RegisterProductFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         mProductViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);

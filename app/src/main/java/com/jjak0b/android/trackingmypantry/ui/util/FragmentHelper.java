@@ -6,7 +6,7 @@ import android.content.Context;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
-import org.jetbrains.annotations.Nullable;
+import androidx.annotation.Nullable;
 
 public class FragmentHelper {
 

@@ -1,13 +1,13 @@
 package com.jjak0b.android.trackingmypantry.data.model;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.Objects;
@@ -18,11 +18,12 @@ import java.util.Objects;
 public class Product {
     @PrimaryKey
     @Expose
-    @NotNull
+    @NonNull
     @ColumnInfo( name = "id")
     private String id;
 
     @Expose
+    @NonNull
     private String barcode;
 
     @ColumnInfo( name = "user_id")
@@ -45,7 +46,7 @@ public class Product {
     @Expose
     private Date updatedAt;
 
-    public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description, @Nullable String img, @NotNull Date createdAt, @NotNull Date updatedAt ) {
+    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @NonNull Date createdAt, @NonNull Date updatedAt ) {
         this.id = id;
         this.barcode = barcode;
         this.name = name;
@@ -56,26 +57,26 @@ public class Product {
     }
 
     @Ignore
-    public Product(@NotNull String barcode, @NotNull String name, @Nullable String description ) {
+    public Product(@NonNull String barcode, @NonNull String name, @Nullable String description ) {
         this.barcode = barcode;
         this.name = name;
         this.description = description;
     }
 
     @Ignore
-    public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description) {
+    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description) {
         this( barcode, name, description );
         this.id = id;
     }
 
     @Ignore
-    public Product(@NotNull String id, @NotNull String barcode, @NotNull String name, @Nullable String description, @Nullable String img ) {
+    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img ) {
         this( barcode, name, description );
         this.id = id;
         this.img = img;
     }
 
-    public Product( @NotNull Product p) {
+    public Product( @NonNull Product p) {
         this.id = p.id;
         this.barcode = p.barcode;
         this.userId = p.userId;

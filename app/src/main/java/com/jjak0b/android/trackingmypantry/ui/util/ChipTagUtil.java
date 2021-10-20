@@ -4,7 +4,7 @@ import com.hootsuite.nachos.chip.Chip;
 import com.hootsuite.nachos.chip.ChipInfo;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class ChipTagUtil {
         return chips;
     }
 
-    public static List<ChipInfo> newChipsInstanceFromTags( @NotNull List<ProductTag> tags) {
+    public static List<ChipInfo> newChipsInstanceFromTags( @NonNull List<ProductTag> tags) {
         int size = tags.size();
         List<ChipInfo> chips = new ArrayList<>(size);
         for (ProductTag tag : tags) {
@@ -35,7 +35,7 @@ public class ChipTagUtil {
         return chips;
     }
 
-    public static List<ProductTag> newTagsInstanceFromChips( @NotNull List<Chip> chips) {
+    public static List<ProductTag> newTagsInstanceFromChips( @NonNull List<Chip> chips) {
         int size = chips.size();
         List<ProductTag> tags = new ArrayList<>(size);
         for (Chip chip : chips) {

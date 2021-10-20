@@ -32,7 +32,6 @@ import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executors;
 
@@ -293,7 +292,7 @@ public class LoginRepository {
         return futureAccessToken;
     }
 
-    public ListenableFuture<User> getUserInfo(@NotNull String accessToken) {
+    public ListenableFuture<User> getUserInfo(@NonNull String accessToken) {
         return dataSource.whoAmI(accessToken);
     }
 

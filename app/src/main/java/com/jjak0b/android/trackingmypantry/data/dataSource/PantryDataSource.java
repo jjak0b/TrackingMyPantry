@@ -14,7 +14,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Vote;
 import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteProductsAPIService;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 
@@ -56,7 +56,7 @@ public class PantryDataSource {
      * </ul>
      * @return
      */
-    public ListenableFuture<ProductsList> getProducts(@NotNull String barcode ) {
+    public ListenableFuture<ProductsList> getProducts(@NonNull String barcode ) {
         return Futures.transformAsync(
                 authRepository.requireAuthorization(false),
                 new AsyncFunction<String, ProductsList>() {
@@ -82,7 +82,7 @@ public class PantryDataSource {
      * @param vote
      * @return
      */
-    public ListenableFuture voteProduct(@NotNull Vote vote ) {
+    public ListenableFuture voteProduct(@NonNull Vote vote ) {
         return Futures.transformAsync(
                 authRepository.requireAuthorization(false),
                 new AsyncFunction<String, Void>() {
@@ -108,7 +108,7 @@ public class PantryDataSource {
      * @param product
      * @return
      */
-    public ListenableFuture<CreateProduct> postProduct(@NotNull CreateProduct product ) {
+    public ListenableFuture<CreateProduct> postProduct(@NonNull CreateProduct product ) {
 
         return Futures.transformAsync(
                 authRepository.requireAuthorization(false),

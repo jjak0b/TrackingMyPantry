@@ -6,7 +6,7 @@ import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.util.Objects;
 
@@ -19,7 +19,7 @@ public class Pantry {
     @ColumnInfo(name = "pantry_id")
     long id;
 
-    @NotNull
+    @NonNull
     @ColumnInfo(name = "name")
     String name;
 

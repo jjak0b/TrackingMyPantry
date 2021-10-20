@@ -16,7 +16,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -58,7 +58,7 @@ public abstract class PantryDao {
             this.pantry_id = pantry_id;
         }
 
-        ProductInstanceLocation(@NotNull ProductInstanceGroup instance, @NotNull Pantry location){
+        ProductInstanceLocation(@NonNull ProductInstanceGroup instance, @NonNull Pantry location){
             this.id = instance.getId();
             this.pantry_id = location.getId();
         }

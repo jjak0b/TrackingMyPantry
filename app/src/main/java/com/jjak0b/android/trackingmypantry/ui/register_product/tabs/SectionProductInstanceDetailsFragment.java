@@ -25,7 +25,7 @@ import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -52,7 +52,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         mViewModel = new ViewModelProvider(requireActivity())
