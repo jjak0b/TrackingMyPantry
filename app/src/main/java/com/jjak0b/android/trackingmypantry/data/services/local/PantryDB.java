@@ -11,6 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.jjak0b.android.trackingmypantry.data.model.Product;
@@ -19,6 +20,7 @@ import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.TagAndProduct;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 @Database(
@@ -45,7 +47,7 @@ public abstract class PantryDB extends RoomDatabase {
     private static volatile PantryDB instance;
     private static final int nTHREADS = 4;
     private static final String DB_NAME = "PantryDB";
-    private static final String DB_SCHEMA_PATH = "database/" + DB_NAME + ".db";
+    // private static final String DB_SCHEMA_PATH = "databases/" + DB_NAME + ".db";
 
     static final ListeningExecutorService databaseWriteExecutor =
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
@@ -54,17 +56,29 @@ public abstract class PantryDB extends RoomDatabase {
         return databaseWriteExecutor;
     }
 
-    private static RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback() {
+    private static RoomDatabase.Callback initRoomDatabaseCallback(final Context context) {
+        return new RoomDatabase.Callback() {
+            @Override
+            public void onCreate(@NonNull SupportSQLiteDatabase db) {
+                super.onCreate(db);
 
-        @Override
-        public void onCreate(@NonNull SupportSQLiteDatabase db) {
-            super.onCreate(db);
-
-            databaseWriteExecutor.execute(() -> {
-
-            });
-        }
-    };
+                databaseWriteExecutor.execute(() -> {
+                    try {
+                        instance.getPantryDao()
+                                .addPantry(
+                                        new Pantry(1, context.getResources()
+                                                .getString(R.string.pantries_default_pantry_name)
+                                        )
+                                ).get();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+        };
+    }
 
     public static PantryDB getInstance(final Context context) {
         if ( instance == null) {
@@ -75,9 +89,7 @@ public abstract class PantryDB extends RoomDatabase {
                             PantryDB.class,
                             DB_NAME
                     )
-                            // .createFromAsset(DB_SCHEMA_PATH)
-                            .fallbackToDestructiveMigration()
-                            .addCallback(sRoomDatabaseCallback)
+                            .addCallback(initRoomDatabaseCallback(context))
                             .build();
                 }
             }

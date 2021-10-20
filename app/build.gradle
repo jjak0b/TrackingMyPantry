@@ -18,10 +18,15 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments += ["room.schemaLocation":
-                                      "$projectDir/schemas".toString()]
+                // export schema
+                // arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
             }
         }
+    }
+
+    sourceSets {
+        // Adds exported schema location as app assets.
+        // main.assets.srcDirs += files("$projectDir/schemas".toString())
     }
 
     buildTypes {
