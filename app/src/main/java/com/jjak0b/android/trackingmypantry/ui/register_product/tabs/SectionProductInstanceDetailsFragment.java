@@ -71,6 +71,9 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
             pantriesAdapter.clear();
             if( pantries != null )
                 pantriesAdapter.addAll( pantries );
+            // needs this to show eventually autocomplete spinner
+            // because we need at least a character even if completion threshold = 0
+            pantryAutoCompleteSelector.setText(pantryAutoCompleteSelector.getText());
         });
 
         pantryAutoCompleteSelector.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -108,13 +111,6 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                             mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
                         }
                     }
-                }
-            });
-
-            pantryAutoCompleteSelector.addTextChangedListener(new InputUtil.FieldTextWatcher() {
-                @Override
-                public void afterTextChanged(Editable s) {
-
                 }
             });
         });
@@ -178,7 +174,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                     picker.show();
                 }
             };
-            expireDateInputLayout.setEndIconOnClickListener(showDatePickerOnClick);
+            expireDateInputLayout.setStartIconOnClickListener(showDatePickerOnClick);
             expireDateInput.setOnClickListener(showDatePickerOnClick);
 
             if( productInstance != null ){

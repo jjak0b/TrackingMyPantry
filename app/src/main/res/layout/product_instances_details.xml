@@ -32,17 +32,16 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/text_margin"
         android:hint="@string/product_expire_date"
-        app:endIconDrawable="@android:drawable/ic_menu_today"
-        app:endIconMode="custom">
+        app:startIconDrawable="@android:drawable/ic_menu_today"
+        app:endIconMode="none">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextDate_register_product_expire_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
+            android:editable="false"
             android:imeOptions="actionNext"
-            android:inputType="date"
-            android:singleLine="true" />
+            android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -52,7 +51,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/product_pantry_name"
-        app:endIconMode="dropdown_menu">
+        app:endIconMode="dropdown_menu"
+        app:startIconDrawable="@drawable/ic_baseline_move_to_inbox">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/product_pantry_selector"

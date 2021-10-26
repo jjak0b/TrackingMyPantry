@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/text_margin"
-        android:hint="@string/product_cost">
+        android:hint="@string/product_cost"
+        app:startIconDrawable="@drawable/ic_baseline_attach_money">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextCost"
