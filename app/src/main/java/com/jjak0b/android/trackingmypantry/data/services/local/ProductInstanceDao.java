@@ -16,6 +16,7 @@ import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithI
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Dao
 public abstract class ProductInstanceDao {
@@ -96,9 +97,14 @@ public abstract class ProductInstanceDao {
                 group.getExpiryDate()
         );
 
-        if( match != null && group.getId() == match.getId() ) {
+        if( match != null ) {
+            // merge and update merged
             match.setQuantity(match.getQuantity()+group.getQuantity());
             update(match);
+            // delete entry because we just virtually merged it
+            if(!Objects.equals(match.getId(), group.getId())){
+                delete(group);
+            }
         }
         else {
             update(group);
@@ -116,6 +122,9 @@ public abstract class ProductInstanceDao {
 
     @Update
     abstract int update(ProductInstanceGroup instance);
+
+    @Delete
+    abstract void delete(ProductInstanceGroup group);
 
     @Delete
     public abstract ListenableFuture<Void> deleteAll(ProductInstanceGroup... instances);

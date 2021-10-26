@@ -204,7 +204,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                                             .setTitle(R.string.product_quantity)
                                             .setNegativeButton(android.R.string.cancel , null )
                                             .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                                mViewModel.moveProductInstanceGroupToPantry(
+                                                mViewModel.moveToPantry(
                                                         group, pantry, quantityPicker.getValue()
                                                 );
                                             })

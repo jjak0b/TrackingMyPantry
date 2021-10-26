@@ -72,7 +72,11 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
         return pantryRepository.deleteProductInstanceGroup(entry);
     }
 
-    public ListenableFuture<Void> moveProductInstanceGroupToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
+    public ListenableFuture<Void> moveToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
+        if( quantity < 1 || entry.getPantryId() == destination.getId() ) {
+            return Futures.immediateFuture(null);
+        }
+
         return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
     }
 
@@ -92,6 +96,10 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
     public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amountPercent){
 
         ProductInstanceGroup updatedEntry = ProductInstanceGroup.from(entry);
+
+        if( amountPercent <= 0 ){
+            return Futures.immediateFuture(null);
+        }
 
         // add the consumed entry as new entry and update quantity of old one
         if( entry.getQuantity() > 1 ) {
