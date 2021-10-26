@@ -90,9 +90,11 @@ public class PantriesBrowserFragment extends Fragment {
         // update groups browser on current pantry update
         mViewModel.getCurrentPantry().observe(getViewLifecycleOwner(), pantryWithProductInstanceGroups -> {
             if( pantryWithProductInstanceGroups == null ){
+                mProductsGroupsBrowserViewModel.setPantry(null);
                 mProductsGroupsBrowserViewModel.setGroups(null);
             }
             else {
+                mProductsGroupsBrowserViewModel.setPantry(pantryWithProductInstanceGroups.pantry);
                 mProductsGroupsBrowserViewModel.setGroups(pantryWithProductInstanceGroups.instances);
             }
         });

@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups;
 
 import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,7 +30,6 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.model.Pantry;
 import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
-import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
 
 import java.util.List;
@@ -73,6 +73,16 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         progressBar = view.findViewById(R.id.pantryLoadingBar);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(listAdapter);
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+
+        mViewModel.getPantry().observe(getViewLifecycleOwner(), pantry -> {
+            if( pantry == null ){
+                toolbar.setTitle(R.string.product_pantry_name);
+            }
+            else {
+                toolbar.setTitle(pantry.getName());
+            }
+        });
 
         mViewModel.getGroups().observe(getViewLifecycleOwner(), productInstanceGroups -> {
             listAdapter.submitList(productInstanceGroups);
@@ -84,6 +94,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        mViewModel.setPantry(null);
         mViewModel.setGroups(null);
     }
 

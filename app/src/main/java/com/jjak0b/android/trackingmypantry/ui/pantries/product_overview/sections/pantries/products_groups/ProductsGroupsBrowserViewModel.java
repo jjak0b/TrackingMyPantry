@@ -22,11 +22,13 @@ import java.util.function.Predicate;
 public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
     private PantryRepository pantryRepository;
     private MutableLiveData<List<ProductInstanceGroup>> groups;
+    private MutableLiveData<Pantry> pantry;
 
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
         groups = new MutableLiveData<>(null);
+        pantry = new MutableLiveData<>(null);
     }
 
     public void setGroups(List<ProductInstanceGroup> groups){
@@ -49,10 +51,20 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
         return pantryRepository.getPantries();
     }
 
+    public LiveData<Pantry> getPantry() {
+        return pantry;
+    }
+
+    public void setPantry(Pantry pantry) {
+        this.pantry.postValue(pantry);
+    }
+
     @Override
     protected void onCleared() {
         this.groups.setValue(null);
         this.groups = null;
+        this.pantry.setValue(null);
+        this.pantry = null;
         super.onCleared();
     }
 
