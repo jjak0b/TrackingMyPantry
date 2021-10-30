@@ -43,7 +43,7 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
 
         @Override
         public boolean areContentsTheSame(@NonNull ProductWithTags oldItem, @NonNull ProductWithTags newItem) {
-            return Objects.equals( oldItem.product.getId(), newItem.product.getId())
+            return Objects.equals( oldItem.product, newItem.product )
                     && Objects.equals( oldItem.tags, newItem.tags);
         }
     }
