@@ -93,6 +93,10 @@ public abstract class ProductDao {
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags();
 
+    @Transaction
+    @Query( "SELECT * FROM products WHERE barcode LIKE :barcode OR name LIKE :name OR description LIKE :description")
+    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description);
+
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<Product>> getAll();
 

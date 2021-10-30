@@ -58,6 +58,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         }
 
         if( !tagList.isEmpty() ){
+            tags.removeAllViews();
             for (ProductTag t : tagList ) {
                 Chip chip = new Chip( itemView.getContext() );
                 chip.setText( t.toString() );

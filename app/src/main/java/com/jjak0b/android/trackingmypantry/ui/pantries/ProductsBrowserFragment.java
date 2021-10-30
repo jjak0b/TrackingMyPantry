@@ -1,9 +1,13 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -11,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 
 import androidx.lifecycle.ViewModelProvider;
@@ -24,12 +29,21 @@ import com.jjak0b.android.trackingmypantry.R;
 public class ProductsBrowserFragment extends Fragment {
 
     private ProductsBrowserViewModel viewModel;
+    private ProductsSearchFilterViewModel searchViewModel;
     private ProductListAdapter listAdapter;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         viewModel =
                 new ViewModelProvider(this).get(ProductsBrowserViewModel.class);
+        searchViewModel =
+                new ViewModelProvider(this).get(ProductsSearchFilterViewModel.class);
         View root = inflater.inflate(R.layout.fragment_products_browser, container, false);
 
         return root;
@@ -62,6 +76,12 @@ public class ProductsBrowserFragment extends Fragment {
             loadingBar.setVisibility( View.VISIBLE );
             listAdapter.submitList( productsWTags );
             loadingBar.setVisibility( View.GONE );
+            listAdapter.notifyDataSetChanged();
+        });
+
+        searchViewModel.onSearch().observe(getViewLifecycleOwner(), searchState -> {
+            Log.e("EVENT", "ONsEARCH");
+            viewModel.setFilterState(searchState);
         });
 
         FloatingActionButton fab = view.findViewById(R.id.fab);
@@ -78,4 +98,44 @@ public class ProductsBrowserFragment extends Fragment {
         Navigation.findNavController(getView())
                 .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId()));
     };
+
+    private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            if( newText != null && newText.length() > 0 ){
+                searchViewModel.setSearchQuery(newText);
+                searchViewModel.search();
+            }
+            else {
+                searchViewModel.reset();
+            }
+
+            Log.e("QUERY", newText);
+            return true;
+        }
+
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+            searchViewModel.search();
+            Log.e("QUERY SUB", query);
+            return true;
+        }
+    };
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        // Associate searchable configuration with the SearchView
+
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchViewModel.getSearchQuery().observe(getViewLifecycleOwner(), s -> {
+            searchView.setQuery(s, !searchView.hasFocus() );
+        });
+
+        // SearchManager searchManager =  (SearchManager)getContext().getSystemService(Context.SEARCH_SERVICE);
+        // searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        searchView.setOnQueryTextListener(onQueryTextListener);
+    }
 }

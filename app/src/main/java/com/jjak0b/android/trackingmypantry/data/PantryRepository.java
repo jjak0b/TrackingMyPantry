@@ -178,8 +178,15 @@ public class PantryRepository {
         return future;
     }
 
-    public LiveData<List<ProductWithTags>> getProductsWithTags( /*TODO: pass Filter*/){
-        return pantryDB.getProductDao().getAllProductsWithTags();
+    public LiveData<List<ProductWithTags>> getProductsWithTags( FilterState filter ){
+        if( filter == null ){
+            return pantryDB.getProductDao().getAllProductsWithTags();
+        }
+        else {
+            return pantryDB.getProductDao().getAllProductsWithTags(
+                    "%"+filter.barcode+"%", "%"+filter.name+"%", "%"+filter.description+"%"
+            );
+        }
     }
 
     public LiveData<ProductWithTags> getProductWithTags(String productId ) {

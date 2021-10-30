@@ -16,6 +16,9 @@
         <action
             android:id="@+id/openRegisterProduct"
             app:destination="@id/registerProductFragment" />
+        <action
+            android:id="@+id/action_search"
+            app:destination="@id/productsSearchFilterFragmentDialog" />
     </fragment>
 
     <fragment
@@ -117,5 +120,10 @@
         android:id="@+id/editProductDetailsFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.edit.EditProductDetailsFragment"
         android:label="EditProductDetailsFragment" />
+    <dialog
+        android:id="@+id/productsSearchFilterFragmentDialog"
+        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.ProductsSearchFilterFragmentDialog"
+        android:label="@android:string/search_go"
+        tools:layout="@layout/products_search_filter_fragment_dialog_fragment" />
 
 </navigation>

@@ -116,4 +116,6 @@
     <string name="product_section_pantries">@string/pantries</string>
     <string name="product_section_purchase_places">Purchase places</string>
     <string name="product_section_purchase_places_overview">Purchases history overview</string>
+
+    <string name="filter_tags_label">Tags to filter</string>
 </resources>
