@@ -26,6 +26,9 @@ import java.util.ListIterator;
 @Dao
 public abstract class PantryDao {
 
+    @Query( "SELECT * FROM pantries WHERE pantry_id = :id" )
+    public abstract LiveData<Pantry> get(long id);
+
     @Query( "SELECT * FROM pantries" )
     public abstract LiveData<List<Pantry>> getAll();
 

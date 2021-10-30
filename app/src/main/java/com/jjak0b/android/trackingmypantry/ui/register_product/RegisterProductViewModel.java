@@ -1,11 +1,14 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.arch.core.util.Function;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.Transformations;
 
 import com.google.common.util.concurrent.AsyncFunction;
@@ -49,7 +52,11 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     private MutableLiveData<List<ProductTag>> assignedTags;
 
-    private MutableLiveData<Pantry> assignedPantry;
+    private MutableLiveData<Pantry> customPantry;
+
+    private LiveData<Pantry> defaultPantry;
+
+    private MediatorLiveData<Pantry> assignedPantry;
 
     private MutableLiveData<ProductInstanceGroup> productInstance;
 
@@ -95,7 +102,26 @@ public class RegisterProductViewModel extends AndroidViewModel {
                     }
                 }
         );
-        assignedPantry = new MutableLiveData<>(null);
+
+        defaultPantry = pantryRepository.getDefaultPantry();
+        customPantry = new MutableLiveData<>(null);
+        // provide always a correct value for a pantry
+        assignedPantry = new MediatorLiveData<>();
+        assignedPantry.addSource(customPantry, pantry -> {
+            if( pantry == null ){
+                defaultPantry.observeForever(new Observer<Pantry>() {
+                    @Override
+                    public void onChanged(Pantry pantry) {
+                        defaultPantry.removeObserver(this::onChanged);
+                        assignedPantry.postValue(pantry);
+                    }
+                });
+            }
+            else {
+                assignedPantry.postValue(pantry);
+            }
+        });
+
         productInstancesCount = new MutableLiveData<>(1);
         productInstance = new MutableLiveData<>(null);
         productPurchaseInfo = new MutableLiveData<>(null);
@@ -115,9 +141,13 @@ public class RegisterProductViewModel extends AndroidViewModel {
 
     @Override
     protected void onCleared() {
+        assignedPantry.removeSource(customPantry);
         resetProductDetails();
         resetProductInstance();
         resetPurchaseInfo();
+        customPantry.setValue(null);
+        customPantry = null;
+        defaultPantry = null;
         super.onCleared();
     }
 
@@ -239,8 +269,8 @@ public class RegisterProductViewModel extends AndroidViewModel {
         return assignedPantry;
     }
 
-    public void setPantry( Pantry p ){
-        assignedPantry.setValue( p );
+    public void setPantry( Pantry p ) {
+        customPantry.setValue(p);
     }
 
     public void setPurchasePlace( Place place ) {

@@ -81,9 +81,7 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Pantry selectedPantry = pantriesAdapter.getItem( position );
                 Log.d( TAG, "selected pantry: " + selectedPantry );
-                if( selectedPantry != null ) {
-                    mViewModel.setPantry(selectedPantry);
-                }
+                mViewModel.setPantry(selectedPantry);
             }
         });
 
@@ -108,7 +106,10 @@ public class SectionProductInstanceDetailsFragment extends Fragment {
                         }
                         Log.d( TAG, "has been changed:" + hasBeenChanged);
                         if( hasBeenChanged ){
-                            mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
+                            if( pantryAutoCompleteSelector.getText().length() > 0 )
+                                mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
+                            else
+                                mViewModel.setPantry( null );
                         }
                     }
                 }

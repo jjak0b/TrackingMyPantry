@@ -60,6 +60,7 @@ public class PantryRepository {
     private static final ListeningExecutorService executor =
             MoreExecutors.listeningDecorator( Executors.newFixedThreadPool(nTHREADS) );
     private static Executor mainExecutor;
+    private LiveData<Pantry> mDefaultPantry;
 
     PantryRepository(final Context context) {
         authRepository = LoginRepository.getInstance(context);
@@ -70,6 +71,7 @@ public class PantryRepository {
         pantryDB = PantryDB.getInstance( context );
         if( mainExecutor == null )
             mainExecutor = ContextCompat.getMainExecutor( context );
+        mDefaultPantry = pantryDB.getPantryDao().get(1);
     }
 
     public static PantryRepository getInstance(Context context) {
@@ -418,6 +420,10 @@ public class PantryRepository {
 
     public LiveData<List<Pantry>> getPantries(){
         return pantryDB.getPantryDao().getAll();
+    }
+
+    public LiveData<Pantry> getDefaultPantry() {
+        return mDefaultPantry;
     }
 
     public LiveData<List<PantryWithProductInstanceGroups>> getPantriesWithProductInstanceGroupsOf(String productID ){
