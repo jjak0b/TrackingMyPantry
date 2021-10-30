@@ -25,8 +25,6 @@ import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
-import net.cachapa.expandablelayout.ExpandableLayout;
-
 import java.util.List;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder  {

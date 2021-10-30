@@ -116,8 +116,9 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation "androidx.navigation:navigation-fragment:$nav_version"
     implementation "androidx.navigation:navigation-ui:$nav_version"
-    implementation 'com.gordonwong:material-sheet-fab:1.2.1'
-    implementation 'com.github.cachapa:ExpandableLayout:2.9.2'
+    // Reminder for possible future changes
+    // implementation 'com.gordonwong:material-sheet-fab:1.2.1'
+    // handling chip tags
     implementation "com.hootsuite.android:nachos:1.1.1"
 
     implementation 'androidx.preference:preference:1.1.1'
