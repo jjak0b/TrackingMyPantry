@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.pantries.products_groups.holder;
 
+import android.graphics.Color;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import androidx.core.view.ViewCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.jjak0b.android.trackingmypantry.R;
@@ -28,7 +30,7 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
 
     private TextInputEditText expireDate;
     private Chip badge;
-    private Slider totalAmountPercentBar;
+    private LinearProgressIndicator totalAmountPercentBar;
     private ImageButton moreBtn;
     private ImageButton consumeBtn;
     private ImageButton removeBtn;
@@ -54,7 +56,17 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
                 .format(group.getExpiryDate())
         );
         badge.setText(String.valueOf(group.getQuantity()));
-        totalAmountPercentBar.setValue(group.getCurrentAmountPercent());
+        totalAmountPercentBar.setProgressCompat(group.getCurrentAmountPercent(), true);
+
+        if( group.getCurrentAmountPercent() <= 25 ){
+            totalAmountPercentBar.setIndicatorColor(Color.RED);
+        }
+        else if( group.getCurrentAmountPercent() <= 50 ){
+            totalAmountPercentBar.setIndicatorColor(Color.YELLOW);
+        }
+        else {
+            totalAmountPercentBar.setIndicatorColor(Color.GREEN);
+        }
         setupInteractions();
     }
 
