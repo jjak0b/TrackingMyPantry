@@ -51,7 +51,7 @@
 
     <!-- pantries -->
     <string name="pantries_no_product_available">There are no available products</string>
-
+    <string name="pantries_no_stored_product">There are no stored products</string>
     <!-- register product -->
     <string name="menu_register_product_action_scan">Scan barcode</string>
     <string name="menu_register_product_action_digit">Digit barcode</string>

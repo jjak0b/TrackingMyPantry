@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -74,6 +75,8 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(listAdapter);
         Toolbar toolbar = view.findViewById(R.id.toolbar);
+        TextView groupsInfo = view.findViewById(R.id.noGroupsInfo);
+        groupsInfo.setVisibility(View.GONE);
 
         mViewModel.getPantry().observe(getViewLifecycleOwner(), pantry -> {
             if( pantry == null ){
@@ -88,6 +91,12 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
             listAdapter.submitList(productInstanceGroups);
             recyclerView.setVisibility(View.VISIBLE);
             progressBar.setVisibility(View.GONE);
+            if( productInstanceGroups != null && !productInstanceGroups.isEmpty() ){
+                groupsInfo.setVisibility(View.GONE);
+            }
+            else {
+                groupsInfo.setVisibility(View.VISIBLE);
+            }
         });
     }
 
