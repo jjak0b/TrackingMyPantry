@@ -73,9 +73,6 @@ dependencies {
     implementation "androidx.room:room-guava:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    def work_version = "2.5.0"
-    // (Java only)
-    implementation "androidx.work:work-runtime:$work_version"
 
     // in use app feature
     def camerax_version = "1.0.0"
