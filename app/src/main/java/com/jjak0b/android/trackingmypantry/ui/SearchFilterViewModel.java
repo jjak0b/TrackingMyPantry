@@ -31,13 +31,13 @@ public abstract class SearchFilterViewModel extends AndroidViewModel {
 
     public void setSearchQuery(String searchQuery) {
         if(!Objects.equals(searchQuery, this.searchQuery.getValue() )){
-            this.searchQuery.postValue(searchQuery);
+            this.searchQuery.setValue(searchQuery);
         }
     }
 
     public void setSearchTags(List<String> searchTags) {
         if(!Objects.equals(searchTags, this.searchTags.getValue() )){
-            this.searchTags.postValue(searchTags);
+            this.searchTags.setValue(searchTags);
         }
     }
 
