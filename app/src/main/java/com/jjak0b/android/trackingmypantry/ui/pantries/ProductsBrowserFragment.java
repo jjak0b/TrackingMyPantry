@@ -125,6 +125,7 @@ public class ProductsBrowserFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.products_browser_menu, menu);
         // Associate searchable configuration with the SearchView
 
 
