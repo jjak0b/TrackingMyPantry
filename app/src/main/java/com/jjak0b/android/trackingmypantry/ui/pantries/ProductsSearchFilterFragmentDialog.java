@@ -1,91 +1,107 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import android.text.Editable;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.textfield.TextInputEditText;
-import com.hootsuite.nachos.NachoTextView;
-import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
 import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
-import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
-import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
-public class ProductsSearchFilterFragmentDialog extends BottomSheetDialogFragment {
+import java.util.ArrayList;
+import java.util.Objects;
+
+public class ProductsSearchFilterFragmentDialog extends DialogFragment {
 
     private ProductsSearchFilterViewModel mViewModel;
-
+    private ArrayAdapter<ProductTag> tagSuggestionsAdapter;
     public static ProductsSearchFilterFragmentDialog newInstance() {
         return new ProductsSearchFilterFragmentDialog();
     }
 
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(ProductsSearchFilterViewModel.class);
+        tagSuggestionsAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_multiple_choice);
+        mViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsSearchFilterViewModel.class);
     }
 
+    @NonNull
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.products_search_filter_fragment_dialog_fragment, container, false);
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        AlertDialog newDialog = new MaterialAlertDialogBuilder(requireContext())
+                .setAdapter(tagSuggestionsAdapter, null)
+                .setTitle(R.string.setup_filter_options)
+                .setPositiveButton(android.R.string.ok, onSubmit )
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        newDialog.getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+        return newDialog;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_dialog_products_search_filter, container);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        TextInputEditText searchQueryField = view.findViewById(R.id.searchText);
-        NachoTextView searchTagsField = view.findViewById(R.id.searchTags);
-        Button btnReset = view.findViewById(R.id.btnReset);
-        Button btnSubmit = view.findViewById(R.id.btnSearch);
+        final AlertDialog dialog = (AlertDialog) getDialog();
 
-        btnReset.setOnClickListener(v -> mViewModel.reset());
-        btnSubmit.setOnClickListener(v -> mViewModel.search());
-
-        searchQueryField.addTextChangedListener(new InputUtil.FieldTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                mViewModel.setSearchQuery(s.toString());
-            }
-        });
-        searchTagsField.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
-        ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_dropdown_item_1line
-        );
-        searchTagsField.setAdapter( adapter );
-        searchTagsField.setOnFocusChangeListener( (v, hasFocus) -> {
-            /*if( !hasFocus ){
-                mViewModel.setSearchTags(searchTagsField.getChipValues());
-            }*/
-        });
-
-        mViewModel.getSearchQuery().observe(getViewLifecycleOwner(), s -> {
-            searchQueryField.setText(s);
-            if( s != null)
-                searchQueryField.setSelection(s.length());
+        mViewModel.getSearchTagsSuggestions().observe(getViewLifecycleOwner(), tags -> {
+            tagSuggestionsAdapter.clear();
+            if( tags != null )
+                tagSuggestionsAdapter.addAll(tags);
+            tagSuggestionsAdapter.notifyDataSetChanged();
         });
 
         mViewModel.getSearchTags().observe(getViewLifecycleOwner(), tags -> {
-            searchTagsField.setText(tags);
-        });
-        mViewModel.getSuggestions().observe( getViewLifecycleOwner(), suggestions -> {
-            adapter.clear();
-            adapter.addAll( suggestions );
+            boolean checked;
+            for (int i = 0; i < tagSuggestionsAdapter.getCount(); i++) {
+                checked = false;
+                if( tags != null ) {
+                    for (ProductTag tag : tags) {
+                        if (Objects.equals(tag, tagSuggestionsAdapter.getItem(i))) {
+                            checked = true;
+                            break;
+                        }
+                    }
+                }
+                dialog.getListView().setItemChecked(i, checked);
+            }
         });
     }
+
+    DialogInterface.OnClickListener onSubmit = (dialog, which) -> {
+        int checkedItemCount = ((AlertDialog)dialog).getListView().getCheckedItemCount();
+        SparseBooleanArray checkedItems = ((AlertDialog)dialog).getListView().getCheckedItemPositions();
+        ArrayList<ProductTag> checkedTags = new ArrayList<>(checkedItemCount);
+        if( checkedItems != null ) {
+            for (int i = 0; i < checkedItems.size(); i++) {
+                boolean isChecked = checkedItems.get(i);
+                if (isChecked) {
+                    checkedTags.add(tagSuggestionsAdapter.getItem(i));
+                }
+            }
+        }
+        mViewModel.setSearchTags(checkedTags);
+    };
 }

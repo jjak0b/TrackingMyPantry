@@ -117,5 +117,5 @@
     <string name="product_section_purchase_places">Purchase places</string>
     <string name="product_section_purchase_places_overview">Purchases history overview</string>
 
-    <string name="filter_tags_label">Tags to filter</string>
+    <string name="setup_filter_options">Setup the filter options</string>
 </resources>

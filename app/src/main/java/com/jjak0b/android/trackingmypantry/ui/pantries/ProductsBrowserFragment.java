@@ -1,30 +1,50 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
 
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.app.DialogCompat;
+import androidx.cursoradapter.widget.CursorAdapter;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.Fragment;
 
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProductsBrowserFragment extends Fragment {
 
@@ -43,7 +63,7 @@ public class ProductsBrowserFragment extends Fragment {
         viewModel =
                 new ViewModelProvider(this).get(ProductsBrowserViewModel.class);
         searchViewModel =
-                new ViewModelProvider(this).get(ProductsSearchFilterViewModel.class);
+                new ViewModelProvider(requireParentFragment()).get(ProductsSearchFilterViewModel.class);
         View root = inflater.inflate(R.layout.fragment_products_browser, container, false);
 
         return root;
@@ -102,26 +122,28 @@ public class ProductsBrowserFragment extends Fragment {
     private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextChange(String newText) {
-            if( newText != null && newText.length() > 0 ){
+            Log.e("QUERY", ""+newText);
+            if( TextUtils.isEmpty(newText) ){
+                Log.e("myRE", "_"+newText);
+                // searchViewModel.reset();
+            }
+            else {
                 searchViewModel.setSearchQuery(newText);
                 searchViewModel.search();
             }
-            else {
-                searchViewModel.reset();
-            }
 
-            Log.e("QUERY", newText);
             return true;
         }
 
         @Override
         public boolean onQueryTextSubmit(String query) {
+            Log.e("QUERY SUB", ""+query);
             searchViewModel.search();
-            Log.e("QUERY SUB", query);
             return true;
         }
     };
 
+    private String val = null;
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -131,7 +153,12 @@ public class ProductsBrowserFragment extends Fragment {
 
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         searchViewModel.getSearchQuery().observe(getViewLifecycleOwner(), s -> {
-            searchView.setQuery(s, !searchView.hasFocus() );
+            val = s;
+            Log.e("upd", ""+val);
+        });
+        searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
+            Log.e("FOC", ""+val);
+            searchView.setQuery(val, !hasFocus );
         });
 
         // SearchManager searchManager =  (SearchManager)getContext().getSystemService(Context.SEARCH_SERVICE);
