@@ -114,6 +114,8 @@
     <string name="pantries">Pantries</string>
     <string name="pantries_default_pantry_name">Shopping bag</string>
     <string name="product_section_pantries">@string/pantries</string>
+    <string name="product_section_product_overview">Product overview</string>
+    <string name="product_section_edit_product_details">Edit product details</string>
     <string name="product_section_purchase_places">Purchase places</string>
     <string name="product_section_purchase_places_overview">Purchases history overview</string>
 

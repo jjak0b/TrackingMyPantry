@@ -115,7 +115,7 @@ public class ProductsBrowserFragment extends Fragment {
 
     private ProductListAdapter.OnProductClick onProductClick = product -> {
         Navigation.findNavController(getView())
-                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId()));
+                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId(), product.getName() ));
     };
 
     private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {

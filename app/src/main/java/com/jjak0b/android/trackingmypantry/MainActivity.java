@@ -29,6 +29,7 @@ import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewFragmentArgs;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -64,21 +65,10 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        
         NavigationView navigationView = findViewById(R.id.nav_view);
+        initNavController(navigationView);
         View headerView = navigationView.getHeaderView(0);
-
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_auth, R.id.nav_pantries, R.id.nav_gallery, R.id.nav_slideshow
-        )
-                .setOpenableLayout(drawer)
-                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
 
         authViewModel = new ViewModelProvider(
                 this,
@@ -194,6 +184,33 @@ public class MainActivity extends AppCompatActivity  {
         initNavHeaderView(headerView);
 
         authenticate();
+    }
+
+    private void initNavController(NavigationView navigationView) {
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_auth, R.id.nav_pantries, R.id.nav_gallery, R.id.nav_slideshow
+        )
+                .setOpenableLayout(drawer)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
+
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            switch (destination.getId()){
+                case R.id.productOverviewFragment:
+                    getSupportActionBar().setSubtitle(ProductOverviewFragmentArgs.fromBundle(arguments).getSubtitle());
+                    break;
+                default:
+                    getSupportActionBar().setSubtitle(null);
+                    break;
+            }
+        });
     }
 
     private void initNavHeaderView(@NonNull View navHeaderView ){
