@@ -4,5 +4,5 @@ import java.util.List;
 
 public class SearchFilterState {
     public String query;
-    public List<String> searchTags;
+    public List<Long> searchTags;
 }

@@ -178,13 +178,17 @@ public class PantryRepository {
         return future;
     }
 
-    public LiveData<List<ProductWithTags>> getProductsWithTags( FilterState filter ){
+    public LiveData<List<ProductWithTags>> getProductsWithTags( ProductFilterState filter ){
         if( filter == null ){
             return pantryDB.getProductDao().getAllProductsWithTags();
         }
         else {
+
             return pantryDB.getProductDao().getAllProductsWithTags(
-                    "%"+filter.barcode+"%", "%"+filter.name+"%", "%"+filter.description+"%"
+                    filter.barcode != null ? "%"+filter.barcode+"%" : null,
+                    filter.name != null ? "%"+filter.name+"%" : null,
+                    filter.description != null ? "%"+filter.description+"%" : null,
+                    filter.tagsIDs
             );
         }
     }

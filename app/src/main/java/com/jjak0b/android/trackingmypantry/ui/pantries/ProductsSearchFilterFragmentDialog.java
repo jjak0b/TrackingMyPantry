@@ -96,9 +96,10 @@ public class ProductsSearchFilterFragmentDialog extends DialogFragment {
         ArrayList<ProductTag> checkedTags = new ArrayList<>(checkedItemCount);
         if( checkedItems != null ) {
             for (int i = 0; i < checkedItems.size(); i++) {
-                boolean isChecked = checkedItems.get(i);
+                int tagPosition = checkedItems.keyAt(i);
+                boolean isChecked = checkedItems.get(tagPosition);
                 if (isChecked) {
-                    checkedTags.add(tagSuggestionsAdapter.getItem(i));
+                    checkedTags.add(tagSuggestionsAdapter.getItem(tagPosition));
                 }
             }
         }

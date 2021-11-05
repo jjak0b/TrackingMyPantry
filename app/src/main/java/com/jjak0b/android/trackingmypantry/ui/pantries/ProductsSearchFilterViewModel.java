@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.pantries;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class ProductsSearchFilterViewModel extends SearchFilterViewModel {
 
@@ -38,6 +40,12 @@ public class ProductsSearchFilterViewModel extends SearchFilterViewModel {
         s.query = getSearchQuery().getValue();
         if( s.query != null )
             s.query = s.query.trim();
+
+        s.searchTags = new ArrayList<>(mSearchTags.getValue()
+                .stream()
+                .map(tag -> tag.getId())
+                .collect(Collectors.toList())
+        );
         onSearchEvent.postValue(s);
     }
 

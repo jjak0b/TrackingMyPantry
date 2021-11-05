@@ -100,7 +100,6 @@ public class ProductsBrowserFragment extends Fragment {
         });
 
         searchViewModel.onSearch().observe(getViewLifecycleOwner(), searchState -> {
-            Log.e("EVENT", "ONsEARCH");
             viewModel.setFilterState(searchState);
         });
 
@@ -122,28 +121,20 @@ public class ProductsBrowserFragment extends Fragment {
     private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextChange(String newText) {
-            Log.e("QUERY", ""+newText);
-            if( TextUtils.isEmpty(newText) ){
-                Log.e("myRE", "_"+newText);
-                // searchViewModel.reset();
-            }
-            else {
-                searchViewModel.setSearchQuery(newText);
-                searchViewModel.search();
-            }
+            searchViewModel.setSearchQuery(newText);
+            searchViewModel.search();
 
             return true;
         }
 
         @Override
         public boolean onQueryTextSubmit(String query) {
-            Log.e("QUERY SUB", ""+query);
+            searchViewModel.setSearchQuery(query);
             searchViewModel.search();
             return true;
         }
     };
 
-    private String val = null;
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -153,16 +144,14 @@ public class ProductsBrowserFragment extends Fragment {
 
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         searchViewModel.getSearchQuery().observe(getViewLifecycleOwner(), s -> {
-            val = s;
-            Log.e("upd", ""+val);
-        });
-        searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
-            Log.e("FOC", ""+val);
-            searchView.setQuery(val, !hasFocus );
+            searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
+                searchView.setQuery(s, !hasFocus );
+            });
         });
 
-        // SearchManager searchManager =  (SearchManager)getContext().getSystemService(Context.SEARCH_SERVICE);
-        // searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchViewModel.getSearchTags().observe(getViewLifecycleOwner(), productTags -> {
+            searchViewModel.search();
+        });
 
         searchView.setOnQueryTextListener(onQueryTextListener);
     }

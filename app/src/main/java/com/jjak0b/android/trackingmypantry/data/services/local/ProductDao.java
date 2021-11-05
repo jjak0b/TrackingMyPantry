@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.data.services.local;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 import androidx.room.Dao;
@@ -93,9 +94,31 @@ public abstract class ProductDao {
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags();
 
+    /**
+     * get all Product with tags filtered with each following "condition n" in END.
+     * condition 1: the product's strings are in OR to match with the respective strings
+     * condition 2: the product has at least all the provided tags
+     * @param barcode
+     * @param name
+     * @param description
+     * @param tagsIds
+     * @return  all Product with tags with a filter applied
+     */
+    public LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds){
+        // call real method, to provide some extra info
+        return _getAllProductsWithTags(barcode, name, description, tagsIds, tagsIds.size() );
+    }
+
     @Transaction
-    @Query( "SELECT * FROM products WHERE barcode LIKE :barcode OR name LIKE :name OR description LIKE :description")
-    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description);
+    @Query( "SELECT * " +
+            "FROM products AS P " +
+            "LEFT JOIN assignedTags AS AT ON P.id = AT.product_id AND ( AT.tag_id IN (:tagsIds) )" +
+            "WHERE (:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.barcode LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description ) " +
+            "GROUP BY P.id " +
+            "HAVING COUNT(AT.tag_id) >= :tagsCount"
+
+    )
+    abstract LiveData<List<ProductWithTags>> _getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
 
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<Product>> getAll();

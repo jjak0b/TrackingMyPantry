@@ -8,13 +8,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.jjak0b.android.trackingmypantry.data.FilterState;
+import com.jjak0b.android.trackingmypantry.data.ProductFilterState;
 import com.jjak0b.android.trackingmypantry.data.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.SearchFilterState;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.ui.SearchFilterViewModel;
 
 import java.util.List;
 
@@ -23,7 +20,7 @@ public class ProductsBrowserViewModel extends AndroidViewModel {
     private PantryRepository mPantryRepository;
 
     private LiveData<List<ProductWithTags>> mProductsList;
-    private MutableLiveData<FilterState> mFilterState;
+    private MutableLiveData<ProductFilterState> mFilterState;
 
     public ProductsBrowserViewModel(Application application ) {
         super(application);
@@ -32,9 +29,9 @@ public class ProductsBrowserViewModel extends AndroidViewModel {
         // https://stackoverflow.com/questions/48769812/best-practice-runtime-filters-with-room-and-livedata
         mProductsList = Transformations.switchMap(
                 mFilterState,
-                new Function<FilterState, LiveData<List<ProductWithTags>>>() {
+                new Function<ProductFilterState, LiveData<List<ProductWithTags>>>() {
                     @Override
-                    public LiveData<List<ProductWithTags>> apply(FilterState filter) {
+                    public LiveData<List<ProductWithTags>> apply(ProductFilterState filter) {
                         return mPantryRepository.getProductsWithTags(filter);
                     }
                 }
@@ -48,32 +45,22 @@ public class ProductsBrowserViewModel extends AndroidViewModel {
 
     public void setFilterState( SearchFilterState state ){
 
-        boolean isNotValid = state == null || state.query == null || state.query.length() < 1;
-        if( isNotValid ){
+        boolean isValid = state != null && (
+                (state.query != null && state.query.length() > 0) ||
+                (state.searchTags != null && !state.searchTags.isEmpty())
+        );
+        if( !isValid ){
             mFilterState.setValue( null );
             return;
         }
 
-        FilterState filter = new FilterState();
+        ProductFilterState filter = new ProductFilterState();
         filter.name = state.query;
         filter.description = state.query;
         filter.barcode = state.query;
+        filter.tagsIDs = state.searchTags;
 
         mFilterState.postValue(filter);
     }
-
-     /*
-    private void updateList(){
-
-       // using mProductsList as MediatorLiveData
-        if( mCurrentProductList != null ){
-            mProductsList.removeSource(mCurrentProductList);
-            mCurrentProductList = null;
-        }
-
-        mCurrentProductList = mPantryRepository.getProducts();
-        mProductsList.addSource(mCurrentProductList, products -> mProductsList.setValue( products ) );
-    }
-    */
 
 }
