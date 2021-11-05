@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/nav_products"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.ProductsBrowserFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.ProductsBrowserFragment"
         android:label="@string/menu_products"
         tools:layout="@layout/fragment_products_browser" >
         <action
@@ -87,7 +87,7 @@
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment
         android:id="@+id/productOverviewFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewFragment"
         android:label="@string/product_section_product_overview"
         tools:layout="@layout/product_oveview_fragment" >
         <argument
@@ -109,11 +109,11 @@
         app:destination="@id/settingsFragment" />
     <fragment
         android:id="@+id/editProductDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.sections.edit.EditProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductDetailsFragment"
         android:label="@string/product_section_edit_product_details" />
     <dialog
         android:id="@+id/productsSearchFilterFragmentDialog"
-        android:name="com.jjak0b.android.trackingmypantry.ui.pantries.ProductsSearchFilterFragmentDialog"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.ProductsSearchFilterFragmentDialog"
         android:label="@string/setup_filter_options" />
 
 </navigation>

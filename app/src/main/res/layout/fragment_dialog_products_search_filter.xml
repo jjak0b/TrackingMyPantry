@@ -8,4 +8,4 @@
     android:layout_marginHorizontal="@dimen/fragment_horizontal_margin"
     android:fitsSystemWindows="true"
     app:layout_behavior="@string/bottom_sheet_behavior"
-    tools:context=".ui.pantries.ProductsSearchFilterFragmentDialog"/>
+    tools:context=".ui.products.ProductsSearchFilterFragmentDialog"/>

@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".ui.pantries.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserBottomSheetDialogFragment">
+    tools:context=".ui.products.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserBottomSheetDialogFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/pantryAppBar"

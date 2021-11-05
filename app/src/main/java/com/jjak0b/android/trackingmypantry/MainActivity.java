@@ -28,7 +28,7 @@ import com.jjak0b.android.trackingmypantry.data.model.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
-import com.jjak0b.android.trackingmypantry.ui.pantries.product_overview.ProductOverviewFragmentArgs;
+import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewFragmentArgs;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 import androidx.activity.result.ActivityResultLauncher;
