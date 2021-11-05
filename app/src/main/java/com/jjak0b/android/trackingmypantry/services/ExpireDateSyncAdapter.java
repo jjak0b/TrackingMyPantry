@@ -167,6 +167,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
         futureList = pantryRepository.getInfoOfAll(null, null);
 
         try {
+            // retrieve or create the calendar
             long calendarID = getCalendar( provider, account );
             if( calendarID < 0 ) {
                 Log.d(TAG, "creating new calendar for "+ account.name );
@@ -176,12 +177,18 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
             else {
                 Log.d(TAG, "calendar for "+ account.name  + ": " + calendarID );
             }
+
+            // Current stored product groups
             List<ProductInstanceGroupInfo> infoGroups = futureList.get();
             Log.d(TAG, "syncing " + infoGroups.size() + " events" );
 
+            // Current stored events of product groups
             localEvents = getLocalEvents(provider, account, calendarID );
             Log.d(TAG, "checking " + localEvents.size() + " local events" );
 
+            // Detect if an infoGroup
+            // exists in local and so should be updated
+            // or doesn't exist in local and so should be added as new
             for (ProductInstanceGroupInfo info : infoGroups) {
 
                 LocalEventEntry localEntry = localEvents.get(info.group.getId());
@@ -195,14 +202,11 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                     toUpdate.add(updateEvent(localEntry.eventID, account, info));
                     localEventsUpdated.add(localEntry);
                 }
-
-                // long eventID = Long.parseLong(newEvent.getLastPathSegment());
-                // Uri uriReminder = addRemindersForEvent( eventID );
             }
-
+            // Detect if an infoGroup
+            // is obsolete in local and should be deleted
             Collection<LocalEventEntry> unprocessed = localEvents.values();
             unprocessed.removeAll(localEventsUpdated);
-
             Log.d(TAG, "removing " + unprocessed.size() + " obsolete events" );
             for (LocalEventEntry entry : unprocessed ) {
                 toRemove.add(deleteEvent(entry.eventID, account));
@@ -210,10 +214,10 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
 
             // submit operations
             ArrayList<ArrayList<ContentProviderOperation>> operationsLists = new ArrayList<>(3);
-            operationsLists.add(toRemove);
-            operationsLists.add(toUpdate);
-            operationsLists.add(toCreate);
-            operationsLists.add(toRemind);
+            operationsLists.add(toRemove); // sync step 1
+            operationsLists.add(toUpdate); // sync step 2
+            operationsLists.add(toCreate); // sync step 3
+            operationsLists.add(toRemind); // sync step 4 - will be populated at step 3
 
             final int STEP_CREATE_EVENTS = 3;
             long eventID = -1;
@@ -225,7 +229,8 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                         Log.d(TAG, "syncing " + operations.size() + " operations" );
                         ContentProviderResult[] results = provider.applyBatch(operations);
 
-                        // create reminders for each event
+                        // at this step all events are synced
+                        // but we need to create reminders for each new created event
                         if( step == STEP_CREATE_EVENTS ) {
                             for ( ContentProviderResult result : results ) {
                                 eventID = Long.parseLong(result.uri.getLastPathSegment());
@@ -239,6 +244,8 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 } catch (OperationApplicationException | RemoteException e){
                     Log.e(TAG, "syncing Exception occurred on step " + step , e );
                 }
+
+                // dispose resources
                 operations.clear();
 
                 Log.d(TAG, "syncing step " + step + " ended" );
