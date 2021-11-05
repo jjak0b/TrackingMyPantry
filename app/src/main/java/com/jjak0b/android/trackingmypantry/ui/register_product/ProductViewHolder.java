@@ -35,14 +35,12 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
                 onProductClickListener.onClick(product);
         });
 
-        if( product.getImg() != null ){
-            Glide
-                .with(itemView)
-                .load(product.getImg() )
-                .fitCenter()
-                .placeholder(R.drawable.loading_spinner)
-                .into(image);
-        }
+        Glide
+            .with(itemView)
+            .load(product.getImg() )
+            .fitCenter()
+            .placeholder(R.drawable.loading_spinner)
+            .into(image);
     }
 
     static ProductViewHolder create(ViewGroup parent) {
