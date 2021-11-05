@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_pantries">
+    app:startDestination="@+id/nav_products">
 
     <fragment
-        android:id="@+id/nav_pantries"
+        android:id="@+id/nav_products"
         android:name="com.jjak0b.android.trackingmypantry.ui.pantries.ProductsBrowserFragment"
-        android:label="@string/menu_home"
+        android:label="@string/menu_products"
         tools:layout="@layout/fragment_products_browser" >
         <action
             android:id="@+id/openProduct"
@@ -20,18 +20,6 @@
             android:id="@+id/action_filter"
             app:destination="@id/productsSearchFilterFragmentDialog" />
     </fragment>
-
-    <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.jjak0b.android.trackingmypantry.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
-
-    <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.jjak0b.android.trackingmypantry.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
 
     <fragment
         android:id="@+id/nav_auth"

@@ -13,7 +13,6 @@ import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,7 +64,7 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         initNavController(navigationView);
         View headerView = navigationView.getHeaderView(0);
@@ -193,7 +192,7 @@ public class MainActivity extends AppCompatActivity  {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_auth, R.id.nav_pantries, R.id.nav_gallery, R.id.nav_slideshow
+                R.id.nav_auth, R.id.nav_products
         )
                 .setOpenableLayout(drawer)
                 .build();
