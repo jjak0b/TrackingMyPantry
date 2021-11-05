@@ -1,12 +1,7 @@
 package com.jjak0b.android.trackingmypantry.data;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.gson.GsonBuilder;
-import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteProductsAPIService;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;

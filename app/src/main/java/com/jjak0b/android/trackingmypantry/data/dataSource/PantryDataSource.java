@@ -7,11 +7,11 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.model.API.CreateProduct;
-import com.jjak0b.android.trackingmypantry.data.model.API.ProductsList;
-import com.jjak0b.android.trackingmypantry.data.model.Vote;
-import com.jjak0b.android.trackingmypantry.data.services.remote.RemoteProductsAPIService;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.LoginRepository;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.CreateProduct;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.ProductsList;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.Vote;
+import com.jjak0b.android.trackingmypantry.data.model.services.RemoteProductsAPIService;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import androidx.annotation.NonNull;

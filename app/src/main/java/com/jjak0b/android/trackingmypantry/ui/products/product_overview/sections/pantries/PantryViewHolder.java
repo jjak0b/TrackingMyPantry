@@ -9,8 +9,8 @@ import androidx.annotation.NonNull;
 import com.google.android.material.chip.Chip;
 import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
 import java.util.List;

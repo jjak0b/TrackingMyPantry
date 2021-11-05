@@ -3,11 +3,9 @@ package com.jjak0b.android.trackingmypantry.data.model.relationships;
 import androidx.room.Embedded;
 import androidx.room.Relation;
 
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-
-import java.util.List;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
 
 public class ProductInstanceGroupInfo {
 

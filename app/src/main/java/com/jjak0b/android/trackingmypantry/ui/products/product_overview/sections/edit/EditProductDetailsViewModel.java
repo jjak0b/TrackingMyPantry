@@ -10,9 +10,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 

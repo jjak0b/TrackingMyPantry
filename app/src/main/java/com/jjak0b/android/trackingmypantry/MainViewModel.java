@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.LoginRepository;
 
 public class MainViewModel extends AndroidViewModel {
     LoginRepository authRepo;

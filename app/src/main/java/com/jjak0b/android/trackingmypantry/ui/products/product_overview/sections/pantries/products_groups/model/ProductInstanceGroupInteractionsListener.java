@@ -4,8 +4,8 @@ import android.view.View;
 
 import androidx.appcompat.widget.PopupMenu;
 
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
 
 import java.util.List;
 

@@ -2,13 +2,10 @@ package com.jjak0b.android.trackingmypantry.ui.util;
 
 import androidx.annotation.Nullable;
 
-import com.jjak0b.android.trackingmypantry.data.model.Place;
 import com.mapbox.geojson.BoundingBox;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.GeoJson;
-import com.mapbox.geojson.MultiPoint;
 import com.mapbox.geojson.Point;
-import com.mapbox.maps.CoordinateBounds;
 
 public class GeoUtils {
 

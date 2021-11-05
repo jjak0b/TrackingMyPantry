@@ -8,9 +8,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.jjak0b.android.trackingmypantry.data.ProductFilterState;
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.SearchFilterState;
+import com.jjak0b.android.trackingmypantry.data.filters.ProductFilterState;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.filters.SearchFilterState;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
 import java.util.List;

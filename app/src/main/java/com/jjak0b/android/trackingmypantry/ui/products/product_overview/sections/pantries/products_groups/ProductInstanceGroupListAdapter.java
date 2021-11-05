@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.holder.ProductInstanceGroupViewHolder;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupViewModel;

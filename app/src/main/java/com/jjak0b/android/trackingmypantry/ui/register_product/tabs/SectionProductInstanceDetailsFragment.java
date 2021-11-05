@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,11 +20,8 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
-import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
-
-import androidx.annotation.NonNull;
 
 import java.text.DateFormat;
 import java.util.Calendar;

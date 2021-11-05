@@ -4,8 +4,8 @@ import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.Relation;
 
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
 
 import java.util.List;
 import java.util.Objects;

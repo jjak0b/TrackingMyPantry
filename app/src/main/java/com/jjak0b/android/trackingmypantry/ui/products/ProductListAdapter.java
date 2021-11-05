@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.Product;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
 import java.util.Objects;

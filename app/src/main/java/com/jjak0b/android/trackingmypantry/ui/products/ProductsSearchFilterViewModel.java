@@ -6,9 +6,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.SearchFilterState;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.filters.SearchFilterState;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.ui.SearchFilterViewModel;
 
 import java.util.ArrayList;

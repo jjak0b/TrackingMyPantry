@@ -13,13 +13,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.LoginRepository;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
-import com.jjak0b.android.trackingmypantry.data.model.User;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.entities.User;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 

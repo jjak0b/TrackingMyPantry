@@ -1,7 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.arch.core.util.Function;
 import androidx.lifecycle.AndroidViewModel;
@@ -16,13 +15,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.Place;
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
-import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Place;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;

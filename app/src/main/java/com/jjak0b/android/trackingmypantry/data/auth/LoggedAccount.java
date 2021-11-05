@@ -3,7 +3,7 @@ package com.jjak0b.android.trackingmypantry.data.auth;
 import android.accounts.Account;
 import androidx.annotation.NonNull;
 
-import com.jjak0b.android.trackingmypantry.data.model.User;
+import com.jjak0b.android.trackingmypantry.data.model.entities.User;
 
 public class LoggedAccount extends User {
     Account account;

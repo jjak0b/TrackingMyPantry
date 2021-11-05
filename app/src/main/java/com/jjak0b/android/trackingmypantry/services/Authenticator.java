@@ -15,8 +15,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthActivity;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.data.model.repositories.LoginRepository;
+import com.jjak0b.android.trackingmypantry.data.model.services.API.LoginCredentials;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 

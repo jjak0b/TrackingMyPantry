@@ -5,8 +5,8 @@ import androidx.room.Entity;
 import androidx.room.Junction;
 import androidx.room.Relation;
 
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
 
 import java.util.List;
 
