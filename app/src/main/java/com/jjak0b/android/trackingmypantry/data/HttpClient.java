@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.data;
 
 import com.google.gson.GsonBuilder;
+import com.jjak0b.android.trackingmypantry.data.services.LiveDataCallAdapterFactory;
 
 import retrofit2.Retrofit;
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
@@ -19,6 +20,7 @@ public class HttpClient {
             client = new retrofit2.Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addCallAdapterFactory(GuavaCallAdapterFactory.create())
+                    .addCallAdapterFactory(LiveDataCallAdapterFactory.create())
                     .addConverterFactory(
                             GsonConverterFactory.create( gsonBuilder.create() )
                     )
