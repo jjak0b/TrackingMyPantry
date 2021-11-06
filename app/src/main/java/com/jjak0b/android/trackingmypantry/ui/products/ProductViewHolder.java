@@ -14,9 +14,9 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 
 import java.util.List;
 

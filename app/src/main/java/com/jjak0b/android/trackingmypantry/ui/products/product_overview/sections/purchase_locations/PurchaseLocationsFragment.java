@@ -18,8 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.Place;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PlaceWithPurchases;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.GeoUtils;
 

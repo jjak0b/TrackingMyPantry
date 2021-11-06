@@ -8,8 +8,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
 
 import java.util.List;
 import java.util.Objects;

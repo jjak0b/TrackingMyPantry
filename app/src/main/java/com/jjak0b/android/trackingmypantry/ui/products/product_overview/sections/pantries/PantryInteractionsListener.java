@@ -2,7 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.view.View;
 
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
 
 public interface PantryInteractionsListener {
     void onItemClicked(int pantryPosition, View pantryView, PantryWithProductInstanceGroups item);

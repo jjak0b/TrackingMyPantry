@@ -24,7 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
-import com.jjak0b.android.trackingmypantry.data.model.entities.User;
+import com.jjak0b.android.trackingmypantry.data.db.entities.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;

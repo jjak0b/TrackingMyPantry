@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.ui.ItemViewModel;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
 
 public class PantryViewModel extends ViewModel implements ItemViewModel<PantryWithProductInstanceGroups> {
 

@@ -28,8 +28,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
 import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
 

@@ -35,7 +35,7 @@ import com.google.common.util.concurrent.Futures;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;

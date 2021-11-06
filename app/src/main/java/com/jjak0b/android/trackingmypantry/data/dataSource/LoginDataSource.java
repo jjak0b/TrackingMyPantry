@@ -3,11 +3,11 @@ package com.jjak0b.android.trackingmypantry.data.dataSource;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 
-import com.jjak0b.android.trackingmypantry.data.model.services.API.AuthLoginResponse;
-import com.jjak0b.android.trackingmypantry.data.model.services.API.LoginCredentials;
-import com.jjak0b.android.trackingmypantry.data.model.services.API.RegisterCredentials;
-import com.jjak0b.android.trackingmypantry.data.model.entities.User;
-import com.jjak0b.android.trackingmypantry.data.model.services.RemoteAuthAPIService;
+import com.jjak0b.android.trackingmypantry.data.services.API.AuthLoginResponse;
+import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.data.services.API.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.data.db.entities.User;
+import com.jjak0b.android.trackingmypantry.data.services.RemoteAuthAPIService;
 
 
 import androidx.annotation.NonNull;

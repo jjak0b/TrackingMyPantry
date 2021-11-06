@@ -24,7 +24,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 
 import java.text.DateFormat;
 import java.util.ArrayList;

@@ -23,7 +23,7 @@ import android.widget.EditText;
 
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.Place;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.ui.maps.PlacesPluginActivity;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;

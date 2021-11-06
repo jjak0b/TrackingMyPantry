@@ -24,9 +24,9 @@ import androidx.preference.PreferenceManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductInstanceGroupInfo;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
 
 import androidx.annotation.NonNull;
 

@@ -20,7 +20,7 @@ import android.widget.ArrayAdapter;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 
 import java.util.ArrayList;
 import java.util.Objects;

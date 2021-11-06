@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.jjak0b.android.trackingmypantry.data.model.entities.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 
 import java.util.Collections;
 import java.util.List;

@@ -2,7 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.util;
 
 import com.hootsuite.nachos.chip.Chip;
 import com.hootsuite.nachos.chip.ChipInfo;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 
 import androidx.annotation.NonNull;
 

@@ -9,9 +9,9 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.jjak0b.android.trackingmypantry.data.model.repositories.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 
 import java.util.ArrayList;
 import java.util.List;

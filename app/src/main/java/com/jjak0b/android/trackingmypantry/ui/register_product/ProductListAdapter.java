@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
 public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> {
 
