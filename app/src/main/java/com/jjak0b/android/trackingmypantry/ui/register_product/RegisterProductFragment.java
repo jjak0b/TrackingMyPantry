@@ -22,7 +22,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;

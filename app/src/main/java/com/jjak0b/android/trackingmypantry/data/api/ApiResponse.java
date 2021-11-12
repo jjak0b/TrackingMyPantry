@@ -1,8 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.api;
 
-import android.text.TextUtils;
-
-import java.io.IOException;
+import retrofit2.HttpException;
 import retrofit2.Response;
 
 /**
@@ -11,7 +9,7 @@ import retrofit2.Response;
 </T> */
 public abstract class ApiResponse<T> {
     public static <T> ApiErrorResponse<T> create(Throwable error) {
-        return new ApiErrorResponse(error.getMessage() != null ? error.getMessage() : "unknown error");
+        return new ApiErrorResponse(error);
     }
 
     public static <T> ApiResponse<T> create(Response<T> response) {
@@ -25,14 +23,7 @@ public abstract class ApiResponse<T> {
             }
         }
         else {
-            String msg = null;
-            try {
-                msg = response.errorBody() != null ? response.errorBody().string() : null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            String errorMsg = TextUtils.isEmpty(msg) ? response.message() : msg;
-            return new ApiErrorResponse(errorMsg != null ? errorMsg : "unknown error");
+            return new ApiErrorResponse<>(new RemoteException(new HttpException(response)));
         }
     }
 }
@@ -40,22 +31,26 @@ public abstract class ApiResponse<T> {
 /**
  * separate class for HTTP 204 resposes so that we can make ApiSuccessResponse's body non-null.
  */
-public class ApiEmptyResponse<T> extends ApiResponse<T> {}
+class ApiEmptyResponse<T> extends ApiResponse<T> {}
 
-public class ApiErrorResponse<T> extends ApiResponse<T> {
-    private String errorMessage;
+class ApiErrorResponse<T> extends ApiResponse<T> {
+    private Throwable error;
 
-    public ApiErrorResponse(String errorMessage) {
+    public ApiErrorResponse(Throwable error) {
         super();
-        this.errorMessage = errorMessage;
+        this.error = error;
     }
 
     public String getErrorMessage() {
-        return errorMessage;
+        return error != null && error.getMessage() != null ? error.getMessage() : "unknown error";
+    }
+
+    public Throwable getError() {
+        return error;
     }
 }
 
-public class ApiSuccessResponse<T> extends ApiResponse<T> {
+class ApiSuccessResponse<T> extends ApiResponse<T> {
     private T body;
 
     ApiSuccessResponse( T body ) {

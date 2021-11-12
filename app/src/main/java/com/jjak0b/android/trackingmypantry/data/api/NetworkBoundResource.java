@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.data.repositories;
+package com.jjak0b.android.trackingmypantry.data.api;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -8,11 +8,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
-import com.jjak0b.android.trackingmypantry.data.api.ApiEmptyResponse;
-import com.jjak0b.android.trackingmypantry.data.api.ApiErrorResponse;
-import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
-import com.jjak0b.android.trackingmypantry.data.api.ApiSuccessResponse;
-import com.jjak0b.android.trackingmypantry.data.api.Resource;
 
 /**
  * A generic class that can provide a resource backed by both the sqlite database and the network.
@@ -90,7 +85,7 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             else if( response instanceof ApiErrorResponse){
                 onFetchFailed();
                 result.addSource(dbSource, newData -> {
-                    setValue(Resource.error(((ApiErrorResponse<RequestType>) response).getErrorMessage(), newData));
+                    setValue(Resource.error(((ApiErrorResponse<RequestType>) response).getError(), newData));
                 });
             }
         });

@@ -18,6 +18,7 @@ import androidx.navigation.ui.NavigationUI;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 
+// Replace the deprecated AccountAuthenticatorActivity
 public class AuthActivity extends AppCompatActivity {
     public static String AUTH_ADD_NEW_ACCOUNT = "new_account";
 

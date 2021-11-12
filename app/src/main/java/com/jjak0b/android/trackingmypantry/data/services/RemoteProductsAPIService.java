@@ -1,6 +1,9 @@
 package com.jjak0b.android.trackingmypantry.data.services;
 
+import androidx.lifecycle.LiveData;
+
 import com.google.common.util.concurrent.ListenableFuture;
+import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
@@ -23,6 +26,12 @@ public interface RemoteProductsAPIService {
      */
     @GET("products")
     ListenableFuture<ProductsList> getProducts(
+            @Header("Authorization") String authorization,
+            @Query("barcode") String barcode
+    );
+
+    @GET("products")
+    LiveData<ApiResponse<ProductsList>> _getProducts(
             @Header("Authorization") String authorization,
             @Query("barcode") String barcode
     );

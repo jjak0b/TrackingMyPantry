@@ -7,6 +7,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
+import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.repositories.LoginRepository;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
@@ -15,6 +16,9 @@ import com.jjak0b.android.trackingmypantry.data.services.RemoteProductsAPIServic
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+
+import java.util.concurrent.ExecutionException;
 
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 
@@ -70,6 +74,13 @@ public class PantryDataSource {
                     }
                 },
                 MoreExecutors.directExecutor()
+        );
+    }
+
+    public LiveData<ApiResponse<ProductsList>> _getProducts(@NonNull String barcode ) throws ExecutionException, InterruptedException {
+        return service._getProducts(
+                authRepository.requireAuthorization(false).get(),
+                barcode
         );
     }
 

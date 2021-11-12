@@ -8,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.base.Function;
@@ -18,9 +19,9 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
-import com.jjak0b.android.trackingmypantry.data.auth.NotLoggedInException;
+import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.services.API.AuthLoginResponse;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
@@ -169,8 +170,8 @@ public class LoginRepository {
         return null;
     }
 
-    public MutableLiveData<LoggedAccount> getLoggedInUser() {
-        return this.mLoggedInUser;
+    public LiveData<LoggedAccount> getLoggedInUser() {
+        return mLoggedInUser;
     }
 
     public void setLoggedInUser(LoggedAccount user) {
