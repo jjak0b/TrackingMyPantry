@@ -17,9 +17,11 @@ import androidx.lifecycle.MutableLiveData;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
 import com.jjak0b.android.trackingmypantry.data.db.entities.User;
@@ -128,8 +130,7 @@ public class AuthRepository {
     }
 
     public LiveData<Resource<String>> signIn(LoginCredentials credentials) {
-        final LiveEvent<String> mAuthToken = new LiveEvent<>();
-
+        final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
         return new NetworkBoundResource<String, AuthLoginResponse>(appExecutors) {
             @Override
             protected void saveCallResult(AuthLoginResponse item) {
@@ -208,9 +209,9 @@ public class AuthRepository {
      * @return a Resource containing the value of the auth token or an occurred error:
      * if an error occurs the resource contains:
      * <ul>
-     * <li>{@link AuthenticatorException} if the authenticator failed to respond</li>
-     * <li>{@link OperationCanceledException} if the operation is canceled for any reason, incluidng the user canceling a credential request</li>
+     * <li>{@link AuthException} if the authenticator failed to respond: failed authentication</li>
      * <li>{@link IOException } if the authenticator experienced an I/O problem creating a new auth token, usually because of network trouble</li>
+     * <li>{@link OperationCanceledException} if the operation is canceled for any reason, incluidng the user canceling a credential request</li>
      * </ul>
      */
     private LiveData<Resource<String>> getAuthToken(@NonNull Account account) {
@@ -248,9 +249,13 @@ public class AuthRepository {
                                 null
                         ).getResult();
                     }
-                    catch (AuthenticatorException | IOException | OperationCanceledException e ) {
+                    catch (IOException | OperationCanceledException e) {
                         e.printStackTrace();
                         onResponse.postValue(ApiResponse.create(e));
+                    }
+                    catch (AuthenticatorException e) {
+                        e.printStackTrace();
+                        onResponse.postValue(ApiResponse.create(new AuthException(AuthResultState.FAILED)));
                     }
                     String authToken = null;
                     if( result != null ) {
