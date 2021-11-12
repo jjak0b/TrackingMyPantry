@@ -113,8 +113,8 @@ public class AuthRepository {
             }
 
             @Override
-            protected void onFetchFailed() {
-                Log.e( TAG, "SignUn try Failed" );
+            protected void onFetchFailed(Throwable cause) {
+                Log.e( TAG, "SignUn try Failed", cause);
             }
 
             @Override
@@ -143,8 +143,8 @@ public class AuthRepository {
             }
 
             @Override
-            protected void onFetchFailed() {
-                Log.e( TAG, "SignIn try Failed" );
+            protected void onFetchFailed(Throwable cause) {
+                Log.e( TAG, "SignIn try Failed", cause );
             }
 
             @Override
@@ -185,8 +185,8 @@ public class AuthRepository {
             }
 
             @Override
-            protected void onFetchFailed() {
-                Log.e( TAG, "Unable to fetch account info" );
+            protected void onFetchFailed(Throwable cause) {
+                Log.e( TAG, "Unable to fetch account info", cause);
             }
 
             @Override
@@ -226,6 +226,11 @@ public class AuthRepository {
             @Override
             protected boolean shouldFetch(@Nullable String data) {
                 return true;
+            }
+
+            @Override
+            protected void onFetchFailed(Throwable cause) {
+                Log.e( TAG, "Unable authenticate account " + account.name, cause);
             }
 
             @Override
