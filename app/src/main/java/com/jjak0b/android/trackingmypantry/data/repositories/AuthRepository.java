@@ -96,7 +96,63 @@ public class AuthRepository {
         return mLoggedAccount;
     }
 
-    public LiveData<Resource<RegisterCredentials>> signUp(RegisterCredentials credentials ) {
+    public LiveData<Resource<User>> addUser(RegisterCredentials credentials) {
+        final MutableLiveData<User> mUser = new MutableLiveData<>();
+        return new NetworkBoundResource<User, User>(appExecutors) {
+
+            @Override
+            protected void saveCallResult(User user) {
+                mUser.postValue(user);
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable User data) {
+                return true;
+            }
+
+            @Override
+            protected LiveData<User> loadFromDb() {
+                return mUser;
+            }
+
+            @Override
+            protected LiveData<ApiResponse<User>> createCall() {
+                return Transformations.switchMap(signUp(credentials), resource -> {
+                    return dataSource._whoAmI(resource.getData().getAccessToken());
+                });
+            }
+        }.asLiveData();
+    }
+
+    public LiveData<Resource<User>> getUser(LoginCredentials credentials) {
+        final MutableLiveData<User> mUser = new MutableLiveData<>();
+        return new NetworkBoundResource<User, User>(appExecutors) {
+
+            @Override
+            protected void saveCallResult(User user) {
+                mUser.postValue(user);
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable User data) {
+                return true;
+            }
+
+            @Override
+            protected LiveData<User> loadFromDb() {
+                return mUser;
+            }
+
+            @Override
+            protected LiveData<ApiResponse<User>> createCall() {
+                return Transformations.switchMap(signIn(credentials), resource -> {
+                    return dataSource._whoAmI(resource.getData());
+                });
+            }
+        }.asLiveData();
+    }
+
+    private LiveData<Resource<RegisterCredentials>> signUp(RegisterCredentials credentials ) {
 
         LiveEvent<RegisterCredentials> mOnSignUp = new LiveEvent<>();
 
@@ -129,7 +185,7 @@ public class AuthRepository {
         }.asLiveData();
     }
 
-    public LiveData<Resource<String>> signIn(LoginCredentials credentials) {
+    private LiveData<Resource<String>> signIn(LoginCredentials credentials) {
         final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
         return new NetworkBoundResource<String, AuthLoginResponse>(appExecutors) {
             @Override
