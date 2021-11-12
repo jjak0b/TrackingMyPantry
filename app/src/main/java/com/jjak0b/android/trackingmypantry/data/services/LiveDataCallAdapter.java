@@ -22,7 +22,7 @@ public final class LiveDataCallAdapter<R> implements CallAdapter<R, LiveData<Api
 
     @Override
     public Type responseType() {
-        return null;
+        return responseType;
     }
 
     @Override

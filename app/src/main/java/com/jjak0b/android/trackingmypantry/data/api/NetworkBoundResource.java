@@ -24,7 +24,8 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
     private MediatorLiveData<Resource<ResultType>> result;
 
     @MainThread
-    public NetworkBoundResource(@NonNull AppExecutors appExecutors) {
+    public NetworkBoundResource(@NonNull AppExecutors _appExecutors) {
+        appExecutors = _appExecutors;
         result = new MediatorLiveData<>();
         result.setValue(Resource.loading(null));
 
