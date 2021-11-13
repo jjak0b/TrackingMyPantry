@@ -28,7 +28,7 @@ public class AuthActivity extends AppCompatActivity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mResultBundle = null;
 
-    private NewAuthViewModel authViewModel;
+    private AuthViewModel authViewModel;
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -56,7 +56,7 @@ public class AuthActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(toolbar, navController);
 
 
-        authViewModel = new ViewModelProvider(this).get(NewAuthViewModel.class);
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         mAccountAuthenticatorResponse =
                 getIntent().getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
 

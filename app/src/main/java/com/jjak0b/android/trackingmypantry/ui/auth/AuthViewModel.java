@@ -23,7 +23,7 @@ import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 import java.io.IOException;
 
-public class NewAuthViewModel extends AndroidViewModel {
+public class AuthViewModel extends AndroidViewModel {
 
     private static final String TAG = "AuthViewModel";
     private AuthRepository authRepository;
@@ -31,7 +31,7 @@ public class NewAuthViewModel extends AndroidViewModel {
 
     private LiveEvent<Resource<Bundle>> onAuthenticate;
 
-    public NewAuthViewModel(@NonNull Application application) {
+    public AuthViewModel(@NonNull Application application) {
         super(application);
         this.authRepository = AuthRepository.getInstance(application);
         this.mUIResult = new LiveEvent<>();

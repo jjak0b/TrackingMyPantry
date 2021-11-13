@@ -25,7 +25,7 @@ import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 public class LoginFormFragment extends Fragment {
 
     protected AuthFormViewModel formViewModel;
-    protected NewAuthViewModel authViewModel;
+    protected AuthViewModel authViewModel;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -39,7 +39,7 @@ public class LoginFormFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         formViewModel = new ViewModelProvider(this).get(AuthFormViewModel.class);
-        authViewModel = new ViewModelProvider(requireActivity()).get(NewAuthViewModel.class);
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         /*
         Log.d( "LoginFormFragment", "removing observers");

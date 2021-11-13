@@ -24,7 +24,7 @@ import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
-import com.jjak0b.android.trackingmypantry.ui.auth.NewAuthViewModel;
+import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewFragmentArgs;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity  {
 
     private final static String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
-    private NewAuthViewModel authViewModel;
+    private AuthViewModel authViewModel;
 
     private ActivityResultLauncher<Intent> chooseAccountLauncher;
     private ActivityResultLauncher<String[]> requestPermissionLauncher;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity  {
         initNavController(navigationView);
         View headerView = navigationView.getHeaderView(0);
 
-        authViewModel = new ViewModelProvider(this).get(NewAuthViewModel.class);
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         mLoggedAccount = authViewModel.getLoggedAccount();
         // Register the permissions callback, which handles the user's response to the
         // system permissions dialog.
