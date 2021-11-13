@@ -8,10 +8,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.LoginRepository;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
+import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
 import com.jjak0b.android.trackingmypantry.data.services.RemoteProductsAPIService;
 
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
@@ -27,6 +30,7 @@ public class PantryDataSource {
     private static PantryDataSource instance;
     private RemoteProductsAPIService service;
     private LoginRepository authRepository;
+    private AuthRepository mAuthRepository;
 
     public PantryDataSource( LoginRepository repository ) {
         service = HttpClient.getInstance()
@@ -46,6 +50,7 @@ public class PantryDataSource {
     public static PantryDataSource getInstance(final Context context) {
         if( instance == null ) {
             instance = new PantryDataSource(LoginRepository.getInstance(context));
+            instance.mAuthRepository = AuthRepository.getInstance(context);
         }
 
         return instance;
@@ -77,13 +82,17 @@ public class PantryDataSource {
         );
     }
 
-    public LiveData<ApiResponse<ProductsList>> _getProducts(@NonNull String barcode ) throws ExecutionException, InterruptedException {
-        return service._getProducts(
-                authRepository.requireAuthorization(false).get(),
-                barcode
-        );
+    public LiveData<ApiResponse<ProductsList>> _getProducts(@NonNull String barcode ) {
+        return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
+            return service._getProducts(authorization.getData(), barcode);
+        });
     }
 
+    public LiveData<ApiResponse<VoteResponse>> _voteProduct(@NonNull Vote vote ) {
+        return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
+            return service._voteProduct(authorization.getData(), vote);
+        });
+    }
     /**
      * @implNote see
      * <ul>

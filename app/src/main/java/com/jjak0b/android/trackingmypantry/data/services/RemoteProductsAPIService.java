@@ -7,6 +7,7 @@ import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
+import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
 
 import retrofit2.adapter.guava.GuavaCallAdapterFactory;
 import retrofit2.http.Body;
@@ -68,6 +69,12 @@ public interface RemoteProductsAPIService {
      */
     @POST("votes")
     ListenableFuture<Void> voteProduct(
+            @Header("Authorization") String authorization,
+            @Body Vote vote
+    );
+
+    @POST("votes")
+    LiveData<ApiResponse<VoteResponse>> _voteProduct(
             @Header("Authorization") String authorization,
             @Body Vote vote
     );
