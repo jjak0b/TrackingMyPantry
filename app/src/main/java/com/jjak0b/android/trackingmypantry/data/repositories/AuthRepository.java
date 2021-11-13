@@ -365,30 +365,5 @@ public class AuthRepository {
         }
         return null;
     }
-
-    /**
-     * Create a bundle to store into an {Account}
-     * @param user
-     * @return
-     */
-    @NonNull
-    private static Bundle buildBundleFromUser(@NonNull User user) {
-        Bundle bundle = new Bundle();
-        bundle.putString("id", user.getId());
-        bundle.putString("username", user.getUsername());
-        return bundle;
-    }
-
-    /**
-     * @Precondition: Account must an already registered account into device
-     * @param account
-     * @return
-     */
-    @NonNull
-    private User buildUserFromExistingAccount(Account account) {
-        return new User(
-                mAccountManager.getUserData(account, "id"),
-                mAccountManager.getUserData(account, "username")
-        );
-    }
+    
 }
