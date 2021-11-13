@@ -63,9 +63,9 @@ public class LoginDataSource {
         return service.whoAmI(authorization);
     }
 
-    public LiveData<ApiResponse<RegisterCredentials>> _register(@NonNull RegisterCredentials credentials) {
-        MediatorLiveData<ApiResponse<RegisterCredentials>> mediator = new MediatorLiveData<>();
-        LiveData<ApiResponse<RegisterCredentials>> mRealLogin = service._createUser( credentials );
+    public LiveData<ApiResponse<User>> _register(@NonNull RegisterCredentials credentials) {
+        MediatorLiveData<ApiResponse<User>> mediator = new MediatorLiveData<>();
+        LiveData<ApiResponse<User>> mRealLogin = service._createUser( credentials );
 
         // Add a mediator to specify (if any) why we got an unauthorized error
         mediator.addSource( mRealLogin, response -> {

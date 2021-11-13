@@ -19,6 +19,7 @@ import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
+import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
@@ -47,16 +48,15 @@ public class AuthRepository {
 
     private MediatorLiveData<Resource<LoggedAccount>> mLoggedAccount;
     private LiveData<Resource<LoggedAccount>> mLoggedAccountResource;
-    private MutableLiveData<LoggedAccount> mStoredLoggedAccount;
+
     // private constructor : singleton access
     private AuthRepository(LoginDataSource dataSource, final Context context ) {
         this.dataSource = dataSource;
         this.mAccountManager = AccountManager.get(context);
         this.appExecutors = AppExecutors.getInstance();
 
-        this.mStoredLoggedAccount = new MutableLiveData<>(null);
-        this.mLoggedAccountResource = null;
         this.mLoggedAccount = new MediatorLiveData<>();
+        this.mLoggedAccount.setValue(Resource.error(new NotLoggedInException(), null));
     }
 
     public static AuthRepository getInstance(final Context context) {
@@ -78,18 +78,29 @@ public class AuthRepository {
     }
 
     public void setLoggedAccount(String name) {
-        Account account = getAccount(name);
+
+        Account account = name != null ? getAccount(name) : null;
+        LiveData<Resource<LoggedAccount>> mSource;
+        // attach a new account resource
         if( account != null ) {
-            // detach current account resource
-            if( mLoggedAccountResource != null ) {
-                mLoggedAccount.removeSource(mLoggedAccountResource);
-            }
-            // attach a new account resource
-            mLoggedAccountResource = getLoggedAccount(account);
-            if( mLoggedAccountResource != null ) {
-                mLoggedAccount.addSource(mLoggedAccountResource, resource -> mLoggedAccount.setValue(resource));
-            }
+            mSource = getLoggedAccount(account);
         }
+        else {
+            mSource = new MutableLiveData<>(Resource.error(
+                    new NotLoggedInException(),
+                    null
+            ));
+        }
+
+        mLoggedAccount.addSource(mSource, resource -> {
+            mLoggedAccount.setValue(resource);
+        });
+
+        // detach current account resource
+        if( mLoggedAccountResource != null ) {
+            mLoggedAccount.removeSource(mLoggedAccountResource);
+        }
+        mLoggedAccountResource = mSource;
     }
 
     public LiveData<Resource<LoggedAccount>> getLoggedAccount() {
@@ -97,35 +108,11 @@ public class AuthRepository {
     }
 
     public LiveData<Resource<User>> addUser(RegisterCredentials credentials) {
-        final MutableLiveData<User> mUser = new MutableLiveData<>();
-        return new NetworkBoundResource<User, User>(appExecutors) {
-
-            @Override
-            protected void saveCallResult(User user) {
-                mUser.postValue(user);
-            }
-
-            @Override
-            protected boolean shouldFetch(@Nullable User data) {
-                return true;
-            }
-
-            @Override
-            protected LiveData<User> loadFromDb() {
-                return mUser;
-            }
-
-            @Override
-            protected LiveData<ApiResponse<User>> createCall() {
-                return Transformations.switchMap(signUp(credentials), resource -> {
-                    return dataSource._whoAmI(resource.getData().getAccessToken());
-                });
-            }
-        }.asLiveData();
+        return signUp(credentials);
     }
 
     public LiveData<Resource<User>> getUser(LoginCredentials credentials) {
-        final MutableLiveData<User> mUser = new MutableLiveData<>();
+        final MutableLiveData<User> mUser = new MutableLiveData<>(null);
         return new NetworkBoundResource<User, User>(appExecutors) {
 
             @Override
@@ -152,19 +139,17 @@ public class AuthRepository {
         }.asLiveData();
     }
 
-    private LiveData<Resource<RegisterCredentials>> signUp(RegisterCredentials credentials ) {
-
-        LiveEvent<RegisterCredentials> mOnSignUp = new LiveEvent<>();
-
-        return new NetworkBoundResource<RegisterCredentials, RegisterCredentials>(appExecutors) {
+    private LiveData<Resource<User>> signUp(RegisterCredentials credentials ) {
+        final MutableLiveData<User> mOnSignUp = new MutableLiveData<>(null);
+        return new NetworkBoundResource<User, User>(appExecutors) {
 
             @Override
-            protected void saveCallResult(RegisterCredentials item) {
+            protected void saveCallResult(User item) {
                 mOnSignUp.postValue(item);
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable RegisterCredentials data) {
+            protected boolean shouldFetch(@Nullable User data) {
                 return true;
             }
 
@@ -174,18 +159,18 @@ public class AuthRepository {
             }
 
             @Override
-            protected LiveData<RegisterCredentials> loadFromDb() {
+            protected LiveData<User> loadFromDb() {
                 return mOnSignUp;
             }
 
             @Override
-            protected LiveData<ApiResponse<RegisterCredentials>> createCall() {
+            protected LiveData<ApiResponse<User>> createCall() {
                 return dataSource._register(credentials);
             }
         }.asLiveData();
     }
 
-    private LiveData<Resource<String>> signIn(LoginCredentials credentials) {
+    public LiveData<Resource<String>> signIn(LoginCredentials credentials) {
         final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
         return new NetworkBoundResource<String, AuthLoginResponse>(appExecutors) {
             @Override
@@ -221,18 +206,14 @@ public class AuthRepository {
      * @return
      */
     private LiveData<Resource<LoggedAccount>> getLoggedAccount(@NonNull Account account ) {
+        final MutableLiveData<LoggedAccount> mStoredLoggedAccount = new MutableLiveData<>(null);
         return new NetworkBoundResource<LoggedAccount, User>(appExecutors) {
             @Override
             protected void saveCallResult(User user) {
-                if( user != null ){
-                    mStoredLoggedAccount.postValue(new LoggedAccount.Builder()
-                            .setAccount(account)
-                            .setUser(user)
-                            .build());
-                }
-                else {
-                    mStoredLoggedAccount.postValue(null);
-                }
+                mStoredLoggedAccount.postValue(new LoggedAccount.Builder()
+                        .setAccount(account)
+                        .setUser(user)
+                        .build());
             }
 
             @Override
@@ -271,7 +252,7 @@ public class AuthRepository {
      * </ul>
      */
     private LiveData<Resource<String>> getAuthToken(@NonNull Account account) {
-        final MutableLiveData<String> mAuthToken = new MutableLiveData<>();
+        final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
         return new NetworkBoundResource<String, String>(appExecutors) {
 
             @Override
@@ -309,6 +290,14 @@ public class AuthRepository {
                                 null,
                                 null
                         ).getResult();
+                        String authToken = result != null ? result.getString(AccountManager.KEY_AUTHTOKEN) : null;
+                        if( authToken != null ){
+                            onResponse.postValue(ApiResponse.create(Response.success(authToken)));
+                        }
+                        else {
+                            // warning: this should not never happen
+                            onResponse.postValue(ApiResponse.create(new IllegalArgumentException()));
+                        }
                     }
                     catch (IOException | OperationCanceledException e) {
                         e.printStackTrace();
@@ -317,17 +306,6 @@ public class AuthRepository {
                     catch (AuthenticatorException e) {
                         e.printStackTrace();
                         onResponse.postValue(ApiResponse.create(new AuthException(AuthResultState.FAILED)));
-                    }
-                    String authToken = null;
-                    if( result != null ) {
-                        authToken = result.getString(AccountManager.KEY_AUTHTOKEN);
-                    }
-                    if( authToken != null ){
-                        onResponse.postValue(ApiResponse.create(Response.success(authToken)));
-                    }
-                    else {
-                        // warning: this should not never happen
-                        onResponse.postValue(ApiResponse.create(new NullPointerException()));
                     }
                 });
 
@@ -347,7 +325,7 @@ public class AuthRepository {
      * </ul>
      */
     public LiveData<Resource<String>> requireAuthorization() {
-        final MutableLiveData<String> mAuthToken = new MutableLiveData<>();
+        final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
 
         return new NetworkBoundResource<String, String>(appExecutors) {
 

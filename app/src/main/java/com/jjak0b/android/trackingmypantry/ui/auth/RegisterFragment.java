@@ -96,20 +96,28 @@ public class RegisterFragment extends LoginFormFragment {
     }
 
     private void register( ProgressBar loadingProgressBar, String username, String email, String password ) {
-        loadingProgressBar.setVisibility(View.VISIBLE);
 
-        InputUtil.hideKeyboard( getActivity() );
+        InputUtil.hideKeyboard( requireActivity() );
 
-        formViewModel.register(
+        authViewModel.register(
                 username,
                 email,
                 password
-        ).addListener(
-                () -> {
+        ).observe(getViewLifecycleOwner(), resource -> {
+            switch ( resource.getStatus() ) {
+                case LOADING:
+                    loadingProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case SUCCESS:
                     loadingProgressBar.setVisibility(View.GONE);
-                },
-                ContextCompat.getMainExecutor( getContext() )
-        );
+                    formViewModel.setUIUser(new LoggedInUserView( resource.getData().getUsername() ));
+                    break;
+                case ERROR:
+                    loadingProgressBar.setVisibility(View.GONE);
+                    formViewModel.setUIError(resource.getError(), false);
+                    break;
+            }
+        });
     }
 
     private void updateUiWithUser(LoggedInUserView model) {

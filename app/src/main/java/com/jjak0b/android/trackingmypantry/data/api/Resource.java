@@ -41,4 +41,14 @@ public class Resource<T> {
     public Throwable getError() {
         return error;
     }
+
+    @Override
+    public String toString() {
+        return "Resource{" +
+                "status=" + status +
+                ", data=" + data +
+                ", message='" + message + '\'' +
+                ", error=" + error +
+                '}';
+    }
 }

@@ -24,8 +24,8 @@ import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 
 public class LoginFormFragment extends Fragment {
 
-    protected AuthViewModel formViewModel;
-
+    protected AuthFormViewModel formViewModel;
+    protected NewAuthViewModel authViewModel;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -38,11 +38,8 @@ public class LoginFormFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        formViewModel = new ViewModelProvider(
-                this,
-                ViewModelProvider.AndroidViewModelFactory
-                        .getInstance(getActivity().getApplication())
-        ).get(AuthViewModel.class);
+        formViewModel = new ViewModelProvider(this).get(AuthFormViewModel.class);
+        authViewModel = new ViewModelProvider(requireActivity()).get(NewAuthViewModel.class);
 
         /*
         Log.d( "LoginFormFragment", "removing observers");
@@ -92,13 +89,14 @@ public class LoginFormFragment extends Fragment {
         };
         emailEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
-
+/*
         formViewModel.onLoggedUser().observe(getViewLifecycleOwner(), credentials -> {
             Log.d("LoginFormFragment", "LoggedUser changed " + credentials);
             if( credentials != null ){
                 emailEditText.setText( credentials.getName() );
             }
         });
+ */
     }
 
     protected void registerFormResultsFeedback(

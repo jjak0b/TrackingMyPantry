@@ -18,16 +18,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
-import com.jjak0b.android.trackingmypantry.data.db.entities.User;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
-import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
-import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.ui.auth.NewAuthViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewFragmentArgs;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
@@ -35,7 +32,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -47,16 +44,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity  {
 
+    private final static String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
-    private AuthViewModel authViewModel;
+    private NewAuthViewModel authViewModel;
 
     private ActivityResultLauncher<Intent> chooseAccountLauncher;
     private ActivityResultLauncher<String[]> requestPermissionLauncher;
     private SharedPreferences.OnSharedPreferenceChangeListener onEnableFeatureExpirationReminders;
+
+    private LiveData<Resource<LoggedAccount>> mLoggedAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +69,8 @@ public class MainActivity extends AppCompatActivity  {
         initNavController(navigationView);
         View headerView = navigationView.getHeaderView(0);
 
-        authViewModel = new ViewModelProvider(
-                this,
-                ViewModelProvider.AndroidViewModelFactory
-                        .getInstance(getApplication())
-        ).get(AuthViewModel.class);
-
+        authViewModel = new ViewModelProvider(this).get(NewAuthViewModel.class);
+        mLoggedAccount = authViewModel.getLoggedAccount();
         // Register the permissions callback, which handles the user's response to the
         // system permissions dialog.
 
@@ -96,30 +92,35 @@ public class MainActivity extends AppCompatActivity  {
                                 .apply();
                     }
 
-                    authViewModel.getLoggedUser().observe(this, new Observer<LoggedAccount>() {
+                    mLoggedAccount.observe(this, new Observer<Resource<LoggedAccount>>() {
                         @Override
-                        public void onChanged(LoggedAccount account) {
-                            if( account == null ) return;
-                            authViewModel.getLoggedUser().removeObserver(this::onChanged);
+                        public void onChanged(Resource<LoggedAccount> resource) {
+                            switch (resource.getStatus()) {
+                                case SUCCESS:
+                                    mLoggedAccount.removeObserver(this);
+                                    LoggedAccount account = resource.getData();
+                                    if (areAllGranted) {
+                                        // Permission is granted.
 
-                            if (areAllGranted) {
-                                // Permission is granted.
+                                        // switch off and on to trigger sync
+                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
+                                    }
+                                    else {
+                                        // Explain to the user that the feature is unavailable because the
+                                        // features requires a permission that the user has denied.
+                                        new AlertDialog.Builder(activityContext)
+                                                .setTitle(R.string.rationale_title_feature)
+                                                .setMessage(R.string.features_calendar_disabled_cause_permissions)
+                                                .setPositiveButton(android.R.string.ok, null)
+                                                .show();
 
-                                // switch off and on to trigger sync
-                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
-                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
-                            }
-                            else {
-                                // Explain to the user that the feature is unavailable because the
-                                // features requires a permission that the user has denied.
-                                new AlertDialog.Builder(activityContext)
-                                        .setTitle(R.string.rationale_title_feature)
-                                        .setMessage(R.string.features_calendar_disabled_cause_permissions)
-                                        .setPositiveButton(android.R.string.ok, null)
-                                        .show();
-
-                                // switch off sync
-                                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                                        // switch off sync
+                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                                    }
+                                    break;
+                                default:
+                                    break;
                             }
                         }
                     });
@@ -134,7 +135,7 @@ public class MainActivity extends AppCompatActivity  {
                         Bundle b = intent.getExtras();
                         String accountName = b.getString(AccountManager.KEY_ACCOUNT_NAME);
 
-                        Log.d("Main", "setting account " + accountName );
+                        Log.d(TAG, "Selected account to login with: " + accountName );
                         authViewModel.setLoggedAccount( accountName );
                     }
                     else {
@@ -153,36 +154,80 @@ public class MainActivity extends AppCompatActivity  {
             }
         };
 
-        authViewModel.getLoginUIResult().observe(this, new Observer<LoginResult>() {
-            @Override
-            public void onChanged(LoginResult loginResult) {
-                if( loginResult.getError() != null ){
-                    Toast.makeText(getApplicationContext(),
-                            getString(loginResult.getError(), R.string.to_authenticate),
-                            Toast.LENGTH_LONG
-                    ).show();
-                }
-            }
-        });
-
-        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        options.registerOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
-
-        authViewModel.onLoggedUser().observe(this, account -> {
-            if( account == null ) return;
-
-            Log.e("onLoggedUser", account.toString() );
-            boolean featureFlag = options.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
-
-            if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
-                requestFeatureExpirationReminders( requestPermissionLauncher, options);
-                ContentResolver.requestSync(account.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
-            }
-        });
+        // Observe first auth result
+        observeOnFailedAuth();
+        observeOnSuccessAuth();
 
         initNavHeaderView(headerView);
 
-        authenticate();
+        // authenticate();
+    }
+
+    private void observeOnFailedAuth() {
+        Log.d(TAG, "Observing on failed auth");
+        mLoggedAccount.observe(this, new Observer<Resource<LoggedAccount>>() {
+            @Override
+            public void onChanged(Resource<LoggedAccount> resource) {
+                switch (resource.getStatus()) {
+                    case ERROR:
+                        Log.e(TAG, "Observer failed auth", resource.getError());
+
+                        if( resource.getError() instanceof NotLoggedInException ) {
+                            Log.d(TAG, "User not logged in");
+                            launchAccountChooser(null);
+                        }
+                        else if( resource.getError() instanceof AuthException ) {
+                            // Unauthorized user
+                            Toast.makeText(
+                                    getBaseContext(),
+                                    R.string.signIn_failed,
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                        else if( resource.getError() instanceof IOException ) {
+                            // Network error, unable to contact server
+                            Toast.makeText(
+                                    getBaseContext(),
+                                    R.string.auth_failed_network,
+                                    Toast.LENGTH_LONG
+                            ).show();
+                        }
+                        else { // if( resource.getError() instanceof RemoteException )
+                                // Server error, unable to verify user
+                                Toast.makeText(
+                                        getBaseContext(),
+                                        R.string.auth_failed_unknown,
+                                        Toast.LENGTH_LONG
+                                ).show();
+                        }
+                        break;
+                }
+            }
+        });
+    }
+
+    private void observeOnSuccessAuth() {
+        Log.d(TAG, "Observing on success auth");
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        options.registerOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
+
+        mLoggedAccount.observe(this, resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    // we have just authenticated
+                    LoggedAccount mLoggedAccount = resource.getData();
+                    Log.d(TAG, "Observer success auth for account " + mLoggedAccount);
+
+                    // setup reminders for account
+                    boolean featureFlag = options.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+
+                    if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
+                        requestFeatureExpirationReminders( requestPermissionLauncher, options);
+                        ContentResolver.requestSync(mLoggedAccount.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+                    }
+                    break;
+            }
+        });
     }
 
     private void initNavController(NavigationView navigationView) {
@@ -218,21 +263,24 @@ public class MainActivity extends AppCompatActivity  {
         TextView emailView = navHeaderView.findViewById(R.id.login_info_email);
         navHeaderView.setClickable(true);
 
-        authViewModel.getLoggedUser().observe(this, loggedAccount -> {
-            if( loggedAccount != null ) {
-                usernameView.setText(loggedAccount.getUsername());
-                emailView.setText(loggedAccount.getEmail());
+        mLoggedAccount.observe(this, resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    LoggedAccount loggedAccount = resource.getData();
+                    usernameView.setText(loggedAccount.getUsername());
+                    emailView.setText(loggedAccount.getEmail());
+                    navHeaderView.setOnClickListener( v -> launchAccountChooser(loggedAccount.getAccount()));
+                    break;
+                case ERROR:
+                default:
+                    usernameView.setText(null);
+                    emailView.setText(null);
+                    navHeaderView.setOnClickListener( v -> launchAccountChooser(null));
+                    break;
             }
-            navHeaderView.setOnClickListener( v -> {
-                if( loggedAccount != null ) {
-                    launchAccountChooser(loggedAccount.getAccount());
-                }
-                else {
-                    launchAccountChooser(null);
-                }
-            });
         });
     }
+
     private void requestFeatureExpirationReminders( ActivityResultLauncher<String[]> requestPermissionLauncher, SharedPreferences options) {
         new Permissions.FeatureRequestBuilder()
                 .setRationaleMessage(R.string.rationale_msg_features_calendar)
@@ -246,31 +294,6 @@ public class MainActivity extends AppCompatActivity  {
                             .apply();
                 })
                 .show(this);
-    }
-
-    private ListenableFuture<User> authenticate() {
-        ListenableFuture<User> future = authViewModel.authenticate();
-        Futures.addCallback(
-                future,
-                new FutureCallback<User>() {
-                    @Override
-                    public void onSuccess(@NullableDecl User result) {
-                        Log.d("Main", "authenticated with user: " + result);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        if( t instanceof NotLoggedInException ){
-                            launchAccountChooser(null);
-                        }
-                        else {
-                            authViewModel.setUIErrorFor( t, true);
-                        }
-                    }
-                },
-                ContextCompat.getMainExecutor(this)
-        );
-        return future;
     }
 
     private void launchAccountChooser(Account selected) {
@@ -320,6 +343,8 @@ public class MainActivity extends AppCompatActivity  {
         this.authViewModel = null;
         this.chooseAccountLauncher = null;
         this.requestPermissionLauncher = null;
+        this.mLoggedAccount.removeObservers(this);
+        this.mLoggedAccount = null;
 
         super.onDestroy();
     }

@@ -89,19 +89,27 @@ public class LoginFragment extends LoginFormFragment {
     }
 
     private void login(  ProgressBar loadingProgressBar, String email, String password ) {
-        loadingProgressBar.setVisibility(View.VISIBLE);
 
-        InputUtil.hideKeyboard( getActivity() );
+        InputUtil.hideKeyboard( requireActivity() );
 
-        formViewModel.login(
+        authViewModel.login(
                 email,
                 password
-        ).addListener(
-                () -> {
+        ).observe(getViewLifecycleOwner(), resource -> {
+            switch ( resource.getStatus() ) {
+                case LOADING:
+                    loadingProgressBar.setVisibility(View.VISIBLE);
+                    break;
+                case SUCCESS:
                     loadingProgressBar.setVisibility(View.GONE);
-                },
-                ContextCompat.getMainExecutor( getContext() )
-        );
+                    formViewModel.setUIUser(new LoggedInUserView( resource.getData().getUsername() ));
+                    break;
+                case ERROR:
+                    loadingProgressBar.setVisibility(View.GONE);
+                    formViewModel.setUIError(resource.getError(), true);
+                    break;
+            }
+        });
     }
 
     private void updateUiWithUser(LoggedInUserView model) {

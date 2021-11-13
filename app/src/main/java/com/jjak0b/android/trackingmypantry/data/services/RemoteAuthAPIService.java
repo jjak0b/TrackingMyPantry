@@ -55,7 +55,7 @@ public interface RemoteAuthAPIService {
      * @see LiveDataCallAdapterFactory
      */
     @POST("users")
-    LiveData<ApiResponse<RegisterCredentials>> _createUser(
+    LiveData<ApiResponse<User>> _createUser(
             @Body RegisterCredentials credentials
     );
 
