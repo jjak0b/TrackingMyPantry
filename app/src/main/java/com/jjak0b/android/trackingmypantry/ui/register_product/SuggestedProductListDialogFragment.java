@@ -18,8 +18,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
+
+import java.io.IOException;
 
 /**
  * <p>A fragment that shows a list of items as a modal bottom sheet.</p>
@@ -30,8 +36,9 @@ import com.jjak0b.android.trackingmypantry.R;
  */
 public class SuggestedProductListDialogFragment extends BottomSheetDialogFragment {
 
-    private RegisterProductViewModel mViewModel;
+    private SuggestedProductsViewModel mViewModel;
     private ProductListAdapter listAdapter;
+    private String mParamBarcode;
 
     @Nullable
     @Override
@@ -50,52 +57,75 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-        mViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), product -> mViewModel.setProduct(product));
+        mParamBarcode = SuggestedProductListDialogFragmentArgs
+                .fromBundle(getArguments()).getBarcode();
+
+        mViewModel = new ViewModelProvider(requireParentFragment()).get(SuggestedProductsViewModel.class);
+        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), product -> mViewModel.vote(product));
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         final View suggestedResultsContainer = view.findViewById(R.id.suggestedResultsContainer);
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
 
-        Runnable onNewProduct = () -> mViewModel.setEmptyProduct();
-
         MenuItem menuItemNewProduct = toolbar.getMenu().findItem(R.id.action_new);
 
         // this if it's in collapsed menu view
         menuItemNewProduct.setOnMenuItemClickListener(item -> {
-            onNewProduct.run();
+            onNewProduct();
             return true;
         });
 
         // this as custom action view
-        menuItemNewProduct.getActionView().setOnClickListener( v -> onNewProduct.run() );
+        menuItemNewProduct.getActionView().setOnClickListener( v -> onNewProduct() );
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        toolbar.setSubtitle(getString(R.string.loading));
-        suggestedResultsContainer.setVisibility(View.GONE);
-        loadingBar.setVisibility( View.VISIBLE );
-
-        mViewModel.getProducts().observe( getViewLifecycleOwner(), products -> {
-            if( products == null ) return;
-
-            int size = products.size();
-            Log.e( "TEST2", "submitting new list of size: " + size );
-            toolbar.setSubtitle(getResources()
-                    .getQuantityString(R.plurals.matches_found, size, size));
-
-            if( size < 1 ){
+        mViewModel.getProducts(mParamBarcode).observe( getViewLifecycleOwner(), resource -> {
+            if (resource.getStatus() == Status.LOADING) {
+                loadingBar.setVisibility(View.VISIBLE);
                 suggestedResultsContainer.setVisibility(View.GONE);
+                toolbar.setSubtitle(getString(R.string.loading));
             }
             else {
-                suggestedResultsContainer.setVisibility(View.VISIBLE);
+                if( resource.getStatus() == Status.ERROR) {
+                    if( resource.getError() instanceof AuthException) {
+                        Toast.makeText(requireContext(),
+                                getString(R.string.error_generic_failed_auth, getString(R.string.to_get_data)),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                    else if( resource.getError() instanceof IOException) {
+                        Toast.makeText(requireContext(),
+                                getString(R.string.error_generic_failed_network, getString(R.string.to_get_data)),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                    else { // if( resource.getError() instanceof RemoteException)
+                        Toast.makeText(requireContext(),
+                                getString(R.string.error_generic_failed_unknown, getString(R.string.to_get_data)),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+
+                loadingBar.setVisibility(View.GONE);
+                int size = resource.getData().size();
+                toolbar.setSubtitle(getResources()
+                        .getQuantityString(R.plurals.matches_found, size, size));
+
+                if (size < 1)
+                    suggestedResultsContainer.setVisibility(View.GONE);
+                else
+                    suggestedResultsContainer.setVisibility(View.VISIBLE);
+
+                listAdapter.submitList(resource.getData());
             }
-            loadingBar.setVisibility( View.VISIBLE );
-            listAdapter.submitList( products );
-            loadingBar.setVisibility( View.GONE );
         });
     }
 
+    void onNewProduct() {
+        mViewModel.voteNewProduct();
+    }
 }

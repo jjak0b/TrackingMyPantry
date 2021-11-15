@@ -29,9 +29,11 @@
     <string name="signUp_failed">"Unable to sign up using the provided credentials, change username or email"</string>
     <string name="auth_failed_network">"Unable to authenticate due to a network error"</string>
     <string name="auth_failed_unknown">"Unable to authenticate due to an expected error"</string>
-    <string name="error_generic_failed_network">"Unable %1$s due to a network error"</string>
+    <string name="error_generic_failed_auth">"Unable %1$s due to a failed authentication"</string>
+    <string name="error_generic_failed_network">"Unable %1$s due to the inability to communicate with the server caused by a network error"</string>
     <string name="error_generic_failed_unknown">"Unable %1$s due to an expected error"</string>
     <string name="to_authenticate">"to authenticate"</string>
+    <string name="to_get_data">"to get data"</string>
     <string name="error_unable_to_take_picture">Error: Unable to take a picture</string>
 
     <string name="title_activity_main">MainActivity</string>
