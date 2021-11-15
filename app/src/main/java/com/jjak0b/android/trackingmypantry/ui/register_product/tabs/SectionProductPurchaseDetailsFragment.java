@@ -20,6 +20,11 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
         return new ViewModelProvider(this).get(SectionProductPurchaseDetailsViewModel.class);
     }
 
+    @NonNull
+    private SectionProductPurchaseDetailsViewModel getViewModel() {
+        return (SectionProductPurchaseDetailsViewModel) mViewModel;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

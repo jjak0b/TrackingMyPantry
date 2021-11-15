@@ -40,7 +40,7 @@ import java.util.Date;
  */
 public class ProductPurchaseDetailsFragment extends Fragment {
 
-    private ProductPurchaseDetailsViewModel mViewModel;
+    protected ProductPurchaseDetailsViewModel mViewModel;
 
     private ActivityResultLauncher<Intent> locationPickerLauncher;
 

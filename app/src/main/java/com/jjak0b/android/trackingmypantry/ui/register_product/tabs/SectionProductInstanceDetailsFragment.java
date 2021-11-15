@@ -20,6 +20,11 @@ public class SectionProductInstanceDetailsFragment extends ProductInstanceDetail
         return new ViewModelProvider(this).get(SectionProductInstanceDetailsViewModel.class);
     }
 
+    @NonNull
+    private SectionProductInstanceDetailsViewModel getViewModel() {
+        return (SectionProductInstanceDetailsViewModel) mViewModel;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
