@@ -171,6 +171,7 @@ public class ProductDetailsFragment extends Fragment {
         });
         mViewModel.getAssignedTags().observe( getViewLifecycleOwner(), productTags -> {
             chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( productTags ) );
+            chipsInput.setSelection(chipsInput.getText().length());
         });
         mViewModel.getSuggestionTags().observe( getViewLifecycleOwner(), productTags -> {
             adapter.clear();
