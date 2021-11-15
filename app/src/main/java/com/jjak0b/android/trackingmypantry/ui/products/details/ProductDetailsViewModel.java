@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
+package com.jjak0b.android.trackingmypantry.ui.products.details;
 
 import android.app.Application;
 import android.graphics.Bitmap;
@@ -9,10 +9,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
@@ -85,6 +83,15 @@ public class ProductDetailsViewModel extends AndroidViewModel {
         super.onCleared();
     }
 
+    public void save() {
+        onSave.setValue(true);
+        onSave.postValue(false);
+    }
+
+    public LiveData<Boolean> onSave() {
+        return onSave;
+    }
+
     public LiveData<ProductWithTags> getProduct() {
         return originalProduct;
     }
@@ -139,15 +146,6 @@ public class ProductDetailsViewModel extends AndroidViewModel {
     public void setDescription(String description) {
         if( !Objects.equals(this.description.getValue(), description) )
             this.description.setValue(description);
-    }
-
-    public void save() {
-        onSave.setValue(true);
-        onSave.postValue(false);
-    }
-
-    public LiveData<Boolean> onSave() {
-        return onSave;
     }
 
 }

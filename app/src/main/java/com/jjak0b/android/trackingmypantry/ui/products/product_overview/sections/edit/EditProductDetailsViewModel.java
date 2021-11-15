@@ -5,7 +5,7 @@ import android.app.Application;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductDetailsViewModel;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 
 public class EditProductDetailsViewModel extends ProductDetailsViewModel {

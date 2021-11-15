@@ -60,14 +60,18 @@
             android:id="@+id/action_registerProductFragment_to_sectionProductPurchaseDetailsFragment"
             app:destination="@id/sectionProductPurchaseDetailsFragment" />
         <action
-            android:id="@+id/action_registerProductFragment_to_suggestedProductListDialogFragment"
+            android:id="@+id/openSuggestedProducts"
             app:destination="@id/suggestedProductListDialogFragment" />
     </fragment>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.SuggestedProductListDialogFragment"
         android:label="fragment_suggested_product_list_dialog_list_dialog"
-        tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" />
+        tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" >
+        <argument
+            android:name="barcode"
+            app:argType="string" />
+    </dialog>
 
     <fragment
         android:id="@+id/sectionProductDetailsFragment"
@@ -77,12 +81,12 @@
     </fragment>
     <fragment
         android:id="@+id/registerProductInstancesFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs._SectionProductInstanceDetailsFragment"
         android:label="fragment_section_product_instance_details"
         tools:layout="@layout/fragment_section_product_instance_details" />
     <fragment
         android:id="@+id/sectionProductPurchaseDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductPurchaseDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs._SectionProductPurchaseDetailsFragment"
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment
