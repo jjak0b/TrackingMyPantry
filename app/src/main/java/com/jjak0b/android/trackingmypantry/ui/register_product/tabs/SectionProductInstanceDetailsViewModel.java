@@ -6,9 +6,9 @@ import androidx.annotation.NonNull;
 
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsViewModel;
 
-public class _SectionProductInstanceDetailsViewModel extends ProductInstanceDetailsViewModel {
+public class SectionProductInstanceDetailsViewModel extends ProductInstanceDetailsViewModel {
 
-    public _SectionProductInstanceDetailsViewModel(@NonNull Application application) {
+    public SectionProductInstanceDetailsViewModel(@NonNull Application application) {
         super(application);
     }
 }

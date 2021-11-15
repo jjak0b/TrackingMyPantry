@@ -81,12 +81,12 @@
     </fragment>
     <fragment
         android:id="@+id/registerProductInstancesFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs._SectionProductInstanceDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment"
         android:label="fragment_section_product_instance_details"
         tools:layout="@layout/fragment_section_product_instance_details" />
     <fragment
         android:id="@+id/sectionProductPurchaseDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs._SectionProductPurchaseDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductPurchaseDetailsFragment"
         android:label="fragment_section_product_purchase_details"
         tools:layout="@layout/fragment_section_product_purchase_details" />
     <fragment

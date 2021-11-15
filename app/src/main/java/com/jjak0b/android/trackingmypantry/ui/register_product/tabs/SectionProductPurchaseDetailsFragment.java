@@ -7,17 +7,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsFragment;
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsViewModel;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 
-public class _SectionProductInstanceDetailsFragment extends ProductInstanceDetailsFragment {
+public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetailsFragment {
 
     private RegisterProductViewModel mSharedViewModel;
 
     @Override
-    protected ProductInstanceDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(_SectionProductInstanceDetailsViewModel.class);
+    protected ProductPurchaseDetailsViewModel initViewModel() {
+        return new ViewModelProvider(this).get(SectionProductPurchaseDetailsViewModel.class);
     }
 
     @Override
@@ -26,14 +26,15 @@ public class _SectionProductInstanceDetailsFragment extends ProductInstanceDetai
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
     }
 
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel.getProductInstance().observe( getViewLifecycleOwner(), productInstance -> {
-            if( productInstance == null ){
+        mSharedViewModel.getProductPurchaseInfo().observe( getViewLifecycleOwner(), purchaseInfo -> {
+            if( purchaseInfo == null ){
                 // set default values in fields
-                mSharedViewModel.resetProductInstance();
+                mSharedViewModel.resetPurchaseInfo();
                 return;
             }
         });
