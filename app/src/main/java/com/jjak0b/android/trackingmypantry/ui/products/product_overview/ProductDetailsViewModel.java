@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit;
+package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
 
 import android.app.Application;
 import android.graphics.Bitmap;
@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
@@ -20,26 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class EditProductDetailsViewModel extends AndroidViewModel {
+public class ProductDetailsViewModel extends AndroidViewModel {
 
-    private PantryRepository pantryRepository;
+    protected PantryRepository pantryRepository;
     private MutableLiveData<ProductWithTags> originalProduct;
-    private MutableLiveData<Product.Builder> productBuilder;
     private MutableLiveData<String> barcode;
     private MutableLiveData<String> name;
     private MutableLiveData<String> description;
     private MutableLiveData<List<ProductTag>> assignedTags;
     private MutableLiveData<Bitmap> image;
+    private LiveEvent<Boolean> onSave;
 
-    public EditProductDetailsViewModel(Application application) {
+    public ProductDetailsViewModel(Application application) {
         super(application);
 
         pantryRepository = PantryRepository.getInstance(application);
         originalProduct = new MutableLiveData<>();
-
-        productBuilder = (MutableLiveData<Product.Builder>) Transformations.map(originalProduct,
-                input -> input != null ?  new Product.Builder().from(input.product) : null
-        );
 
         barcode = (MutableLiveData<String>) Transformations.map(originalProduct,
                 input -> input != null ? input.product.getBarcode() : null
@@ -77,23 +74,23 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
                         return new ArrayList<>(0);
                 }
         );
+
+        onSave = new LiveEvent<>();
     }
 
     @Override
     protected void onCleared() {
-        productBuilder.setValue(null);
-        productBuilder = null;
+        originalProduct.setValue(null);
+        originalProduct = null;
         super.onCleared();
+    }
+
+    public LiveData<ProductWithTags> getProduct() {
+        return originalProduct;
     }
 
     public void setProduct(ProductWithTags productWithTags) {
         originalProduct.setValue(productWithTags);
-        Product.Builder productBuilder = null;
-
-        if( productWithTags != null )
-            productBuilder = new Product.Builder()
-                    .from(productWithTags.product );
-        this.productBuilder.setValue( productBuilder );
     }
 
     public void setAssignedTags( List<ProductTag> tags ) {
@@ -144,24 +141,13 @@ public class EditProductDetailsViewModel extends AndroidViewModel {
             this.description.setValue(description);
     }
 
-    public ListenableFuture<Void> submit() {
+    public void save() {
+        onSave.setValue(true);
+        onSave.postValue(false);
+    }
 
-        ProductWithTags productWithTags = new ProductWithTags();
-        Product.Builder builder = productBuilder.getValue()
-                .setName(getName().getValue())
-                .setDescription(getDescription().getValue());
-
-        if( !Objects.equals(getBarcode().getValue(), originalProduct.getValue().product.getBarcode() )){
-            builder.setBarcode(getBarcode().getValue());
-        }
-        if( getImage().getValue() != null ) {
-            builder.setImg(ImageUtil.convert(getImage().getValue()));
-        }
-
-        productWithTags.product = builder.build();
-        productWithTags.tags = getAssignedTags().getValue();
-
-        return pantryRepository.updateProductLocal(productWithTags);
+    public LiveData<Boolean> onSave() {
+        return onSave;
     }
 
 }

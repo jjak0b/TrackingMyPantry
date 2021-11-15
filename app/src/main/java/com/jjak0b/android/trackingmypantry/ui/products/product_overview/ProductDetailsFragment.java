@@ -1,9 +1,11 @@
-package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit;
+package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.CallSuper;
 import androidx.annotation.DrawableRes;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
@@ -36,33 +38,35 @@ import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
-public class EditProductDetailsFragment extends Fragment {
+public class ProductDetailsFragment extends Fragment {
 
-    private EditProductDetailsViewModel mViewModel;
-    private ProductOverviewViewModel mProductViewModel;
-    private ActivityResultLauncher<Void> takePictureLauncher;
-    private ActivityResultLauncher<String[]> requestCameraPermissionsLauncher;
+    protected ProductDetailsViewModel mViewModel;
+    protected ActivityResultLauncher<Void> takePictureLauncher;
+    protected ActivityResultLauncher<String[]> requestCameraPermissionsLauncher;
     @DrawableRes
-    private static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
+    protected static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
     @DrawableRes
-    private static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
+    protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
 
 
-    public static EditProductDetailsFragment newInstance() {
-        return new EditProductDetailsFragment();
+    public static ProductDetailsFragment newInstance() {
+        return new ProductDetailsFragment();
+    }
+
+    protected ProductDetailsViewModel initViewModel() {
+        return new ViewModelProvider(this).get(ProductDetailsViewModel.class);
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(EditProductDetailsViewModel.class);
-        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        mViewModel = initViewModel();
 
         takePictureLauncher = registerForActivityResult( new ImageUtil.ActivityResultContractTakePicture(), result -> {
             if( result != null ){
@@ -80,14 +84,13 @@ public class EditProductDetailsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.edit_product_details_fragment, container, false);
+        return inflater.inflate(R.layout.fragment_section_product_details, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
         final EditText editName = (EditText) view.findViewById( R.id.editProductName );
         final EditText editDescription = (EditText) view.findViewById( R.id.editProductDescription );
@@ -96,7 +99,6 @@ public class EditProductDetailsFragment extends Fragment {
         final ImageView photoPreview = (ImageView) view.findViewById(R.id.photoPreview);
         final View sectionTakePhoto = (View) view.findViewById(R.id.photoPreviewBtn);
         final NachoTextView chipsInput = (NachoTextView) view.findViewById(R.id.chips_input);
-        final FloatingActionButton fabSave = view.findViewById(R.id.fab_save);
 
         productForm.setVisibility(View.VISIBLE);
         boolean hasFeatureCamera = getContext().getPackageManager()
@@ -117,17 +119,12 @@ public class EditProductDetailsFragment extends Fragment {
             });
         }
 
-        barcodeInputLayout.setEnabled(false);
-        barcodeInputLayout.setStartIconVisible(false);
-        barcodeInputLayout.setEndIconVisible(false);
-        /*
-        Disable edit of barcode
         editBarcode.addTextChangedListener( new InputUtil.FieldTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 mViewModel.setBarcode(s.toString());
             }
-        });*/
+        });
         editName.addTextChangedListener( new InputUtil.FieldTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
@@ -150,34 +147,6 @@ public class EditProductDetailsFragment extends Fragment {
                 mViewModel.setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
             }
         });
-
-        fabSave.setOnClickListener( v -> {
-            // setOnFocusChangeListener is not triggered while clicking on save
-            if( chipsInput.hasFocus() ) {
-                chipsInput.clearFocus();
-                mViewModel.setAssignedTags(ChipTagUtil.newTagsInstanceFromChips(chipsInput.getAllChips()));
-            }
-
-            InputUtil.hideKeyboard(requireActivity());
-            Futures.addCallback(
-                    mViewModel.submit(),
-                    new FutureCallback<Void>() {
-                        @Override
-                        public void onSuccess(@Nullable Void result) {
-                            Navigation.findNavController(view)
-                                    .popBackStack();
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {
-                            Log.e("Edit product", "Failed save", t);
-                        }
-                    },
-                    ContextCompat.getMainExecutor(getContext())
-            );
-        });
-
-        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), mViewModel::setProduct );
 
         mViewModel.getBarcode().observe(getViewLifecycleOwner(), s -> {
             editBarcode.setText(s);
@@ -208,6 +177,19 @@ public class EditProductDetailsFragment extends Fragment {
             adapter.addAll( productTags );
         });
 
+        mViewModel.onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave ) return;
+
+            // close any open keyboard
+            InputUtil.hideKeyboard(requireActivity());
+
+            // setOnFocusChangeListener of chips tags view is not triggered while clicking on a "save" view
+            // so trigger it manually
+            if (chipsInput.hasFocus()) {
+                chipsInput.clearFocus();
+                // mViewModel.setAssignedTags(ChipTagUtil.newTagsInstanceFromChips(chipsInput.getAllChips()));
+            }
+        });
     }
 
     private void takePicture() {
