@@ -21,7 +21,7 @@ import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductD
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
 
-public class _EditProductDetailsFragment extends ProductDetailsFragment {
+public class EditProductDetailsFragment extends ProductDetailsFragment {
 
     private ProductOverviewViewModel mProductViewModel;
 
@@ -35,11 +35,11 @@ public class _EditProductDetailsFragment extends ProductDetailsFragment {
 
     @Override
     protected ProductDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(_EditProductDetailsViewModel.class);
+        return new ViewModelProvider(this).get(EditProductDetailsViewModel.class);
     }
 
-    private _EditProductDetailsViewModel getViewModel() {
-        return (_EditProductDetailsViewModel) mViewModel;
+    private EditProductDetailsViewModel getViewModel() {
+        return (EditProductDetailsViewModel) mViewModel;
     }
 
     @Override
