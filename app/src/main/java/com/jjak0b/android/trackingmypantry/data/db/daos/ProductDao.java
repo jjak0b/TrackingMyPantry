@@ -67,13 +67,16 @@ public abstract class ProductDao {
     public abstract void updateTags(List<ProductTag> tags);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract void insertProduct(Product p);
+    abstract long insertProduct(Product p);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract long[] insertTags(List<ProductTag> tags);
 
+    @Delete
+    public abstract void remove(Product... products);
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public abstract ListenableFuture<Void> insertAssignedTags(List<TagAndProduct> assignedTags );
+    public abstract void insertAssignedTags(List<TagAndProduct> assignedTags );
 
     @Delete
     public abstract ListenableFuture<Void> removeAssignedTags(List<TagAndProduct> assignedTags );

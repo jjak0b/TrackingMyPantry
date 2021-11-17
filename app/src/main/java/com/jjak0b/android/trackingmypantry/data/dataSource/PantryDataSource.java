@@ -145,4 +145,16 @@ public class PantryDataSource {
                 MoreExecutors.directExecutor()
         );
     }
+
+    public LiveData<ApiResponse<CreateProduct>> _postProduct(@NonNull CreateProduct product ) {
+        return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
+            return service._postProduct(authorization.getData(), product);
+        });
+    }
+
+    public LiveData<ApiResponse<Void>> deleteProduct(@NonNull String productID) {
+        return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
+            return service.removeProduct(authorization.getData(), productID);
+        });
+    }
 }

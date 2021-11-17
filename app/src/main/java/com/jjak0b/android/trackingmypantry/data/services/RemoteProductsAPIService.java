@@ -49,14 +49,15 @@ public interface RemoteProductsAPIService {
             @Body CreateProduct product
     );
 
-    /**
-     * @see GuavaCallAdapterFactory provided exception and results in callback
-     * @param authorization
-     * @param productId
-     * @return
-     */
+    @POST("products")
+    LiveData<ApiResponse<CreateProduct>> _postProduct(
+            @Header("Authorization") String authorization,
+            @Body CreateProduct product
+    );
+
+
     @DELETE("products/{id}")
-    ListenableFuture<Void> removeProduct(
+    LiveData<ApiResponse<Void>> removeProduct(
             @Header("Authorization") String authorization,
             @Path("id") String productId
     );
