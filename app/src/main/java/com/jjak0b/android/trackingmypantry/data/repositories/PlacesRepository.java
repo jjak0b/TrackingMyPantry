@@ -66,7 +66,6 @@ public class PlacesRepository {
 
         mAppExecutors.diskIO().execute(() -> {
             try {
-                dao.getPlace(place_id);
                 mResult.addSource(dao.getPlace(place_id), placeResult -> {
                     mResult.postValue(Resource.success(placeResult));
                 });
