@@ -98,4 +98,50 @@ public class Transformations {
 
         return mediator;
     }
+
+    /**
+     * Behaves similar like {@link Transformations#switchMap(LiveData, Function) }
+     * so when source resource is not succeeded, forward any states to final result, otherwise forward the state of the switchMapFunction
+     * @param mSource
+     * @param switchMapFunction
+     * @param <I>
+     * @param <O>
+     * @return a LiveData mapped from source to type <Y> by delegating to the LiveData returned
+     * by applying switchMapFunction to each value set. value has an error, forward the error to final result
+     */
+    @MainThread
+    @NonNull
+    public static <I, O> LiveData<Resource<O>> forward(
+            @NonNull LiveData<Resource<I>> mSource,
+            @NonNull final androidx.arch.core.util.Function<Resource<I>, LiveData<Resource<O>>> switchMapFunction) {
+        final MediatorLiveData<Resource<O>> mediator = new MediatorLiveData<>();
+        mediator.addSource(mSource, resource -> {
+            // simulate an API behaviour
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    if (mSource != null) {
+                        mediator.removeSource(mSource);
+                    }
+                    // forward function result
+                    mediator.addSource(
+                            androidx.lifecycle.Transformations.switchMap(mSource, switchMapFunction),
+                            mediator::setValue
+                    );
+                    break;
+                case ERROR:
+                    if (mSource != null) {
+                        mediator.removeSource(mSource);
+                    }
+                    // forward new value as error response
+                    mediator.setValue(Resource.error(resource.getError(), null));
+                    break;
+                default:
+                    // we are waiting
+                    mediator.setValue(Resource.loading(null));
+                    break;
+            }
+        });
+
+        return mediator;
+    }
 }
