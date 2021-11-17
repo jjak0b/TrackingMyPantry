@@ -4,10 +4,11 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MediatorLiveData;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
+import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PurchaseInfoDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
@@ -40,42 +41,18 @@ public class PurchasesRepository {
         return i;
     }
 
-    public LiveData<Resource<PurchaseInfo>> add(@NonNull PurchaseInfo purchase ) {
-        final MediatorLiveData<Resource<PurchaseInfo>> mResult = new MediatorLiveData<>();
-        mResult.setValue(Resource.loading(null));
-
-        mAppExecutors.diskIO().execute(() -> {
-            try {
-                long purchase_id = dao.insertPurchaseInfo(purchase);
-                mResult.addSource(dao.getPurchaseInfo(purchase_id), placeResult -> {
-                    mResult.postValue(Resource.success(placeResult));
-                });
-            }
-            // forward any error to caller
-            catch (Throwable t) {
-                mResult.postValue(Resource.error(t, purchase));
-            }
-        });
-
-        return mResult;
+    public LiveData<Resource<PurchaseInfo>> add(@NonNull PurchaseInfo info ) {
+        return Transformations.forward(
+                Transformations.simulateApi(
+                        mAppExecutors.diskIO(),
+                        mAppExecutors.mainThread(),
+                        () -> dao.insertPurchaseInfo(info)
+                ),
+                resourceID -> get(resourceID.getData())
+        );
     }
 
-    public LiveData<Resource<PurchaseInfo>> get(@NonNull long purchase_id ) {
-        final MediatorLiveData<Resource<PurchaseInfo>> mResult = new MediatorLiveData<>();
-        mResult.setValue(Resource.loading(null));
-
-        mAppExecutors.diskIO().execute(() -> {
-            try {
-                mResult.addSource(dao.getPurchaseInfo(purchase_id), placeResult -> {
-                    mResult.postValue(Resource.success(placeResult));
-                });
-            }
-            // forward any error to caller
-            catch (Throwable t) {
-                mResult.postValue(Resource.error(t, null));
-            }
-        });
-
-        return mResult;
+    public LiveData<Resource<PurchaseInfo>> get(@NonNull final long purchase_id ) {
+        return IOBoundResource.adapt(mAppExecutors, dao.getPurchaseInfo(purchase_id));
     }
 }
