@@ -6,6 +6,9 @@ import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+
 import retrofit2.Response;
 
 public class Transformations {
@@ -144,4 +147,42 @@ public class Transformations {
 
         return mediator;
     }
+
+    /**
+     * Call the syncGetter into the asyncExecutor's thread
+     * if it throws any error, they will be forwarded to the returned resource
+     * otherwise set the value on the result as success
+     * @param asyncExecutor
+     * @param mainExecutor
+     * @param syncGetter
+     * @param <I>
+     * @param <O>
+     * @return the live data simulating an async api behavior
+     */
+    public static <I, O> LiveData<Resource<O>> simulateApi(
+            @NonNull final Executor asyncExecutor,
+            @NonNull final Executor mainExecutor,
+            @NonNull final Callable<O> syncGetter
+    ) {
+        final MediatorLiveData<Resource<O>> apiResponse = new MediatorLiveData<>();
+        apiResponse.setValue(Resource.loading(null));
+
+        asyncExecutor.execute(() -> {
+            try {
+                O result = syncGetter.call();
+                mainExecutor.execute(() -> {
+                    apiResponse.setValue(Resource.success(result));
+                });
+            }
+            // forward any error to caller
+            catch (Throwable error) {
+                mainExecutor.execute(() -> {
+                    apiResponse.setValue(Resource.error(error, null));
+                });
+            }
+        });
+
+        return apiResponse;
+    }
+
 }
