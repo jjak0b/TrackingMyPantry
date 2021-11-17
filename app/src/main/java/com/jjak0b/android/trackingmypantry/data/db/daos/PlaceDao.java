@@ -20,5 +20,5 @@ public interface PlaceDao {
     LiveData<Place> getPlace(String place_id);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    ListenableFuture<Void> insertPlace(Place place);
+    void insertPlace(Place place);
 }
