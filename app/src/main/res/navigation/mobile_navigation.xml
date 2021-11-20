@@ -65,7 +65,7 @@
     </fragment>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.SuggestedProductListDialogFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.suggestions.SuggestedProductListDialogFragment"
         android:label="fragment_suggested_product_list_dialog_list_dialog"
         tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" >
         <argument

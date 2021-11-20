@@ -9,23 +9,17 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.dataSource.PantryDataSource;
+import com.jjak0b.android.trackingmypantry.data.dataSource.ProductsDataSource;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
 import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
-
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +32,7 @@ public class SuggestedProductsRepository {
     private static final Object sInstanceLock = new Object();
 
     private AppExecutors mAppExecutors;
-    private PantryDataSource pantryDataSource;
+    private ProductsDataSource productsDataSource;
     private PantryDB mPantryDB;
     private MediatorLiveData<Resource<List<Product>>> mProducts;
 
@@ -48,7 +42,7 @@ public class SuggestedProductsRepository {
 
     public SuggestedProductsRepository(final Context context) {
         this.mAppExecutors = AppExecutors.getInstance();
-        this.pantryDataSource = PantryDataSource.getInstance(context);
+        this.productsDataSource = ProductsDataSource.getInstance(context);
         this.mPantryDB = PantryDB.getInstance(context);
 
         this.mProducts = new MediatorLiveData<>();
@@ -134,7 +128,7 @@ public class SuggestedProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<ProductsList>> createCall() {
-                return pantryDataSource._getProducts(barcode);
+                return productsDataSource.search(barcode);
             }
 
         }.asLiveData();
@@ -167,7 +161,7 @@ public class SuggestedProductsRepository {
             @Override
             protected LiveData<ApiResponse<VoteResponse>> createCall() {
                 return Transformations.switchMap(getRequestToken(), resourceRequestToken -> {
-                    return pantryDataSource._voteProduct(new Vote(
+                    return productsDataSource.postPreference(new Vote(
                             resourceRequestToken.getData(),
                             productId,
                             rating

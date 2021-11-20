@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.register_product;
+package com.jjak0b.android.trackingmypantry.ui.register_product.suggestions;
 
 import android.view.ViewGroup;
 

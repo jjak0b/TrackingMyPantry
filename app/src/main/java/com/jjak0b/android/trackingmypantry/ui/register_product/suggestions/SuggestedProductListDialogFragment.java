@@ -1,4 +1,4 @@
-package com.jjak0b.android.trackingmypantry.ui.register_product;
+package com.jjak0b.android.trackingmypantry.ui.register_product.suggestions;
 
 import android.os.Bundle;
 
@@ -22,8 +22,8 @@ import android.widget.Toast;
 
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
-import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
 
 import java.io.IOException;
 
@@ -37,6 +37,7 @@ import java.io.IOException;
 public class SuggestedProductListDialogFragment extends BottomSheetDialogFragment {
 
     private SuggestedProductsViewModel mViewModel;
+    private _RegisterProductViewModel mSharedViewModel;
     private ProductListAdapter listAdapter;
     private String mParamBarcode;
 
@@ -61,6 +62,8 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
                 .fromBundle(getArguments()).getBarcode();
 
         mViewModel = new ViewModelProvider(requireParentFragment()).get(SuggestedProductsViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(_RegisterProductViewModel.class);
+
         listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), product -> mViewModel.vote(product));
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
@@ -126,6 +129,6 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     }
 
     void onNewProduct() {
-        mViewModel.voteNewProduct();
+        mViewModel.newProduct();
     }
 }
