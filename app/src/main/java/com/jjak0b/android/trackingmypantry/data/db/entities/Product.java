@@ -5,53 +5,74 @@ import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
 import java.util.Objects;
 
 @Entity(
-    tableName = "products"
+        tableName = "products",
+        indices = {
+                @Index(value = {"barcode"}, unique = true),
+                @Index(value = {"remote_id"}, unique = true)
+        }
 )
 public class Product {
-    @PrimaryKey
+    /**
+     * product remote id.
+     * If null then this product hasn't been fetched on remote
+     */
+    @ColumnInfo( name = "remote_id")
     @Expose
-    @NonNull
-    @ColumnInfo( name = "id")
+    @Nullable
     private String id;
 
+    @PrimaryKey
     @Expose
     @NonNull
     private String barcode;
 
-    @ColumnInfo( name = "user_id")
+    /**
+     * The product creator is the remote user id of a remote user who created this product template on remote
+     */
+    @ColumnInfo( name = "creator_id")
+    @SerializedName("userId")
     @Expose
-    private String userId;
+    @Nullable
+    private String userCreatorId;
 
     @Expose
+    @NonNull
     private String name;
 
     @Expose
+    @Nullable
     private String description;
 
     @Expose
+    @Nullable
     // img url
     private String img;
 
     @Expose
+    @NonNull
     private Date createdAt;
 
     @Expose
+    @NonNull
     private Date updatedAt;
 
-    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @NonNull Date createdAt, @NonNull Date updatedAt ) {
+    public Product(@Nullable String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable String userCreatorId, @NonNull Date createdAt, @NonNull Date updatedAt ) {
         this.id = id;
         this.barcode = barcode;
         this.name = name;
         this.description = description;
         this.img = img;
+        this.userCreatorId = userCreatorId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -76,13 +97,9 @@ public class Product {
         this.img = img;
     }
 
+    @Ignore
     public Product( @NonNull Product p) {
-        this.id = p.id;
-        this.barcode = p.barcode;
-        this.userId = p.userId;
-        this.name = p.name;
-        this.description = p.description;
-        this.img = p.img;
+        this(p.id, p.barcode, p.name, p.description, p.img, p.userCreatorId, p.createdAt, p.updatedAt );
     }
 
     public String getId() {
@@ -111,8 +128,8 @@ public class Product {
         return updatedAt;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getUserCreatorId() {
+        return userCreatorId;
     }
 
     public void setId(String id) {
@@ -143,8 +160,8 @@ public class Product {
         this.updatedAt = updatedAt;
     }
 
-    public void setUserId(String userId){
-        this.userId = userId;
+    public void setUserCreatorId(String userCreatorId){
+        this.userCreatorId = userCreatorId;
     }
 
     @Override
@@ -152,7 +169,7 @@ public class Product {
         return "Product{" +
                 "id='" + id + '\'' +
                 ", barcode='" + barcode + '\'' +
-                ", userID='" + userId + '\'' +
+                ", userID='" + userCreatorId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", img='" + img + '\'' +
@@ -169,7 +186,7 @@ public class Product {
             return Objects.equals( id, o.id)
             && Objects.equals( id, o.id)
             && Objects.equals( barcode, o.barcode)
-            && Objects.equals( userId, o.userId)
+            && Objects.equals(userCreatorId, o.userCreatorId)
             && Objects.equals( name, o.name)
             && Objects.equals( description, o.description)
             && Objects.equals( img, o.img);
@@ -193,7 +210,7 @@ public class Product {
                 setBarcode(p.getBarcode());
                 setProductId(p.getId());
                 setImg( p.getImg() );
-                setUserId(p.getUserId());
+                setUserId(p.getUserCreatorId());
             }
             return this;
         }
@@ -254,7 +271,7 @@ public class Product {
 
         public Product build() {
             Product item = new Product( productId, barcode, name, description, img );
-            item.setUserId(userId);
+            item.setUserCreatorId(userId);
             return item;
         }
     }

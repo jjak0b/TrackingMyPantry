@@ -43,24 +43,77 @@ public class ProductsDataSource {
         return i;
     }
 
+    /**
+     * Fetch a products list available on remote by barcode, with a request token that should be used
+     * to {@link #postProduct(CreateProduct)} or to {@link #postPreference(Vote)}.
+     * If response contains errors, then should be:
+     * <ul>
+     *     <li>{@link AuthRepository#requireAuthorization()}'s exceptions</li>
+     *     <li>{@link com.jjak0b.android.trackingmypantry.data.api.RemoteException}</li>
+     *     <li>{@link java.io.IOException}</li>
+     * </ul>
+     * @@implNote It requires a valid user to logged on @{@link AuthRepository}
+     * @see AuthRepository#requireAuthorization()
+     * @param barcode
+     * @return
+     */
     public LiveData<ApiResponse<ProductsList>> search(@NonNull String barcode ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service._getProducts(authorization.getData(), barcode);
         });
     }
 
+    /**
+     * Add a product preference on remote, the @{@link Vote} should contains the request token got from {@link #search(String)}.
+     * If response contains errors, then should be:
+     * <ul>
+     *     <li>{@link AuthRepository#requireAuthorization()}'s exceptions</li>
+     *     <li>{@link com.jjak0b.android.trackingmypantry.data.api.RemoteException}</li>
+     *     <li>{@link java.io.IOException}</li>
+     * </ul>
+     * @@implNote It requires a valid user to logged on @{@link AuthRepository}
+     * @see AuthRepository#requireAuthorization()
+     * @param vote
+     * @return
+     */
     public LiveData<ApiResponse<VoteResponse>> postPreference(@NonNull Vote vote ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service._voteProduct(authorization.getData(), vote);
         });
     }
 
+    /**
+     * Add a product entry on remote, the @{@link CreateProduct} should contains the request token got from {@link #search(String)}.
+     * If response contains errors, then should be:
+     * <ul>
+     *     <li>{@link AuthRepository#requireAuthorization()}'s exceptions</li>
+     *     <li>{@link com.jjak0b.android.trackingmypantry.data.api.RemoteException}</li>
+     *     <li>{@link java.io.IOException}</li>
+     * </ul>
+     * @@implNote It requires a valid user to logged on @{@link AuthRepository}
+     * @see AuthRepository#requireAuthorization()
+     * @param product
+     * @return
+     */
     public LiveData<ApiResponse<CreateProduct>> postProduct(@NonNull CreateProduct product ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service._postProduct(authorization.getData(), product);
         });
     }
 
+    /**
+     * Delete a product entry on remote, the productID should be of a product got from {@link #search(String)}.
+     * If response contains errors, then should be:
+     * <ul>
+     *     <li>{@link AuthRepository#requireAuthorization()}'s exceptions</li>
+     *     <li>{@link com.jjak0b.android.trackingmypantry.data.api.RemoteException}</li>
+     *     <li>{@link java.io.IOException}</li>
+     * </ul>
+     * @@implNote It requires a valid user to logged on @{@link AuthRepository}
+     * @see AuthRepository#requireAuthorization()
+     * @param productID
+     * @return
+     */
     public LiveData<ApiResponse<Void>> delete(@NonNull String productID) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service.removeProduct(authorization.getData(), productID);

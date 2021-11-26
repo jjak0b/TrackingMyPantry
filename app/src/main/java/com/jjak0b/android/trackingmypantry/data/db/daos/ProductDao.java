@@ -70,6 +70,16 @@ public abstract class ProductDao {
     abstract long insertProduct(Product p);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    public abstract void insert(Product product);
+
+    @Query("SELECT * FROM products WHERE barcode = :barcode" )
+    public abstract LiveData<Product> get(String barcode);
+
+    @Transaction
+    @Query("SELECT * FROM products WHERE barcode = :barcode" )
+    public abstract LiveData<ProductWithTags> getDetails(String barcode);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract long[] insertTags(List<ProductTag> tags);
 
     @Delete

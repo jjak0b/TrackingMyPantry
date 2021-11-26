@@ -85,14 +85,19 @@ public abstract class NetworkBoundResource<ResultType, RequestType> {
             }
             else if( response instanceof ApiErrorResponse){
                 Throwable cause = ((ApiErrorResponse<RequestType>) response).getError();
-                onFetchFailed(cause);
-                result.addSource(dbSource, newData -> {
-                    setValue(Resource.error(cause, newData));
+                appExecutors.diskIO().execute(() -> {
+                    onFetchFailed(cause);
+                    appExecutors.mainThread().execute(() -> {
+                        result.addSource(dbSource, newData -> {
+                            setValue(Resource.error(cause, newData));
+                        });
+                    });
                 });
             }
         });
     }
 
+    @WorkerThread
     protected void onFetchFailed(Throwable cause) {}
 
     public LiveData<Resource<ResultType>> asLiveData() {
