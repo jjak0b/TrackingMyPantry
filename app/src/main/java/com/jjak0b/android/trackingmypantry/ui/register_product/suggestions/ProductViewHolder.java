@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +16,10 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder {
 
+    @DrawableRes
+    protected static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
+    @DrawableRes
+    protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
     private TextView title;
     private TextView description;
     private ImageView image;
@@ -37,9 +42,10 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
 
         Glide
             .with(itemView)
-            .load(product.getImg() )
+            .load(product.getImg())
             .fitCenter()
-            .placeholder(R.drawable.loading_spinner)
+            .placeholder(RESOURCE_LOADING_PRODUCT_IMG)
+            .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
             .into(image);
     }
 

@@ -109,9 +109,16 @@ public class ProductsRepository {
         searchResult.setValue(new ArrayList<>(0));
 
         final MutableLiveData<ProductsList> mResult = new MutableLiveData<>(null);
-        setSearchResult(new NetworkBoundResource<ProductsList, ProductsList>(mAppExecutors) {
+        LiveData<Resource<ProductsList>> mResultSource = new NetworkBoundResource<ProductsList, ProductsList>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductsList item) {
+                // Fix colleagues Implementation quirks
+                for (Product product : item.getProducts() ) {
+                    String imgURI = product.getImg();
+                    if( imgURI != null && !imgURI.startsWith("data:")) {
+                        product.setImg("data:image/*;base64," + imgURI);
+                    }
+                }
                 mResult.postValue(item);
             }
 
@@ -129,7 +136,8 @@ public class ProductsRepository {
             protected LiveData<ApiResponse<ProductsList>> createCall() {
                 return mApiResponse;
             }
-        }.asLiveData());
+        }.asLiveData();
+        setSearchResult(mResultSource);
 
         return new NetworkBoundResource<List<Product>, ProductsList>(mAppExecutors) {
             @Override
@@ -157,7 +165,7 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<ProductsList>> createCall() {
-                return mApiResponse;
+                return Transformations.adapt(mSearchResult);
             }
 
         }.asLiveData();

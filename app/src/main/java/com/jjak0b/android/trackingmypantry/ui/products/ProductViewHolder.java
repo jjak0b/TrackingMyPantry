@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -22,6 +23,10 @@ import java.util.List;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder  {
 
+    @DrawableRes
+    protected static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
+    @DrawableRes
+    protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
     private TextView title;
     private TextView description;
     private ImageView image;
@@ -41,14 +46,13 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         List<ProductTag> tagList = productWithTags.tags;
         title.setText( product.getName());
         description.setText(product.getDescription());
-        if( product.getImg() != null ){
-            Glide
-                .with(itemView)
-                .load(product.getImg() )
-                .fitCenter()
-                .placeholder(R.drawable.loading_spinner)
-                .into(image);
-        }
+        Glide
+            .with(itemView)
+            .load(product.getImg())
+            .fitCenter()
+            .placeholder(RESOURCE_LOADING_PRODUCT_IMG)
+            .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
+            .into(image);
 
         if( !tagList.isEmpty() ){
             tags.removeAllViews();
@@ -61,7 +65,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
         }
     }
 
-    static ProductViewHolder create(ViewGroup parent) {
+    public static ProductViewHolder create(ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_products_browser_list_item, parent, false);
         return new ProductViewHolder(view);
