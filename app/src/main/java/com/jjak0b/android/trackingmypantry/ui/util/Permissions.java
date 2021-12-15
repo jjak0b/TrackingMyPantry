@@ -23,10 +23,13 @@ public class Permissions {
 
         @StringRes
         int resMessageOnDenied;
+        boolean resMessageOnDeniedIsSet;
         @StringRes
         int resRationaleRequestMessage;
 
-        public FeatureRequestBuilder() { }
+        public FeatureRequestBuilder() {
+            this.resMessageOnDeniedIsSet = false;
+        }
 
         public FeatureRequestBuilder setRationaleMessage(@StringRes int resRationaleRequestMessage ) {
             this.resRationaleRequestMessage = resRationaleRequestMessage;
@@ -41,6 +44,7 @@ public class Permissions {
 
         public FeatureRequestBuilder setOnNegative(@StringRes int resMessageOnDenied, Runnable onNegativeCallback ) {
             this.resMessageOnDenied = resMessageOnDenied;
+            this.resMessageOnDeniedIsSet = true;
             this.onNegativeCallback = onNegativeCallback;
             return this;
         }
@@ -75,6 +79,10 @@ public class Permissions {
                         resRationaleRequestMessage,
                         () -> requestPermissionLauncher.launch(PERMISSIONS),
                         () -> {
+                            if( !resMessageOnDeniedIsSet ) {
+                                if( onNegativeCallback != null ) onNegativeCallback.run();
+                                return;
+                            }
                             new AlertDialog.Builder(context)
                                     .setPositiveButton(android.R.string.ok, null)
                                     .setTitle(R.string.rationale_title_feature)
