@@ -185,4 +185,22 @@ public class Transformations {
         return apiResponse;
     }
 
+
+    public static <T> boolean onValid(Resource<T> resource, Callback<T> onValidCallBack) {
+        if( resource == null ) return  false;
+
+        if( resource.getStatus() == Status.SUCCESS ) {
+            if( onValidCallBack != null ) {
+                onValidCallBack.apply(resource.getData());
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public interface Callback<T> {
+        void apply(T value);
+    }
 }

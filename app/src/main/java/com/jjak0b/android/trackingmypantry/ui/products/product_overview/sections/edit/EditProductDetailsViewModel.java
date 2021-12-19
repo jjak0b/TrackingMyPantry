@@ -16,16 +16,16 @@ public class EditProductDetailsViewModel extends ProductDetailsViewModel {
 
     public ListenableFuture<Void> submit() {
 
-        ProductWithTags old = getProduct().getValue();
+        Product old = getProduct().getValue();
         ProductWithTags productWithTags = new ProductWithTags();
 
-        Product.Builder builder = new Product.Builder().from(old != null ? old.product : null)
-                .setName(getName().getValue())
-                .setDescription(getDescription().getValue())
-                .setBarcode(getBarcode().getValue());
+        Product.Builder builder = new Product.Builder().from(old != null ? old : null)
+                .setName(getName().getValue().getData())
+                .setDescription(getDescription().getValue().getData())
+                .setBarcode(getBarcode().getValue().getData());
 
         if( getImage().getValue() != null ) {
-            builder.setImg(ImageUtil.convert(getImage().getValue()));
+            builder.setImg(ImageUtil.convert(getImage().getValue().getData()));
         }
 
         productWithTags.product = builder.build();

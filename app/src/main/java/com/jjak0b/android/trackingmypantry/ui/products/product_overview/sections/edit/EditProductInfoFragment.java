@@ -17,11 +17,11 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsFragment;
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoFragment;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
 
-public class EditProductDetailsFragment extends ProductDetailsFragment {
+public class EditProductInfoFragment extends ProductInfoFragment {
 
     private ProductOverviewViewModel mProductViewModel;
 
@@ -34,7 +34,7 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
     }
 
     @Override
-    protected ProductDetailsViewModel initViewModel() {
+    protected ProductInfoViewModel initViewModel() {
         return new ViewModelProvider(this).get(EditProductDetailsViewModel.class);
     }
 
