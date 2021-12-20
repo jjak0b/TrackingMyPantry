@@ -9,7 +9,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -18,6 +21,7 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoFragment;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -72,6 +76,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
         getViewModel().onSave().observe(getViewLifecycleOwner(), isSaving-> {
             if( isSaving ){
                 Log.d(TAG, "Saving" );
+                getViewModel().saveComplete();
                 return;
             }
             // here there should be soem code if some data need to be extracted from view at this time
@@ -101,8 +106,8 @@ public class NewProductFormFragment extends ProductInfoFragment {
     private void notifyResult(Resource<Product> result) {
 
         Log.d(TAG, "submitting: " + result);
-        return;
-        /*LiveData<Resource<Product>> operation = getViewModel().submit(result.getData());
+
+        LiveData<Resource<Product>> operation = getViewModel().submit(result.getData());
         operation.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
             @Override
             public void onChanged(Resource<Product> resource) {
@@ -114,26 +119,13 @@ public class NewProductFormFragment extends ProductInfoFragment {
                         shouldReturnProduct = resource.getData() != null;
 
                         Throwable error = resource.getError();
-                        String errorMsg;
+                        String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), error, TAG);
 
-                        if( error instanceof AuthException){
-                            Log.e( TAG, "Authentication Error", error );
-                            errorMsg = "Authentication Error: You need to login first";
-                        }
-                        else if( error instanceof RemoteException){
-                            Log.e( TAG, "Server Error", error );
-                            errorMsg = "Server error: Unable to add to the server due to bad data provided";
-                        }
-                        else if( error instanceof IOException){
-                            Log.e( TAG, "Network Error", error );
-                            errorMsg = "Network error: Unable to connect to server";
-                        }
-                        else {
-                            Log.e( TAG, "Unexpected Error", error );
-                            errorMsg = "Unexpected error: Unable to perform operation";
-                        }
+                        new AlertDialog.Builder(requireContext())
+                                .setMessage(errorMsg)
+                                .show();
 
-                        Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG ).show();
+                        // Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG ).show();
                         break;
                     case SUCCESS:
                         operation.removeObserver(this);
@@ -150,6 +142,5 @@ public class NewProductFormFragment extends ProductInfoFragment {
                 }
             }
         });
-        */
     }
 }

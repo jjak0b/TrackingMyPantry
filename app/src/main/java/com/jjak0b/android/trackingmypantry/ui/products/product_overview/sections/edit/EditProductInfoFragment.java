@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -17,9 +18,11 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 public class EditProductInfoFragment extends ProductInfoFragment {
 
@@ -63,23 +66,52 @@ public class EditProductInfoFragment extends ProductInfoFragment {
 
         fabSave.setOnClickListener( v -> getViewModel().save());
 
-        getViewModel().onSave().observe( getViewLifecycleOwner(), v -> {
-            Futures.addCallback(
-                    getViewModel().submit(),
-                    new FutureCallback<Void>() {
-                        @Override
-                        public void onSuccess(@Nullable Void result) {
-                            Navigation.findNavController(view)
-                                    .popBackStack();
-                        }
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            if( shouldSave ){
+                getViewModel().saveComplete();
+                return;
+            }
+        });
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            Log.e("Edit product", "Failed save", t);
-                        }
-                    },
-                    ContextCompat.getMainExecutor(requireContext())
-            );
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
+            if (resource.getStatus() != Status.LOADING) {
+                if (resource.getData() != null) {
+                    Futures.addCallback(
+                            getViewModel().submit(),
+                            new FutureCallback<Void>() {
+                                @Override
+                                public void onSuccess(@Nullable Void result) {
+                                    Navigation.findNavController(view)
+                                            .popBackStack();
+                                }
+
+                                @Override
+                                public void onFailure(Throwable t) {
+                                    Log.e("Edit product", "Failed save", t);
+                                    String errorMSg = ErrorsUtils.getErrorMessage(
+                                            requireContext(), resource.getError(), "EditProductFragment"
+                                    );
+                                    if( errorMSg != null ) {
+                                        new AlertDialog.Builder(requireContext())
+                                                .setMessage(errorMSg)
+                                                .show();
+                                    }
+                                }
+                            },
+                            ContextCompat.getMainExecutor(requireContext())
+                    );
+                }
+                else if( resource.getStatus() == Status.ERROR ){
+                    String errorMSg = ErrorsUtils.getErrorMessage(
+                            requireContext(), resource.getError(), "EditProductFragment"
+                    );
+                    if( errorMSg != null ) {
+                        new AlertDialog.Builder(requireContext())
+                                .setMessage(errorMSg)
+                                .show();
+                    }
+                }
+            }
         });
     }
 }
