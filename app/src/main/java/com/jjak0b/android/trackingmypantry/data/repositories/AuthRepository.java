@@ -331,7 +331,11 @@ public class AuthRepository {
 
             @Override
             protected void saveCallResult(String item) {
-                mAuthToken.postValue(item);
+                mAuthToken.postValue(new StringBuilder()
+                        .append(Authenticator.TOKEN_TYPE)
+                        .append(" ")
+                        .append(item)
+                        .toString());
             }
 
             @Override

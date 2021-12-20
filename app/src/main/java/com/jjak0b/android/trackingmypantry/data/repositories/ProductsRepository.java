@@ -16,6 +16,7 @@ import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.dataSource.ProductsDataSource;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
@@ -27,6 +28,7 @@ import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
 import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
+import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,24 +51,18 @@ public class ProductsRepository {
     private LiveData<Resource<ProductsList>> mSearchResultSource;
     private LiveData<Resource<ProductsList>> mDefaultSearchResultSource;
 
-    private MediatorLiveData<Resource<String>> mSearchToken;
-    private LiveData<Resource<String>> mSearchTokenSource;
-    private LiveData<Resource<String>> mDefaultTokenSource;
-
     ProductsRepository(final Context context) {
         pantryDB = PantryDB.getInstance( context );
         productDao = pantryDB.getProductDao();
         dataSource = ProductsDataSource.getInstance(context);
         authRepository = AuthRepository.getInstance(context);
         mAppExecutors = AppExecutors.getInstance();
-        mSearchToken = new MediatorLiveData<>();
-        mSearchResult = new MediatorLiveData<>();
 
-        mDefaultTokenSource = new MutableLiveData<>(getCleanToken());
-        mSearchTokenSource = mDefaultTokenSource;
-        mSearchToken.addSource(mSearchTokenSource, resource -> {
-            mSearchToken.setValue(getCleanToken());
-        });
+        mSearchResult = new MediatorLiveData<>();
+        mDefaultSearchResultSource = new MutableLiveData<>(
+                Resource.error(new IllegalStateException("You must perform a search first"), null)
+        );
+        unsetSearchResult();
     }
 
     public static ProductsRepository getInstance(Context context) {
@@ -81,10 +77,6 @@ public class ProductsRepository {
             }
         }
         return i;
-    }
-
-    private Resource<String> getCleanToken() {
-        return Resource.error(new IllegalStateException("No search token acquired"), null);
     }
 
     /**
@@ -165,27 +157,33 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<ProductsList>> createCall() {
-                return Transformations.adapt(mSearchResult);
+                return Transformations.adapt(getLastSearchResult());
             }
 
         }.asLiveData();
     }
 
+    private LiveData<Resource<ProductsList>> getLastSearchResult() {
+        return mSearchResult;
+    }
+
     @MainThread
     private void unsetSearchResult() {
+        // Log.d(TAG, "Clearing Search result");
         if( mSearchResultSource != null )
             mSearchResult.removeSource(mSearchResultSource);
         mSearchResultSource = mDefaultSearchResultSource;
         mSearchResult.addSource(mSearchResultSource, resource -> mSearchResult.setValue(resource));
+        Log.d(TAG, "Unset search token");
     }
 
     @MainThread
     private void setSearchResult(LiveData<Resource<ProductsList>> mSource ) {
-        // detach old token
-        if( mSearchResultSource != null )
-            mSearchResult.removeSource(mSearchResultSource);
-
         if( mSource != null ){
+            Log.d(TAG, "Setting new Search result");
+            // detach old token
+            if( mSearchResultSource != null )
+                mSearchResult.removeSource(mSearchResultSource);
             // attach new token
             mSearchResultSource = mSource;
             mSearchResult.addSource(mSearchResultSource, resource -> {
@@ -197,20 +195,16 @@ public class ProductsRepository {
         }
     }
 
-    @MainThread
-    private void setSearchResult(Resource<ProductsList> mValue ) {
-        setSearchResult(new MutableLiveData<>(mValue));
-    }
-
     private LiveData<Resource<String>> getSearchToken() {
-        return Transformations.forward(mSearchResult, input -> {
+        return Transformations.forward(getLastSearchResult(), input -> {
             return new MutableLiveData<>(Resource.success(input.getData().getToken()));
         });
     }
 
     private LiveData<Resource<Boolean>> isProductInSearchList(@NonNull Product product) {
-        return Transformations.forward(mSearchResult, resourceResult -> {
-            List<Product> products = resourceResult.getData().getProducts();
+        return Transformations.forwardOnce(getLastSearchResult(), resourceResult -> {
+            ProductsList result = resourceResult.getData();
+            List<Product> products = result.getProducts();
             // this list can be very long, so do check on async
             return Transformations.simulateApi(mAppExecutors.diskIO(), mAppExecutors.mainThread(), () -> {
                 return product.getId() != null && products.stream().anyMatch(item -> Objects.equals(item.getId(), product.getId()));
@@ -235,16 +229,32 @@ public class ProductsRepository {
      */
     public LiveData<Resource<Product>> register(@NonNull Product product) {
         final MediatorLiveData<Resource<Product>> mResult = new MediatorLiveData<>();
-
         // Only one of the following operations will fetch on remote due to their implementations
 
         // add on remote if the product is not in the search list and add it locally
         // if some errors happens due to IO errors, then it could add it to local
         // so if use reuse this product, it could be fetched properly
-        mResult.addSource(add(product), mResult::setValue);
+        final LiveData<Resource<Product>> mProductResult = add(product);
         // add preference on remote if product is in the search list and add it locally
-        mResult.addSource(addPreference(product), resource -> {
-            // observe preference without influence the result
+        final LiveData<Resource<VoteResponse>> mVoteResult = addPreference(product);
+
+        final ResourceUtils.ResourcePairLiveData<Product, VoteResponse> mPair =
+                ResourceUtils.ResourcePairLiveData.create(mProductResult, mVoteResult);
+
+        mResult.addSource(mPair, resourceResourcePair -> {
+            // notify when both are done and so consume the search token
+            if( resourceResourcePair.first.getStatus() != Status.LOADING
+                && resourceResourcePair.second.getStatus() != Status.LOADING) {
+                // stop listening
+                mResult.removeSource(mPair);
+                mPair.removeSources(mProductResult, mVoteResult);
+
+                // set the result value
+                mResult.setValue(resourceResourcePair.first);
+                // unsetting the token here and not in #add or #addPreference because of async-ness
+                // since both could require the token and could happens that one of them could toggle it while the other one is using it
+                unsetSearchResult();
+            }
         });
 
         return mResult;
@@ -263,12 +273,13 @@ public class ProductsRepository {
         return Transformations.forward(isProductInSearchList(product), input -> {
             boolean isInList = input.getData();
             final MutableLiveData<VoteResponse> data = new MutableLiveData<>(null);
+            Log.d(TAG, "Adding preference for " + product + "\nis Product on remote list: " + isInList );
             return new NetworkBoundResource<VoteResponse, VoteResponse>(mAppExecutors) {
 
                 @Override
                 protected void saveCallResult(VoteResponse item) {
                     data.postValue(item);
-                    mAppExecutors.mainThread().execute(() -> unsetSearchResult());
+                    // mAppExecutors.mainThread().execute(() -> unsetSearchResult());
                 }
 
                 @Override
@@ -288,8 +299,8 @@ public class ProductsRepository {
 
                 @Override
                 protected LiveData<ApiResponse<VoteResponse>> createCall() {
-                    return Transformations.switchMap(mSearchResult, resource -> {
-                        return dataSource.postPreference(new Vote(resource.getData().getToken(), product.getId(), 1));
+                    return Transformations.switchMap(getLastSearchResult(), resource -> {
+                        return dataSource.postPreference(new Vote(resource.getData().getToken(), product.getRemote_id(), 1));
                     });
                 }
             }.asLiveData();
@@ -308,6 +319,7 @@ public class ProductsRepository {
      * @return
      */
    private LiveData<Resource<Product>> add(@NonNull Product product) {
+
         return Transformations.forward(isProductInSearchList(product), isInListResource -> {
             boolean isInList = isInListResource.getData();
 
@@ -315,16 +327,21 @@ public class ProductsRepository {
 
             // we add the fetched product or in specific cases we allow un-fetched products
             // into this variable so we can use later to determinate when should be added to local
-            final MutableLiveData<Product> mProduct = new MutableLiveData<>(null);
+            // we will use this initial product if it's in the search list or as "cache" if failed fetch due to IO
+            final MutableLiveData<Product> mProduct = new MutableLiveData<>(product);
 
+            // we have the following cases
+            // product not in list - fetched success -> add locally ( and on remote ) - handled by mFetchedSource
+            // product not in list - fetched error ->  add locally "cache" <=> we are offline - handled by mFetchedSource
+            // product in list -> add locally "cache"
+
+            Log.d(TAG, "Adding product " + product + "\nis Product on remote list: " + isInList );
             LiveData<Resource<Product>> mFetchedSource = new NetworkBoundResource<Product, CreateProduct>(mAppExecutors) {
 
                 @Override
                 protected void saveCallResult(CreateProduct item) {
                     // consume token
-                    mAppExecutors.mainThread().execute(() -> {
-                        unsetSearchResult();
-                    });
+                    // mAppExecutors.mainThread().execute(() -> { unsetSearchResult(); });
 
                     mProduct.postValue(new Product.Builder()
                             .from(item)
@@ -337,10 +354,12 @@ public class ProductsRepository {
 
                     // if we are offline or due to I/O errors add it locally
                     if( cause instanceof IOException) {
-                        mProduct.postValue(product);
+                        // we keep use initial "cached" value in mProduct
+                        // mProduct.postValue(product);
+                        Log.d(TAG, "Adding product only locally" );
                     }
                     else {
-                        // if it's not in the search list, so we added it previously locally in offline
+                        // it's not in the search list, so we added it previously locally in offline
                         // and remote now api provided an error.
                         // we have no knowledge about the reason of the error
                         // In particular if it's an error code 500, api don't provide the cause
@@ -348,6 +367,7 @@ public class ProductsRepository {
 
                             Log.e(TAG, "Unable to add product to remote " + product, cause);
                         }
+                        mProduct.postValue(null);
                     }
                 }
 
@@ -380,15 +400,17 @@ public class ProductsRepository {
                         shouldAddLocally = resourceFetched.getData() != null;
                         break;
                     case SUCCESS:
+                        // add locally either when it's in the list or not
                         shouldAddLocally = true;
+                        break;
                     default:
                         break;
                 }
 
                 if( shouldAddLocally ) {
-                    // insert to DB
+                    // insert to local
                     mAppExecutors.diskIO().execute(() -> {
-                        productDao.insert(product);
+                        productDao.insert(resourceFetched.getData());
                     });
 
                     // attach local live data source as live data response
@@ -470,7 +492,7 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<CreateProduct>> createCall() {
-                return Transformations.switchMap(mSearchToken, tokenRes -> {
+                return Transformations.switchMap(getSearchToken(), tokenRes -> {
                     return dataSource.postProduct(new CreateProduct(
                             data.product,
                             tokenRes.getData()
@@ -512,6 +534,11 @@ public class ProductsRepository {
             protected void saveCallResult(Void item) {
                 productDao.remove(product);
                 mResult.postValue(item);
+            }
+
+            @Override
+            protected void onFetchFailed(Throwable cause) {
+                productDao.remove(product);
             }
 
             @Override
