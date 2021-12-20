@@ -350,28 +350,6 @@ public class ProductsRepository {
                 }
 
                 @Override
-                protected void onFetchFailed(Throwable cause) {
-
-                    // if we are offline or due to I/O errors add it locally
-                    if( cause instanceof IOException) {
-                        // we keep use initial "cached" value in mProduct
-                        // mProduct.postValue(product);
-                        Log.d(TAG, "Adding product only locally" );
-                    }
-                    else {
-                        // it's not in the search list, so we added it previously locally in offline
-                        // and remote now api provided an error.
-                        // we have no knowledge about the reason of the error
-                        // In particular if it's an error code 500, api don't provide the cause
-                        if( cause instanceof RemoteException) {
-
-                            Log.e(TAG, "Unable to add product to remote " + product, cause);
-                        }
-                        mProduct.postValue(null);
-                    }
-                }
-
-                @Override
                 protected boolean shouldFetch(@Nullable Product data) {
                     return !isInList;
                 }
@@ -397,7 +375,24 @@ public class ProductsRepository {
                 boolean shouldAddLocally = false;
                 switch (resourceFetched.getStatus()) {
                     case ERROR:
-                        shouldAddLocally = resourceFetched.getData() != null;
+                        shouldAddLocally = false;
+                        Throwable cause = resourceFetched.getError();
+                        // if we are offline or due to I/O errors add it locally
+                        if( cause instanceof IOException) {
+                            // we keep use initial "cached" value
+                            Log.w(TAG, "Adding product only locally due to IOError", cause);
+                            shouldAddLocally = resourceFetched.getData() != null;
+                        }
+                        else {
+                            // it's not in the search list, so we added it previously locally in offline
+                            // and remote now api provided an error.
+                            // we have no knowledge about the reason of the error
+                            // In particular if it's an error code 500, api don't provide the cause
+                            if( cause instanceof RemoteException) {
+                                Log.e(TAG, "Unable to add product to remote " + product, cause);
+                            }
+                            shouldAddLocally = false;
+                        }
                         break;
                     case SUCCESS:
                         // add locally either when it's in the list or not
