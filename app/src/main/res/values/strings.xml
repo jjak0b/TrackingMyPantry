@@ -32,6 +32,17 @@
     <string name="error_generic_failed_auth">"Unable %1$s due to a failed authentication"</string>
     <string name="error_generic_failed_network">"Unable %1$s due to the inability to communicate with the server caused by a network error"</string>
     <string name="error_generic_failed_unknown">"Unable %1$s due to an expected error"</string>
+    <string name="error_msg_type_cause">"%1$s: %2$s"</string>
+    <string name="error_type_network">Network error</string>
+    <string name="error_type_remote">Server error</string>
+    <string name="error_type_authentication">Authentication Error</string>
+    <string name="error_type_unhandled">Unexpected error</string>
+    <string name="error_cause_unable_communicate">Unable to connect to server</string>
+    <string name="error_cause_bad_data">Bad data provided</string>
+    <string name="error_cause_not_logged">You need to login first</string>
+    <string name="error_cause_unable_do_operation">Unable complete the operation</string>
+
+
     <string name="to_authenticate">"to authenticate"</string>
     <string name="to_get_data">"to get data"</string>
     <string name="error_unable_to_take_picture">Error: Unable to take a picture</string>
