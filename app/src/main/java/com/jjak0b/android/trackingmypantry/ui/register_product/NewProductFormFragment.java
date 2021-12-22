@@ -12,13 +12,16 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoFragment;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
@@ -32,6 +35,8 @@ public class NewProductFormFragment extends ProductInfoFragment {
     private static final String TAG = "NewProductForm";
     private SharedProductViewModel sharedViewModel;
     private String mParamBarcode;
+    private FloatingActionButton fabSave;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +67,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
         getViewModel().setBarcode(mParamBarcode);
 
-        final FloatingActionButton fabSave = view.findViewById(R.id.fab_action_save);
+        fabSave = view.findViewById(R.id.fab_action_save);
         final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
 
         barcodeInputLayout.setEnabled(false);
@@ -71,7 +76,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
         fabSave.setOnClickListener( v -> getViewModel().save());
 
-        getViewModel().canSave().observe(getViewLifecycleOwner(), fabSave::setEnabled );
+        getViewModel().canSave().observe(getViewLifecycleOwner(), this::enableSave );
 
         getViewModel().onSave().observe(getViewLifecycleOwner(), isSaving-> {
             if( isSaving ){
@@ -83,6 +88,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
         });
 
         getViewModel().onSaved().observe(getViewLifecycleOwner(), saveDataResult -> {
+            enableSave(saveDataResult.getStatus() != Status.LOADING );
             switch (saveDataResult.getStatus()) {
                 case LOADING:
 
@@ -102,29 +108,39 @@ public class NewProductFormFragment extends ProductInfoFragment {
         });
     }
 
+    private void enableSave(boolean shouldEnable) {
+        fabSave.setEnabled(shouldEnable);
+    }
+
 
     private void notifyResult(Resource<Product> result) {
 
         Log.d(TAG, "submitting: " + result);
+
+        MediatorLiveData<Resource<Product>> mProduct = new MediatorLiveData<>();
+        sharedViewModel.setProductSource(mProduct);
 
         LiveData<Resource<Product>> operation = getViewModel().submit(result.getData());
         operation.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
             @Override
             public void onChanged(Resource<Product> resource) {
                 boolean shouldReturnProduct = false;
-
+                enableSave(resource.getStatus() != Status.LOADING );
                 switch (resource.getStatus()) {
                     case ERROR:
                         operation.removeObserver(this);
                         shouldReturnProduct = resource.getData() != null;
 
-                        Throwable error = resource.getError();
-                        String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), error, TAG);
+                        if( !shouldReturnProduct ) {
+                            Throwable error = resource.getError();
+                            String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), error, TAG);
 
-                        new AlertDialog.Builder(requireContext())
-                                .setMessage(errorMsg)
-                                .show();
-
+                            new AlertDialog.Builder(requireContext())
+                                    .setMessage(errorMsg)
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show();
+                            mProduct.setValue(resource);
+                        }
                         // Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG ).show();
                         break;
                     case SUCCESS:
@@ -132,13 +148,22 @@ public class NewProductFormFragment extends ProductInfoFragment {
                         shouldReturnProduct = true;
                         break;
                     default:
-                        sharedViewModel.setProduct(resource);
+                        mProduct.setValue(resource);
                         break;
                 }
 
                 if( shouldReturnProduct ) {
-                    sharedViewModel.setProduct(resource);
-                    NewProductFormFragmentDirections.onProductCreated();
+                    Log.d(TAG, "Providing product to caller");
+
+                    mProduct.addSource(operation, resource1 -> {
+                        mProduct.setValue(Resource.success(resource1.getData()));
+                    });
+
+                    Navigation.findNavController(requireView())
+                            .navigate( NewProductFormFragmentDirections.onProductCreated() );
+                }
+                else {
+                    Log.w(TAG, "Should not return product to caller", resource.getError() );
                 }
             }
         });

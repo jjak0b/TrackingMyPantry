@@ -1,17 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.suggestions;
 
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.NonNull;
-
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import androidx.appcompat.widget.Toolbar;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,10 +9,24 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
-import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 
 import java.io.IOException;
 
@@ -36,8 +39,9 @@ import java.io.IOException;
  */
 public class SuggestedProductListDialogFragment extends BottomSheetDialogFragment {
 
+    private final static String TAG = "SuggestedProductListDialogFragment";
     private SuggestedProductsViewModel mViewModel;
-    private _RegisterProductViewModel mSharedViewModel;
+    private SharedProductViewModel mSharedViewModel;
     private ProductListAdapter listAdapter;
     private String mParamBarcode;
 
@@ -49,22 +53,15 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        // getViewModelStore().clear();
-        Log.d( "SugdProductListDialogF", "Cleared  onDestroyView");
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
         mParamBarcode = SuggestedProductListDialogFragmentArgs
                 .fromBundle(getArguments()).getBarcode();
 
-        mViewModel = new ViewModelProvider(requireParentFragment()).get(SuggestedProductsViewModel.class);
-        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(_RegisterProductViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(SuggestedProductsViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
 
-        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), product -> mViewModel.vote(product));
+        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), this::onVoteProduct);
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
@@ -93,6 +90,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
             }
             else {
                 if( resource.getStatus() == Status.ERROR) {
+                    Log.e("Suggestions", "error gettings products", resource.getError());
                     if( resource.getError() instanceof AuthException) {
                         Toast.makeText(requireContext(),
                                 getString(R.string.error_generic_failed_auth, getString(R.string.to_get_data)),
@@ -128,7 +126,33 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         });
     }
 
-    void onNewProduct() {
-        mViewModel.newProduct();
+    private void onVoteProduct(Product product) {
+        Log.d(TAG, "User voting for" + product );
+        notifyResult(mViewModel.vote(product));
+    }
+    private void onNewProduct() {
+        final NavController navController = NavHostFragment.findNavController(this);
+        navController.navigate(SuggestedProductListDialogFragmentDirections
+                .createNewProduct(mParamBarcode));
+    }
+
+    private void notifyResult(@NonNull LiveData<Resource<Product>> mResult) {
+        final NavController navController = NavHostFragment.findNavController(this);
+        mSharedViewModel.setProductSource(mResult);
+        mResult.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
+            @Override
+            public void onChanged(Resource<Product> resource) {
+                switch (resource.getStatus()) {
+                    case LOADING:
+                        break;
+                    default:
+                        mResult.removeObserver(this);
+                        if( resource.getData() != null ) {
+                            navController.navigate(SuggestedProductListDialogFragmentDirections.onPickedProduct());
+                        }
+                        break;
+                }
+            }
+        });
     }
 }

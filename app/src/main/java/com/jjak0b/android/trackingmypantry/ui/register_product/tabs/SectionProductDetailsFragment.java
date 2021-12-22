@@ -1,67 +1,71 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-
 import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+
 import com.google.android.material.textfield.TextInputLayout;
+import com.hootsuite.nachos.NachoTextView;
+import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsFragment;
-import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragmentDirections;
-import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.ui.register_product.SuggestedProductsViewModel;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.ui.products.ProductViewHolder;
+import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragmentDirections;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
-public class SectionProductDetailsFragment extends ProductDetailsFragment {
+import java.util.ArrayList;
 
-    private RegisterProductViewModel mSharedViewModel;
-    private SuggestedProductsViewModel mSuggestedProductsViewModel;
+public class SectionProductDetailsFragment extends Fragment {
 
-    static final String TAG = "RegisterProductFragment";
+    private SharedProductViewModel mProductPickerViewModel;
+    private _RegisterProductViewModel mSharedViewModel;
+    private SectionProductDetailsViewModel mViewModel;
+
+    static final String TAG = "SectionProductDetailsProductFragment";
     private ActivityResultLauncher<Intent> scanLauncher;
     private ActivityResultLauncher<String[]> requestScanCameraPermissionsLauncher;
 
-    @Override
-    protected ProductDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
-    }
-
     @NonNull
     private SectionProductDetailsViewModel getViewModel() {
-        return (SectionProductDetailsViewModel) mViewModel;
+        return mViewModel;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        mSuggestedProductsViewModel = new ViewModelProvider(requireParentFragment()).get(SuggestedProductsViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
+        mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
 
         requestScanCameraPermissionsLauncher = registerForActivityResult( new ActivityResultContracts.RequestMultiplePermissions(), areGranted -> {
             if( !areGranted.containsValue(false) ) {
@@ -92,6 +96,40 @@ public class SectionProductDetailsFragment extends ProductDetailsFragment {
         Log.e( TAG, "onViewCreated");
         Log.e( TAG, getViewLifecycleOwner().toString() );
 
+
+/*
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave ) return;
+
+            // close any open keyboard
+            InputUtil.hideKeyboard(requireActivity());
+        });
+
+        getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave ) return;
+
+            LiveData<Resource<ProductWithTags>> mResult = mViewModel.getResult();
+            mResult.observe(getViewLifecycleOwner(), new Observer<Resource<ProductWithTags>>() {
+                @Override
+                public void onChanged(Resource<ProductWithTags> resource) {
+                    switch (resource.getStatus()) {
+                        case SUCCESS:
+                            mSharedViewModel.setProductDetails(resource);
+                            break;
+                        default:
+                            break;
+                    }
+                    mResult.removeObserver(this);
+                }
+            });
+        });
+*/
+        setupSearch(view, savedInstanceState);
+        setupProduct(view, savedInstanceState);
+        setupTags(view, savedInstanceState);
+    }
+
+    private void setupSearch(@NonNull View view, @Nullable Bundle savedInstanceState) {
         final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
         final View productForm = view.findViewById(R.id.productForm);
@@ -103,16 +141,44 @@ public class SectionProductDetailsFragment extends ProductDetailsFragment {
         barcodeInputLayout.setStartIconVisible(true);
         barcodeInputLayout.setEndIconVisible(hasFeatureCamera);
 
+        editBarcode.addTextChangedListener( new InputUtil.FieldTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                getViewModel().setBarcode(s.toString());
+            }
+        });
+
+        getViewModel().getBarcode().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "barcpde " + resource.getStatus() );
+            editBarcode.setText(resource.getData());
+            editBarcode.setSelection(editBarcode.length());
+
+            switch (resource.getStatus()) {
+                case LOADING:
+                    editBarcode.setError(null);
+                    barcodeInputLayout.setStartIconOnClickListener(null);
+                    break;
+                case SUCCESS:
+                    editBarcode.setError(null);
+                    barcodeInputLayout.setStartIconOnClickListener(v -> {
+                        search( resource.getData() );
+                    });
+                    break;
+                case ERROR:
+                    barcodeInputLayout.setStartIconOnClickListener(null);
+                    if( resource.getError() instanceof FormException ) {
+                        editBarcode.setError(resource.getError().getLocalizedMessage());
+                    }
+                    break;
+            }
+        });
+
         editBarcode.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 search(editBarcode.getText().toString());
                 return true;
             }
             return false;
-        });
-
-        barcodeInputLayout.setStartIconOnClickListener(v -> {
-            search( editBarcode.getText().toString() );
         });
 
         if(hasFeatureCamera){
@@ -127,75 +193,165 @@ public class SectionProductDetailsFragment extends ProductDetailsFragment {
             });
         }
 
-        mSuggestedProductsViewModel.onProductVote()
-                .observe(getViewLifecycleOwner(), mSharedViewModel::setProduct);
-        mSharedViewModel.getProduct()
-                .observe(getViewLifecycleOwner(), getViewModel()::setProduct);
-
         InputUtil.FieldTextWatcher[] barcodeWatcher = new InputUtil.FieldTextWatcher[1];
 
-        getViewModel().getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
-            if( productWithTags != null ) {
+        getViewModel().getProduct().observe(getViewLifecycleOwner(), productResource -> {
+            // when a new product is set, reset the product if barcode change
+            if( productResource.getStatus() == Status.SUCCESS ) {
+
+                // remove old text listener this case
                 if( barcodeWatcher[0] != null ){
                     editBarcode.removeTextChangedListener(barcodeWatcher[0]);
                 }
 
+                // create and add a new text listener to reset product on barcode change
                 barcodeWatcher[0] = new InputUtil.FieldTextWatcher() {
                     @Override
                     public void afterTextChanged(Editable s) {
-                        mSharedViewModel.setProduct(null);
+                        getViewModel().resetProduct();
                         productForm.setVisibility( View.GONE );
                     }
                 };
-
                 editBarcode.addTextChangedListener( barcodeWatcher[0] );
 
-                productForm.setVisibility( View.VISIBLE );
                 // close the dialog because user select a product
-                closeBottomSheetDialog(view);
+                // closeBottomSheetDialog(view);
+            }
+        });
+    }
+
+    private void setupProduct(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        final View noProductContainer = view.findViewById(R.id.noProductForm);
+        final View productContainer = view.findViewById(R.id.productForm);
+        final ImageButton removeProductBtn = view.findViewById(R.id.discardProductBtn);
+        final ViewGroup productPreviewContainer = view.findViewById(R.id.productPreviewInnerContainer);
+        ProductViewHolder previewHolder = ProductViewHolder.create(productPreviewContainer);
+        productPreviewContainer.addView(previewHolder.itemView);
+
+        removeProductBtn.setOnClickListener(v -> {
+            mProductPickerViewModel.setProductSource(null);
+        });
+
+        // on product picked
+        mProductPickerViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+            getViewModel().setProduct(resource.getData());
+        });
+
+        getViewModel().getProduct().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case ERROR:
+                    Log.e(TAG, "Error on product changed: " , resource.getError() );
+                    noProductContainer.setVisibility(View.VISIBLE);
+                    productContainer.setVisibility(View.GONE);
+                    break;
+                case SUCCESS:
+                    Log.d(TAG, "User picked: " + resource.getData() );
+                    noProductContainer.setVisibility(View.GONE);
+                    productContainer.setVisibility(View.VISIBLE);
+
+                    ProductWithTags model = new ProductWithTags();
+                    model.product = resource.getData();
+                    model.tags = new ArrayList<>(0);
+
+                    previewHolder.bind(model);
+
+                    // trigger research on preview lick
+                    previewHolder.itemView.setOnClickListener(v -> {
+                        search(model.product.getBarcode());
+                    });
+                    break;
+                default:
+                    Log.d(TAG, "waiting for user to pick ...");
+                    noProductContainer.setVisibility(View.VISIBLE);
+                    productContainer.setVisibility(View.GONE);
+                    break;
+            }
+        });
+    }
+
+    private void setupTags(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        final NachoTextView chipsInput = (NachoTextView) view.findViewById(R.id.chips_input);
+
+        ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(),
+                android.R.layout.simple_spinner_dropdown_item);
+        chipsInput.setAdapter( adapter );
+        chipsInput.addChipTerminator('\n', ChipTerminatorHandler.BEHAVIOR_CHIPIFY_TO_TERMINATOR );
+        chipsInput.setOnFocusChangeListener( (v, hasFocus) -> {
+            if( !hasFocus ){
+                getViewModel().setAssignedTags( ChipTagUtil.newTagsInstanceFromChips( chipsInput.getAllChips() ) );
             }
         });
 
-        getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
+        getViewModel().getAssignedTags().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case LOADING:
+                    chipsInput.setError(null);
+                    break;
+                case SUCCESS:
+                    chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( resource.getData() ) );
+                    chipsInput.setSelection(chipsInput.getText().length());
+                    break;
+                case ERROR:
+                    if( resource.getError() instanceof FormException){
+                        chipsInput.setError(((FormException) resource.getError()).getLocalizedMessage(requireContext()));
+                    }
+
+                    break;
+            }
+        });
+
+        getViewModel().getSuggestionTags().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    adapter.addAll( resource.getData() );
+                    break;
+                default:
+                    adapter.clear();
+                    break;
+            }
+        });
+
+        /*
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
-
+            // setOnFocusChangeListener of chips tags view is not triggered while clicking on a "save" view
+            // so trigger it manually
+            if (chipsInput.hasFocus()) {
+                chipsInput.clearFocus();
+                // mViewModel.setAssignedTags(ChipTagUtil.newTagsInstanceFromChips(chipsInput.getAllChips()));
+            }
         });
+        */
     }
 
     private void search(String barcode) {
         mViewModel.setBarcode( barcode );
-        openBottomSheetDialog(getView());
+        openBottomSheetDialog(getView(), barcode);
     }
 
-    private void openBottomSheetDialog(View view) {
+    private void openBottomSheetDialog(View view, String barcode) {
         NavController navController = NavHostFragment.findNavController( this );
-        Log.e( TAG , "OPENING");
+        Log.e( TAG , "OPENING " + barcode);
         Log.e( TAG , "CD: " + navController.getCurrentDestination());
 
+        /*if( navController
+                .getCurrentDestination()
+                .getId() == R.id.registerProductFragment )*/
+        {
+            navController
+                    .navigate(RegisterProductFragmentDirections.openSuggestedProducts(barcode));
 
-        LiveData<String> mBarcode = mViewModel.getBarcode();
-        mBarcode.observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String barcode) {
-                mBarcode.removeObserver(this);
-                if( navController
-                        .getCurrentDestination()
-                        .getId() == R.id.registerProductFragment )
-                {
-                    RegisterProductFragmentDirections.openSuggestedProducts(barcode);
-                }
-            }
-        });
+        }
     }
 
     private void closeBottomSheetDialog(View view) {
         NavController navController = NavHostFragment.findNavController( this );
         Log.e( TAG , "CLOSING");
         Log.e( TAG , "CD: " + navController.getCurrentDestination());
-        if( navController
+        /*if( navController
                 .getCurrentDestination()
-                .getId() == R.id.suggestedProductListDialogFragment )
+                .getId() == R.id.suggestedProductListDialogFragment )*/
         {
             navController
                     .popBackStack(R.id.suggestedProductListDialogFragment, true);

@@ -51,26 +51,33 @@
         android:label="@string/register_product_title"
         tools:layout="@layout/fragment_register_product">
         <action
+            android:id="@+id/openSuggestedProducts"
+            app:destination="@id/suggestedProductListDialogFragment" />
+        <action
             android:id="@+id/action_registerProductFragment_to_registerProductInstancesFragment"
-            app:destination="@id/registerProductInstancesFragment" />
+            app:destination="@id/sectionProductInstancesFragment" />
         <action
             android:id="@+id/action_registerProductFragment_to_sectionProductDetailsFragment"
             app:destination="@id/sectionProductDetailsFragment" />
         <action
             android:id="@+id/action_registerProductFragment_to_sectionProductPurchaseDetailsFragment"
             app:destination="@id/sectionProductPurchaseDetailsFragment" />
-        <action
-            android:id="@+id/openSuggestedProducts"
-            app:destination="@id/suggestedProductListDialogFragment" />
     </fragment>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.suggestions.SuggestedProductListDialogFragment"
-        android:label="fragment_suggested_product_list_dialog_list_dialog"
-        tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog" >
+        android:label="@string/suggested_products_list_description"
+        tools:layout="@layout/fragment_suggested_product_list_dialog_list_dialog">
         <argument
             android:name="barcode"
             app:argType="string" />
+        <action
+            android:id="@+id/createNewProduct"
+            app:destination="@id/newProductFormFragment" />
+        <action
+            android:id="@+id/onPickedProduct"
+            app:popUpTo="@id/suggestedProductListDialogFragment"
+            app:popUpToInclusive="true" />
     </dialog>
 
     <fragment
@@ -80,7 +87,7 @@
         tools:layout="@layout/fragment_section_product_details">
     </fragment>
     <fragment
-        android:id="@+id/registerProductInstancesFragment"
+        android:id="@+id/sectionProductInstancesFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment"
         android:label="fragment_section_product_instance_details"
         tools:layout="@layout/fragment_section_product_instance_details" />
@@ -113,11 +120,24 @@
         app:destination="@id/settingsFragment" />
     <fragment
         android:id="@+id/editProductDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductDetailsFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductInfoFragment"
         android:label="@string/product_section_edit_product_details" />
     <dialog
         android:id="@+id/productsSearchFilterFragmentDialog"
         android:name="com.jjak0b.android.trackingmypantry.ui.products.ProductsSearchFilterFragmentDialog"
         android:label="@string/setup_filter_options" />
+    <fragment
+        android:id="@+id/newProductFormFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.register_product.NewProductFormFragment"
+        android:label="@string/action_register_product"
+        tools:layout="@layout/fragment_new_product_form">
+        <argument
+            android:name="barcode"
+            app:argType="string" />
+        <action
+            android:id="@+id/onProductCreated"
+            app:popUpTo="@id/newProductFormFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>
