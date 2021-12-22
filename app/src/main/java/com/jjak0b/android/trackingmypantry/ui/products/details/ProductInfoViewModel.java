@@ -3,14 +3,12 @@ package com.jjak0b.android.trackingmypantry.ui.products.details;
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
@@ -18,11 +16,13 @@ import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
+import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 
 import java.util.Objects;
 
-public class ProductInfoViewModel extends AndroidViewModel {
+public class ProductInfoViewModel extends AndroidViewModel implements ISavable<Product> {
     private final static int BITMAP_SIZE = 256;
     protected AppExecutors appExecutors;
 
@@ -33,17 +33,12 @@ public class ProductInfoViewModel extends AndroidViewModel {
 
     private MutableLiveData<Product> originalProduct;
 
-    protected MutableLiveData<Boolean> mFormValidity;
-    private LiveEvent<Boolean> onSave;
-    private LiveEvent<Resource<Product>> mSavedResult;
-
+    private Savable<Product> savable;
 
     public ProductInfoViewModel(Application application) {
         super(application);
-        this.appExecutors = AppExecutors.getInstance();;
-        this.mFormValidity = new MutableLiveData<>(false);
-        this.mSavedResult = new LiveEvent<>();
-        this.onSave = new LiveEvent<>();
+        this.appExecutors = AppExecutors.getInstance();
+        this.savable = new Savable<>();
 
         this.originalProduct = new MutableLiveData<>(null);
 
@@ -111,28 +106,31 @@ public class ProductInfoViewModel extends AndroidViewModel {
         isValid = isValid && Transformations.onValid(getDescription().getValue(), null);
         isValid = isValid && Transformations.onValid(getImage().getValue(), null);
 
-        mFormValidity.setValue(isValid);
+        savable.enableSave(isValid);
         return isValid;
     }
 
     public LiveData<Boolean> canSave() {
-        return mFormValidity;
+        return savable.canSave();
+    }
+
+    public void saveComplete() {
+        savable.saveComplete();
     }
 
     public void save() {
-        onSave.setValue(true);
-        onSave.postValue(false);
+        savable.save();
 
-        mSavedResult.removeSource(onSave);
-        mSavedResult.addSource(onSave, aBoolean -> {
+        savable.onSaved().removeSource(savable.onSave());
+        savable.onSaved().addSource(savable.onSave(), aBoolean -> {
             if( aBoolean ){
-                mSavedResult.setValue(Resource.loading(null));
+                savable.setSavedResult(Resource.loading(null));
                 return;
             }
-            mSavedResult.removeSource(onSave);
+            savable.onSaved().removeSource(savable.onSave());
 
-            mSavedResult.addSource(getProduct(), old -> {
-                mSavedResult.removeSource(getProduct());
+            savable.onSaved().addSource(getProduct(), old -> {
+                savable.onSaved().removeSource(getProduct());
 
                 Product.Builder builder = new Product.Builder().from(old);
 
@@ -151,25 +149,23 @@ public class ProductInfoViewModel extends AndroidViewModel {
                         resourceScaled -> ImageUtil.getURI(resourceScaled.getData())
                 ) : new MutableLiveData<>(Resource.success(null));
 
-                mSavedResult.addSource(resourceURI, resource -> {
+                savable.onSaved().addSource(resourceURI, resource -> {
                     if (resource.getStatus() != Status.LOADING) {
-                        mSavedResult.removeSource(resourceURI);
-                        Log.d("ProductInfoVM",  "Saved image");
+                        savable.onSaved().removeSource(resourceURI);
                         builder.setImg(resource.getData());
-
-                        mSavedResult.setValue(Resource.success(builder.build()));
+                        savable.setSavedResult(Resource.success(builder.build()));
                     }
                 });
             });
         });
     }
 
-    public LiveData<Boolean> onSave() {
-        return onSave;
+    public MediatorLiveData<Boolean> onSave() {
+        return savable.onSave();
     }
 
-    public LiveData<Resource<Product>> onSaved() {
-        return mSavedResult;
+    public MediatorLiveData<Resource<Product>> onSaved() {
+        return savable.onSaved();
     }
 
     public LiveData<Product> getProduct() {
