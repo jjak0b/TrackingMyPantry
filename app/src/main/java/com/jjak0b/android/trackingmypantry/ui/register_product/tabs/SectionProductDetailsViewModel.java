@@ -5,35 +5,47 @@ import android.text.TextUtils;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
+import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
+import com.jjak0b.android.trackingmypantry.ui.util.Savable;
+import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SectionProductDetailsViewModel extends AndroidViewModel {
+public class SectionProductDetailsViewModel extends AndroidViewModel implements ISavable<ProductWithTags>{
 
     private MutableLiveData<Resource<String>> mBarcode;
     private MutableLiveData<Resource<Product>> mProduct;
     private MutableLiveData<Resource<List<ProductTag>>> mAssignedTags;
     private ProductsRepository productsRepository;
+    private Savable<ProductWithTags> savable;
 
     public SectionProductDetailsViewModel(Application application) {
         super(application);
         productsRepository = ProductsRepository.getInstance(application);
-
+        savable = new Savable<>();
         mBarcode = new MutableLiveData<>(Resource.loading(null));
         mProduct = new MutableLiveData<>(Resource.loading(null));
         mAssignedTags = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
+    }
+
+    @Override
+    protected void onCleared() {
+        savable.onCleared();
+        super.onCleared();
     }
 
     public LiveData<Resource<String>> getBarcode() {
@@ -109,8 +121,75 @@ public class SectionProductDetailsViewModel extends AndroidViewModel {
             return Transformations.forward(productsRepository.getDetails(barcodeResource.getData()), detailsResource -> {
                 ProductWithTags model = detailsResource.getData();
                 setProduct(model);
+                // TODO merge current assigned tags with already stored
                 return new MutableLiveData<>(detailsResource);
             });
         });
+    }
+
+
+    @Override
+    public LiveData<Boolean> canSave() {
+        return savable.canSave();
+    }
+
+    @Override
+    public void saveComplete() {
+        savable.saveComplete();
+    }
+
+    @Override
+    public void save() {
+        savable.save();
+
+        savable.onSaved().removeSource(savable.onSave());
+        savable.onSaved().addSource(savable.onSave(), isSaving -> {
+            if (isSaving) {
+                savable.setSavedResult(Resource.loading(null));
+                return;
+            }
+            savable.onSaved().removeSource(savable.onSave());
+
+
+            ResourceUtils.ResourcePairLiveData<Product, List<ProductTag>> mPair =
+                    ResourceUtils.ResourcePairLiveData.create(getProduct(), getAssignedTags() );
+
+            savable.onSaved().addSource(mPair, resourceResourcePair -> {
+                if( resourceResourcePair.first.getStatus() != Status.LOADING
+                    && resourceResourcePair.second.getStatus() != Status.LOADING ) {
+
+                    savable.onSaved().removeSource(mPair);
+
+                    boolean isValid = resourceResourcePair.first.getStatus() == Status.SUCCESS
+                            && resourceResourcePair.second.getStatus() == Status.SUCCESS;
+
+                    if( isValid ) {
+                        ProductWithTags result = new ProductWithTags();
+                        result.product = resourceResourcePair.first.getData();
+                        result.tags = resourceResourcePair.second.getData();
+                        savable.setSavedResult(Resource.success(result));
+                    }
+                    else {
+                        savable.setSavedResult(Resource.error(
+                                new FormException(resourceResourcePair.first.getError() != null
+                                        ? resourceResourcePair.first.getError().getLocalizedMessage()
+                                        : resourceResourcePair.second.getError().getLocalizedMessage()
+                                ),
+                                null
+                        ));
+                    }
+                }
+            });
+        });
+    }
+
+    @Override
+    public MediatorLiveData<Boolean> onSave() {
+        return savable.onSave();
+    }
+
+    @Override
+    public MediatorLiveData<Resource<ProductWithTags>> onSaved() {
+        return savable.onSaved();
     }
 }

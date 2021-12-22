@@ -99,33 +99,37 @@ public class SectionProductDetailsFragment extends Fragment {
         Log.e( TAG, getViewLifecycleOwner().toString() );
 
 
-/*
+        getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
+            if( canSave ) getViewModel().save();
+        });
+
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
             // close any open keyboard
             InputUtil.hideKeyboard(requireActivity());
+
+            getViewModel().saveComplete();
         });
 
-        getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
-            if( !shouldSave ) return;
-
-            LiveData<Resource<ProductWithTags>> mResult = mViewModel.getResult();
-            mResult.observe(getViewLifecycleOwner(), new Observer<Resource<ProductWithTags>>() {
-                @Override
-                public void onChanged(Resource<ProductWithTags> resource) {
-                    switch (resource.getStatus()) {
-                        case SUCCESS:
-                            mSharedViewModel.setProductDetails(resource);
-                            break;
-                        default:
-                            break;
-                    }
-                    mResult.removeObserver(this);
-                }
-            });
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "Saved Product details: " + resource );
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    mSharedViewModel.setProductDetails(resource);
+                    break;
+                case ERROR:
+                    new AlertDialog.Builder(requireContext())
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG))
+                            .show();
+                    break;
+                default:
+                    break;
+            }
+            // mSharedViewModel.setProductDetails(resource);
         });
-*/
+
         setupSearch(view, savedInstanceState);
         setupProduct(view, savedInstanceState);
         setupTags(view, savedInstanceState);
@@ -151,7 +155,6 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         getViewModel().getBarcode().observe(getViewLifecycleOwner(), resource -> {
-            Log.d(TAG, "barcpde " + resource.getStatus() );
             editBarcode.setText(resource.getData());
             editBarcode.setSelection(editBarcode.length());
 
@@ -313,7 +316,7 @@ public class SectionProductDetailsFragment extends Fragment {
             }
         });
 
-        /*
+
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
@@ -324,7 +327,6 @@ public class SectionProductDetailsFragment extends Fragment {
                 // mViewModel.setAssignedTags(ChipTagUtil.newTagsInstanceFromChips(chipsInput.getAllChips()));
             }
         });
-        */
     }
 
     private void search(String barcode) {
