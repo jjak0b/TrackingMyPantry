@@ -35,23 +35,6 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/noProductForm"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        tools:visibility="visible">
-
-        <com.google.android.material.button.MaterialButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/register_product_pick_product"
-            app:icon="@drawable/ic_baseline_product_placeholder"></com.google.android.material.button.MaterialButton>
-    </LinearLayout>
-
-    <LinearLayout
         android:id="@+id/productForm"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -64,7 +47,7 @@
         <RelativeLayout
             android:id="@+id/productPreviewOuterContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:elevation="1dp">
 
             <LinearLayout

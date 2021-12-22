@@ -21,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -39,6 +40,7 @@ import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFr
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
@@ -167,7 +169,7 @@ public class SectionProductDetailsFragment extends Fragment {
                 case ERROR:
                     barcodeInputLayout.setStartIconOnClickListener(null);
                     if( resource.getError() instanceof FormException ) {
-                        editBarcode.setError(resource.getError().getLocalizedMessage());
+                        editBarcode.setError(resource.getError().getLocalizedMessage(), null);
                     }
                     break;
             }
@@ -221,7 +223,6 @@ public class SectionProductDetailsFragment extends Fragment {
     }
 
     private void setupProduct(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        final View noProductContainer = view.findViewById(R.id.noProductForm);
         final View productContainer = view.findViewById(R.id.productForm);
         final ImageButton removeProductBtn = view.findViewById(R.id.discardProductBtn);
         final ViewGroup productPreviewContainer = view.findViewById(R.id.productPreviewInnerContainer);
@@ -241,12 +242,14 @@ public class SectionProductDetailsFragment extends Fragment {
             switch (resource.getStatus()) {
                 case ERROR:
                     Log.e(TAG, "Error on product changed: " , resource.getError() );
-                    noProductContainer.setVisibility(View.VISIBLE);
                     productContainer.setVisibility(View.GONE);
+                    new AlertDialog.Builder(requireContext())
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
+                            .show();
                     break;
                 case SUCCESS:
                     Log.d(TAG, "User picked: " + resource.getData() );
-                    noProductContainer.setVisibility(View.GONE);
                     productContainer.setVisibility(View.VISIBLE);
 
                     ProductWithTags model = new ProductWithTags();
@@ -262,7 +265,6 @@ public class SectionProductDetailsFragment extends Fragment {
                     break;
                 default:
                     Log.d(TAG, "waiting for user to pick ...");
-                    noProductContainer.setVisibility(View.VISIBLE);
                     productContainer.setVisibility(View.GONE);
                     break;
             }
