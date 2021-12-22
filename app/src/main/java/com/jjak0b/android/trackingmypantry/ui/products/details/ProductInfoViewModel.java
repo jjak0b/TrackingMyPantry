@@ -93,6 +93,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
 
     @Override
     protected void onCleared() {
+        savable.onCleared();
         originalProduct.setValue(null);
         originalProduct = null;
         super.onCleared();

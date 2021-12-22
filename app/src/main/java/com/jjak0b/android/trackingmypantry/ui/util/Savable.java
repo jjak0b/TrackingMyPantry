@@ -55,4 +55,10 @@ public class Savable<T> implements ISavable<T> {
     public MediatorLiveData<Resource<T>> onSaved() {
         return mSavedResult;
     }
+
+    public void onCleared() {
+        this.mSavedResult = null;
+        this.onSave = null;
+        this.mCanSave = null;
+    }
 }
