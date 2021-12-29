@@ -171,9 +171,8 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
                     }
                     else {
                         savable.setSavedResult(Resource.error(
-                                new FormException(resourceResourcePair.first.getError() != null
-                                        ? resourceResourcePair.first.getError().getLocalizedMessage()
-                                        : resourceResourcePair.second.getError().getLocalizedMessage()
+                                new FormException(
+                                        getApplication().getString(R.string.form_error_invalid)
                                 ),
                                 null
                         ));

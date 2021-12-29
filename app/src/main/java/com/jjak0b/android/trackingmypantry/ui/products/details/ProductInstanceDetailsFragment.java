@@ -2,12 +2,6 @@ package com.jjak0b.android.trackingmypantry.ui.products.details;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +9,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -126,52 +125,80 @@ public class ProductInstanceDetailsFragment extends Fragment {
             }
         });
 
-        mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), pantries -> {
-            pantriesAdapter.clear();
-            if( pantries != null )
-                pantriesAdapter.addAll( pantries );
-            // needs this to show eventually autocomplete spinner
-            // because we need at least a character even if completion threshold = 0
-            pantryAutoCompleteSelector.setText(pantryAutoCompleteSelector.getText());
+        mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    if( resource.getData() != null )
+                        pantriesAdapter.addAll( resource.getData() );
+                    // needs this to show eventually autocomplete spinner
+                    // because we need at least a character even if completion threshold = 0
+                    pantryAutoCompleteSelector.setText(pantryAutoCompleteSelector.getText());
+                    break;
+                default:
+                    pantriesAdapter.clear();
+                    break;
+            }
         });
 
-        mViewModel.getPantry().observe( getViewLifecycleOwner(), pantry -> {
-            Log.d( TAG, "updated pantry to: " + pantry );
+        mViewModel.getPantry().observe( getViewLifecycleOwner(), resource -> {
+            Pantry pantry = resource.getData();
             pantryAutoCompleteSelector.setText( pantry != null ? pantry.toString() : null );
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    // unset pantry and set as custom after edited the text
+                    pantryAutoCompleteSelector.setOnFocusChangeListener((v, hasFocus) -> {
+                        if (!hasFocus) {
 
-           pantryAutoCompleteSelector.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if( !hasFocus ){
-
-                        String fieldValue = pantryAutoCompleteSelector.getText().toString();
-                        boolean hasBeenChanged = true;
-                        if( pantry != null ){
-                            hasBeenChanged = !Objects.equals( pantry.toString(), fieldValue );
+                            String fieldValue = pantryAutoCompleteSelector.getText().toString();
+                            boolean hasBeenChanged = true;
+                            if (pantry != null) {
+                                hasBeenChanged = !Objects.equals(pantry.toString(), fieldValue);
+                            }
+                            Log.d(TAG, "has been changed:" + hasBeenChanged);
+                            if (hasBeenChanged) {
+                                if (pantryAutoCompleteSelector.getText().length() > 0)
+                                    mViewModel.setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
+                                else
+                                    mViewModel.setPantry(null);
+                            }
                         }
-                        Log.d( TAG, "has been changed:" + hasBeenChanged);
-                        if( hasBeenChanged ){
-                            if( pantryAutoCompleteSelector.getText().length() > 0 )
-                                mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
-                            else
-                                mViewModel.setPantry( null );
-                        }
-                    }
-                }
-            });
+                    });
+                    break;
+                case ERROR:
+                    pantryAutoCompleteSelector.setError(resource.getError().getLocalizedMessage());
+                    break;
+            }
         });
 
-        mViewModel.getQuantity().observe(getViewLifecycleOwner(), quantity -> {
-            String strValue = String.valueOf(quantity);
-            quantityInput.setText(strValue);
-            quantityInput.setSelection(strValue.length());
+        mViewModel.getQuantity().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    String strValue = String.valueOf(resource.getData());
+                    quantityInput.setText(strValue);
+                    quantityInput.setSelection(strValue.length());
+                    break;
+                case ERROR:
+                    quantityInput.setError(resource.getError().getLocalizedMessage());
+                    break;
+                default:
+                    break;
+            }
         });
 
-        mViewModel.getExpireDate().observe(getViewLifecycleOwner(), date -> {
-            expireDateInput.setText( dateFormat.format( date ) );
+        mViewModel.getExpireDate().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    expireDateInput.setText( dateFormat.format( resource.getData() ) );
 
-            // dialog will start with this date set
-            expireDateCalendar.setTime(date);
+                    // dialog will start with this date set
+                    expireDateCalendar.setTime(resource.getData());
+                    break;
+                case ERROR:
+                    expireDateInput.setError(resource.getError().getLocalizedMessage());
+                    break;
+                default:
+                    break;
+            }
         });
 
         mViewModel.onSave().observe(getViewLifecycleOwner(), shouldSave -> {
