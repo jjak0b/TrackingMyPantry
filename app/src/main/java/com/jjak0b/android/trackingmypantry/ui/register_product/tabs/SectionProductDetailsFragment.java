@@ -103,6 +103,11 @@ public class SectionProductDetailsFragment extends Fragment {
             if( canSave ) getViewModel().save();
         });
 
+        mSharedViewModel.onSaveProductDetails().observe(getViewLifecycleOwner(), isSaving -> {
+            if( !isSaving ) return;
+            getViewModel().save();
+        });
+
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
@@ -114,20 +119,15 @@ public class SectionProductDetailsFragment extends Fragment {
 
         getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
             Log.d(TAG, "Saved Product details: " + resource );
+            mSharedViewModel.setProductDetails(resource);
             switch (resource.getStatus()) {
-                case SUCCESS:
-                    mSharedViewModel.setProductDetails(resource);
-                    break;
                 case ERROR:
                     new AlertDialog.Builder(requireContext())
                             .setPositiveButton(android.R.string.ok, null)
                             .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG))
                             .show();
                     break;
-                default:
-                    break;
             }
-            // mSharedViewModel.setProductDetails(resource);
         });
 
         setupSearch(view, savedInstanceState);

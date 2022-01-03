@@ -9,11 +9,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
 
 public class SectionProductInstanceDetailsFragment extends ProductInstanceDetailsFragment {
 
-    private RegisterProductViewModel mSharedViewModel;
+    private _RegisterProductViewModel mSharedViewModel;
 
     @Override
     protected ProductInstanceDetailsViewModel initViewModel() {
@@ -28,19 +28,26 @@ public class SectionProductInstanceDetailsFragment extends ProductInstanceDetail
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel.getProductInstance().observe( getViewLifecycleOwner(), productInstance -> {
-            if( productInstance == null ){
-                // set default values in fields
-                mSharedViewModel.resetProductInstance();
-                return;
-            }
+        mSharedViewModel.onSaveInfoDetails().observe(getViewLifecycleOwner(), isSaving -> {
+            if( !isSaving ) return;
+            getViewModel().save();
+        });
+
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave ) return;
+
+            getViewModel().saveComplete();
+        });
+
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
+            mSharedViewModel.setInfoDetails(resource);
         });
     }
 }

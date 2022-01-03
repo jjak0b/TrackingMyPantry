@@ -9,11 +9,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
 
 public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetailsFragment {
 
-    private RegisterProductViewModel mSharedViewModel;
+    private _RegisterProductViewModel mSharedViewModel;
 
     @Override
     protected ProductPurchaseDetailsViewModel initViewModel() {
@@ -21,14 +21,14 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     }
 
     @NonNull
-    private SectionProductPurchaseDetailsViewModel getViewModel() {
+    public SectionProductPurchaseDetailsViewModel getViewModel() {
         return (SectionProductPurchaseDetailsViewModel) mViewModel;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
     }
 
 
@@ -36,12 +36,19 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel.getProductPurchaseInfo().observe( getViewLifecycleOwner(), purchaseInfo -> {
-            if( purchaseInfo == null ){
-                // set default values in fields
-                mSharedViewModel.resetPurchaseInfo();
-                return;
-            }
+        mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), aBoolean -> {
+            if( !aBoolean  ) return;
+            getViewModel().save();
+        });
+
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave ) return;
+
+            getViewModel().saveComplete();
+        });
+
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), purchaseInfoWithPlaceResource -> {
+            mSharedViewModel.setPurchaseDetails(purchaseInfoWithPlaceResource);
         });
     }
 }

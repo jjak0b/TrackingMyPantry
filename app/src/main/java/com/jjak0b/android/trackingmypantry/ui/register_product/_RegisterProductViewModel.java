@@ -24,7 +24,7 @@ import com.jjak0b.android.trackingmypantry.data.repositories.PlacesRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.PurchasesRepository;
-import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
+import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 
 public class _RegisterProductViewModel extends AndroidViewModel {
 
@@ -40,16 +40,26 @@ public class _RegisterProductViewModel extends AndroidViewModel {
     private LiveEvent<Boolean> onSave;
     private LiveEvent<Boolean> onCanSubmit;
 
+
+    private Savable<ProductWithTags> savableProductDetails;
+    private Savable<ProductInstanceGroup> savableProductInfoDetails;
+    private Savable<PurchaseInfoWithPlace> savableProductPurchaseDetails;
+
     public _RegisterProductViewModel(@NonNull Application application) {
         super(application);
         productsRepo = ProductsRepository.getInstance(application);
         pantryRepo = PantriesRepository.getInstance(application);
         purchasesRepo = PurchasesRepository.getInstance(application);
+        placesRepo = PlacesRepository.getInstance(application);
 
         mProductDetails = new MutableLiveData<>(Resource.loading(null));
         mProductGroupDetails = new MutableLiveData<>(Resource.loading(null));
         mProductPurchaseDetails = new MutableLiveData<>(Resource.loading(null));
         // mProductChoice = new MutableLiveData<>();
+
+        savableProductDetails = new Savable<>();
+        savableProductInfoDetails = new Savable<>();
+        savableProductPurchaseDetails = new Savable<>();
 
         onSave = new LiveEvent<>();
         onCanSubmit = new LiveEvent<>();
@@ -64,142 +74,40 @@ public class _RegisterProductViewModel extends AndroidViewModel {
 
     }
 
-    private void initCanSubmit() {
-
-        LiveData<?>[] required = new LiveData<?>[] { mProductDetails, mProductGroupDetails, mProductPurchaseDetails };
-        MutableLiveData<Integer> readySource = new MutableLiveData<>(0);
-
-        Resource<?>[] results = new Resource<?>[required.length];
-        // assert to have them all collected, counts how many data we got and notify true when we git them all
-        int index = 0;
-        for (LiveData<?> _source : required ) {
-            LiveData<Resource<?>> source = (LiveData<Resource<?>>) _source;
-            int tmpIndex = index;
-            onCanSubmit.addSource(source, new Observer<Resource<?>>() {
-                private final LiveData<Resource<?>> __source = source;
-                @Override
-                public void onChanged(Resource<?> resource) {
-                    switch (resource.getStatus()) {
-                        case SUCCESS:
-                            // we got a result
-                            readySource.setValue(-1);
-                            break;
-                        case ERROR:
-                            // we got an error
-                            readySource.setValue(1);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            });
-            ++index;
-        }
-
-        onCanSubmit.addSource(readySource, new Observer<Integer>() {
-            int count = required.length;
-            @Override
-            public void onChanged(Integer value) {
-                count += value;
-                if( count <= 0) {
-                    onCanSubmit.setValue(true);
-                }
-                else {
-                    onCanSubmit.setValue(false);
-                }
-            }
-        });
+    public void saveProductDetails() {
+        savableProductDetails.save();
     }
 
-    public LiveData<Boolean> onSave() {
-        return onSave;
+    public void saveProductInfoDetails() {
+        savableProductInfoDetails.save();
     }
 
-    public void save() {
-        onSave.setValue(true);
-        onSave.postValue(false);
+    public void saveProductPurchaseDetails() {
+        savableProductPurchaseDetails.onSave();
     }
 
-    public LiveData<Boolean> onCanSubmit() {
-        return onCanSubmit;
+    public MediatorLiveData<Boolean> onSaveProductDetails() {
+        return savableProductDetails.onSave();
     }
 
-    public void setProductDetails(Resource<ProductWithTags> data ) {
-        mProductDetails.setValue(data);
+    public MediatorLiveData<Boolean> onSaveInfoDetails() {
+        return savableProductInfoDetails.onSave();
     }
 
-    public void setProductInstanceDetails( Resource<ProductInstanceGroupInfo> data ) {
-        mProductGroupDetails.setValue(data);
+    public MediatorLiveData<Boolean> onSavePurchaseDetails() {
+        return savableProductPurchaseDetails.onSave();
     }
 
-    public void setProductPurchaseDetails( Resource<PurchaseInfoWithPlace> data ) {
-        mProductPurchaseDetails.setValue(data);
+    public void setProductDetails(Resource<ProductWithTags> resource) {
+        mProductDetails.setValue(resource);
     }
 
-    public LiveData<Resource<Void>> submit() {
+    public void setInfoDetails(Resource<ProductInstanceGroupInfo> resource) {
+        mProductGroupDetails.setValue(resource);
+    }
 
-
-        MutableLiveData<Integer> readySource = new MediatorLiveData<>();
-        MediatorLiveData<Resource<Void>> mResult = new MediatorLiveData<>();
-        mResult.setValue(Resource.loading(null));
-
-        LiveData<Resource<ProductWithTags>> mProductResult = addProductDetails();
-        LiveData<Resource<ProductInstanceGroup>> mProductGroupResult = addProductGroupDetails(mProductResult);
-        LiveData<Resource<PurchaseInfo>> mProductPurchaseResult = addProductPurchaseDetails(mProductResult);
-
-        LiveData<?>[] required = new LiveData<?>[] { mProductResult, mProductGroupResult, mProductPurchaseResult };
-        Resource<?>[] results = new Resource<?>[required.length];
-        // assert to have them all collected
-        int index = 0;
-        for (LiveData<?> _source : required ) {
-            LiveData<Resource<?>> source = (LiveData<Resource<?>>) _source;
-            int tmpIndex = index;
-            mResult.addSource(source, new Observer<Resource<?>>() {
-                private final LiveData<Resource<?>> __source = source;
-                private final int __index = tmpIndex;
-                @Override
-                public void onChanged(Resource<?> resource) {
-                    results[__index] = resource;
-                    switch (resource.getStatus()) {
-                        case SUCCESS:
-                            mResult.removeSource(__source);
-                            // we got a result
-                            readySource.setValue(__index);
-                            break;
-                        case ERROR:
-                            mResult.removeSource(readySource);
-                            mResult.removeSource(__source);
-                            // we got an error, we will report it
-                            mResult.setValue(Resource.error(resource.getError(), null));
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            });
-            ++index;
-        }
-        mResult.addSource(readySource, new Observer<Integer>() {
-            int steps = required.length;
-            @Override
-            public void onChanged(Integer index) {
-                switch (results[index].getStatus()) {
-                    case SUCCESS:
-                        --steps;
-                        break;
-                    case ERROR:
-                        mResult.removeSource(readySource);
-                        break;
-                }
-                if( steps <= 0) {
-
-                    mResult.removeSource(readySource);
-                    mResult.setValue(Resource.success(null));
-                }
-            }
-        });
-
-        return mResult;
+    public void setPurchaseDetails(Resource<PurchaseInfoWithPlace> resource) {
+        mProductPurchaseDetails.setValue(resource);
     }
 
     private LiveData<Resource<ProductWithTags>> addProductDetails() {
