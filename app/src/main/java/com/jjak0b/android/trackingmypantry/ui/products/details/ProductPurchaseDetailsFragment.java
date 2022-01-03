@@ -4,14 +4,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,14 +12,18 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.ui.maps.PlacesPluginActivity;
-import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
-
 import com.jjak0b.android.trackingmypantry.ui.util.PlaceAdapter;
 import com.mapbox.geojson.Point;
 
@@ -76,6 +72,9 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         });
     }
 
+    public ProductPurchaseDetailsViewModel getViewModel() {
+        return mViewModel;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -98,7 +97,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         EditText editPurchaseCost = view.findViewById( R.id.editTextCost );
 
         View.OnClickListener showLocationPickerOnClick = v -> {
-            locationPickerLauncher.launch(new Intent(getContext(), PlacesPluginActivity.class));
+            locationPickerLauncher.launch(new Intent(requireContext(), PlacesPluginActivity.class));
         };
 
         editPurchaseLocation.setOnClickListener( showLocationPickerOnClick );
@@ -112,13 +111,10 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                calendar.setTimeInMillis(0);
                                 calendar.set(Calendar.YEAR, year);
                                 calendar.set(Calendar.MONTH, monthOfYear);
                                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                                calendar.set(Calendar.HOUR_OF_DAY, 0);
-                                calendar.set(Calendar.MINUTE, 0);
-                                calendar.set(Calendar.SECOND, 0);
-                                calendar.set(Calendar.MILLISECOND, 0);
                                 Date date = calendar.getTime();
 
                                 mViewModel.setPurchaseDate(date);
@@ -154,31 +150,69 @@ public class ProductPurchaseDetailsFragment extends Fragment {
             }
         });
 
-        mViewModel.getPurchasePlace().observe( getViewLifecycleOwner(), place -> {
-            if( place != null && place.getName() != null ) {
-                String placeName = place.getName();
-                editPurchaseLocation.setText(placeName);
-                editPurchaseLocation.setSelection(placeName.length());
+        getViewModel().getPurchasePlace().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case ERROR:
+                    Throwable error = resource.getError();
+                    if( error != null) {
+                        editPurchaseLocation.setError(error.getLocalizedMessage());
+                    }
+                    break;
+                case SUCCESS:
+                    Place place = resource.getData();
+                    if( place != null && place.getName() != null ) {
+                        String placeName = place.getName();
+                        editPurchaseLocation.setText(placeName);
+                        editPurchaseLocation.setSelection(placeName.length());
+                    }
+                    else {
+                        editPurchaseLocation.setText(null);
+                    }
+                    break;
+                default:
+                    break;
             }
-            else {
-                editPurchaseLocation.setText(null);
+        });
+
+        getViewModel().getPurchaseDate().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case ERROR:
+                    Throwable error = resource.getError();
+                    if( error != null) {
+                        editPurchaseDate.setError(error.getLocalizedMessage());
+                    }
+                    break;
+                case SUCCESS:
+                    Date date = resource.getData();
+                    editPurchaseDate.setText( dateFormat.format( date ) );
+                    calendar.setTime(date);
+                    break;
+                default:
+                    break;
             }
         });
 
-        mViewModel.getPurchaseDate().observe(getViewLifecycleOwner(), date -> {
-            editPurchaseDate.setText( dateFormat.format( date ) );
-            calendar.setTime(date);
+        getViewModel().getCost().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case ERROR:
+                    Throwable error = resource.getError();
+                    if( error != null) {
+                        editPurchaseCost.setError(error.getLocalizedMessage());
+                    }
+                    break;
+                case SUCCESS:
+                    editPurchaseCost.setText( String.valueOf( resource.getData() ) );
+                    break;
+            }
         });
 
-        mViewModel.getCost().observe(getViewLifecycleOwner(), cost -> {
-            editPurchaseCost.setText( String.valueOf( cost ) );
-        });
-
-        mViewModel.onSave().observe(getViewLifecycleOwner(), shouldSave -> {
+        getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
             // close any open keyboard
             InputUtil.hideKeyboard(requireActivity());
+
+            mViewModel.saveComplete();
         });
     }
 }
