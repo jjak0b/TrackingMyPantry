@@ -32,6 +32,7 @@ import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.BarcodeScannerActivity;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
@@ -239,6 +240,7 @@ public class SectionProductDetailsFragment extends Fragment {
         productPreviewContainer.addView(previewHolder.itemView);
 
         removeProductBtn.setOnClickListener(v -> {
+            Log.d(TAG, "Unset picked product" );
             mProductPickerViewModel.setProductSource(null);
         });
 
@@ -276,6 +278,10 @@ public class SectionProductDetailsFragment extends Fragment {
                     Log.d(TAG, "waiting for user to pick ...");
                     productContainer.setVisibility(View.GONE);
                     break;
+            }
+
+            if( resource.getData() == null ) {
+                mSharedViewModel.setProductDetails(Resource.loading(null));
             }
         });
     }
