@@ -41,7 +41,7 @@ public class Savable<T> implements ISavable<T> {
     }
 
     public void enableSave(boolean canSave) {
-        mCanSave.setValue(true);
+        mCanSave.setValue(canSave);
     }
 
     /**

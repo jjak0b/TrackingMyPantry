@@ -70,14 +70,15 @@
         </RelativeLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tagsInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginBottom="@dimen/text_margin"
             android:hint="@string/register_product_tags"
-            app:endIconMode="dropdown_menu"
 
+            app:endIconMode="dropdown_menu"
             app:startIconDrawable="@drawable/ic_baseline_tag">
 
             <com.hootsuite.nachos.NachoTextView

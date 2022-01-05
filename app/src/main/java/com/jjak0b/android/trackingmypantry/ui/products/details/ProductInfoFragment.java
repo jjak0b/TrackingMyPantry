@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
@@ -74,8 +75,11 @@ public class ProductInfoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
+        final TextInputLayout nameInputLayout = view.findViewById(R.id.productNameInputLayout);
         final EditText editName = (EditText) view.findViewById( R.id.editProductName );
+        final TextInputLayout descriptionInputLayout = view.findViewById(R.id.productDescriptionInputLayout);
         final EditText editDescription = (EditText) view.findViewById( R.id.editProductDescription );
 
         final ImageButton photoPreviewBtn = (ImageButton) view.findViewById(R.id.photoPreviewBtn);
@@ -124,10 +128,10 @@ public class ProductInfoFragment extends Fragment {
             editBarcode.setSelection(editBarcode.length());
             switch (resource.getStatus()) {
                 case ERROR:
-                    editBarcode.setError(resource.getError().getLocalizedMessage());
+                    barcodeInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
                 default:
-                    editBarcode.setError(null);
+                    barcodeInputLayout.setError(null);
             }
         });
 
@@ -136,10 +140,10 @@ public class ProductInfoFragment extends Fragment {
             editName.setSelection(editName.length());
             switch (resource.getStatus()) {
                 case ERROR:
-                    editName.setError(resource.getError().getLocalizedMessage());
+                    nameInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
                 default:
-                    editName.setError(null);
+                    nameInputLayout.setError(null);
             }
         });
 
@@ -148,10 +152,10 @@ public class ProductInfoFragment extends Fragment {
             editDescription.setSelection(editDescription.length());
             switch (resource.getStatus()) {
                 case ERROR:
-                    editDescription.setError(resource.getError().getLocalizedMessage());
+                    descriptionInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
                 default:
-                    editDescription.setError(null);
+                    descriptionInputLayout.setError(null);
             }
         });
 

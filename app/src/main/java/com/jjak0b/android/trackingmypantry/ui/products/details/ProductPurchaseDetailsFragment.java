@@ -44,8 +44,14 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         // Required empty public constructor
     }
 
-    protected ProductPurchaseDetailsViewModel initViewModel() {
+    @NonNull
+    public ProductPurchaseDetailsViewModel initViewModel() {
         return new ViewModelProvider(this).get(ProductPurchaseDetailsViewModel.class);
+    }
+
+    @NonNull
+    private ProductPurchaseDetailsViewModel getViewModel() {
+        return mViewModel;
     }
 
     @Override
@@ -64,16 +70,12 @@ public class ProductPurchaseDetailsFragment extends Fragment {
 
                 Log.e("Feature: ", Point.fromJson(place.getFeature().geometry().toJson()).toJson() );
 
-                mViewModel.setPurchasePlace(place);
+                getViewModel().setPurchasePlace(place);
             }
             if (resultCode == Activity.RESULT_CANCELED) {
-                mViewModel.setPurchasePlace(null);
+                getViewModel().setPurchasePlace(null);
             }
         });
-    }
-
-    public ProductPurchaseDetailsViewModel getViewModel() {
-        return mViewModel;
     }
 
     @Override
@@ -90,8 +92,10 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getActivity() );
         Calendar calendar = Calendar.getInstance();
 
-        TextInputLayout purchaseLocationLayout = view.findViewById( R.id.product_purchase_location);
-        TextInputLayout purchaseDateLayout = view.findViewById( R.id.product_purchase_date);
+        TextInputLayout purchaseLocationLayout = view.findViewById( R.id.productPurchaseLocationInputLayout);
+        TextInputLayout purchaseDateLayout = view.findViewById( R.id.productPurchaseDateInputLayout);
+        TextInputLayout purchaseCostLayout = view.findViewById( R.id.productCostInputLayout);
+
         EditText editPurchaseDate = view.findViewById( R.id.editTextPurchaseDate);
         EditText editPurchaseLocation = view.findViewById( R.id.editTextLocation );
         EditText editPurchaseCost = view.findViewById( R.id.editTextCost );
@@ -117,7 +121,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
                                 Date date = calendar.getTime();
 
-                                mViewModel.setPurchaseDate(date);
+                                getViewModel().setPurchaseDate(date);
                                 editPurchaseDate.setText(dateFormat.format(date));
                             }
                         },
@@ -146,7 +150,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                     }
                 }
 
-                mViewModel.setCost( cost );
+                getViewModel().setCost( cost );
             }
         });
 
@@ -155,10 +159,11 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                 case ERROR:
                     Throwable error = resource.getError();
                     if( error != null) {
-                        editPurchaseLocation.setError(error.getLocalizedMessage());
+                        purchaseLocationLayout.setError(error.getLocalizedMessage());
                     }
                     break;
                 case SUCCESS:
+                    purchaseLocationLayout.setError(null);
                     Place place = resource.getData();
                     if( place != null && place.getName() != null ) {
                         String placeName = place.getName();
@@ -179,10 +184,11 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                 case ERROR:
                     Throwable error = resource.getError();
                     if( error != null) {
-                        editPurchaseDate.setError(error.getLocalizedMessage());
+                        purchaseDateLayout.setError(error.getLocalizedMessage());
                     }
                     break;
                 case SUCCESS:
+                    purchaseDateLayout.setError(null);
                     Date date = resource.getData();
                     editPurchaseDate.setText( dateFormat.format( date ) );
                     calendar.setTime(date);
@@ -197,10 +203,11 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                 case ERROR:
                     Throwable error = resource.getError();
                     if( error != null) {
-                        editPurchaseCost.setError(error.getLocalizedMessage());
+                        purchaseCostLayout.setError(error.getLocalizedMessage());
                     }
                     break;
                 case SUCCESS:
+                    purchaseCostLayout.setError(null);
                     editPurchaseCost.setText( String.valueOf( resource.getData() ) );
                     break;
             }
@@ -212,7 +219,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
             // close any open keyboard
             InputUtil.hideKeyboard(requireActivity());
 
-            mViewModel.saveComplete();
+            getViewModel().saveComplete();
         });
     }
 }

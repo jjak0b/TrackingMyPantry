@@ -33,10 +33,17 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     public ProductPurchaseDetailsViewModel(@NonNull Application application) {
         super(application);
         mCost = new MutableLiveData<>(Resource.success(0f));
-        mPurchaseDate = new MutableLiveData<>(Resource.success(null));
+        mPurchaseDate = new MutableLiveData<>(Resource.success(new Date()));
         mPurchasePlace = new MutableLiveData<>(Resource.success(null));
         savable = new Savable<>();
 
+        reset();
+    }
+
+    public void reset() {
+        setCost(0f);
+        setPurchaseDate(null);
+        setPurchasePlace(null);
     }
 
     private boolean updateValidity() {
@@ -55,7 +62,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     }
 
     public void setCost(float cost) {
-        if(!Objects.equals(cost, this.mCost.getValue())) {
+        if(!Objects.equals(cost, this.mCost.getValue().getData())) {
             this.mCost.setValue(Resource.success(cost));
             updateValidity();
         }
@@ -67,7 +74,9 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
 
     public void setPurchaseDate(Date purchaseDate) {
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(purchaseDate);
+        if( purchaseDate != null) {
+            calendar.setTime(purchaseDate);
+        }
 
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
@@ -78,8 +87,9 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, month);
         calendar.set(Calendar.DAY_OF_MONTH, day);
+        purchaseDate = calendar.getTime();
 
-        if(!Objects.equals(purchaseDate, this.mPurchaseDate.getValue())) {
+        if(!Objects.equals(purchaseDate, this.mPurchaseDate.getValue().getData())) {
             this.mPurchaseDate.setValue(Resource.success(purchaseDate));
             updateValidity();
         }
@@ -90,7 +100,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     }
 
     public void setPurchasePlace(Place purchasePlace) {
-        if(!Objects.equals(purchasePlace, this.mPurchasePlace.getValue())) {
+        if(!Objects.equals(purchasePlace, this.mPurchasePlace.getValue().getData())) {
             this.mPurchasePlace.setValue(Resource.success(purchasePlace));
             updateValidity();
         }

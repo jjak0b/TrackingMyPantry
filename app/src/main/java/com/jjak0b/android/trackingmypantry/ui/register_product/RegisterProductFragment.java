@@ -1,42 +1,27 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
-import androidx.viewpager2.widget.ViewPager2;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.api.AuthException;
-import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
-
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
-import java.io.IOException;
-
-import retrofit2.HttpException;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RegisterProductFragment extends Fragment {
 
-    private RegisterProductViewModel mProductViewModel;
+    private _RegisterProductViewModel mSharedViewModel;
     private PageViewModel mPageViewModel;
     private static final String TAG = RegisterProductFragment.class.getName();
 
@@ -56,7 +41,7 @@ public class RegisterProductFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mProductViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
 
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);
@@ -64,11 +49,11 @@ public class RegisterProductFragment extends Fragment {
         TabLayout tabs = view.findViewById( R.id.tabs );
 
         ProductInfoSectionsPagerAdapter productInfoSectionsPagerAdapter =
-                new ProductInfoSectionsPagerAdapter(getActivity(), mProductViewModel);
+                new ProductInfoSectionsPagerAdapter(requireActivity());
 
         // when product is not ready so allow only tab 0
-        mProductViewModel.getProductBuilder().observe( getViewLifecycleOwner(), builder -> {
-            if( builder == null ){
+        mSharedViewModel.onBaseProductSet().observe(getViewLifecycleOwner(), hasBeenSet -> {
+            if( !hasBeenSet ){
                 mPageViewModel.setPageIndex( 0 );
                 mPageViewModel.setMaxNavigableTabCount( 1 );
             }
@@ -97,7 +82,13 @@ public class RegisterProductFragment extends Fragment {
             nextBtn.setEnabled( mPageViewModel.canSelectNextTab() );
             productInfoSectionsPagerAdapter.setMaxEnabledTabs( count );
         });
-
+/*
+        mSharedViewModel.onCanSubmit().observe(getViewLifecycleOwner(), canSubmit -> {
+            if( canSubmit ) {
+                registerProduct(view);
+            }
+        });
+*/
         nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,7 +97,7 @@ public class RegisterProductFragment extends Fragment {
                     mPageViewModel.setPageIndex( nextIndex );
                 }
                 else if( tabs.getSelectedTabPosition() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
-                    registerProduct( view );
+                    // mSharedViewModel.save();
                 }
             }
         });
@@ -142,42 +133,42 @@ public class RegisterProductFragment extends Fragment {
 
     // submit product
     void registerProduct( View view) {
-        Futures.addCallback(
-                mProductViewModel.registerProduct(),
-                new FutureCallback<ProductInstanceGroup>() {
-                    @Override
-                    public void onSuccess(@NullableDecl ProductInstanceGroup result) {
-                        Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
-                        mProductViewModel.setupNewProduct();
-                        Navigation.findNavController(view)
-                                .popBackStack(R.id.registerProductFragment, true);
+/*
+        mSharedViewModel.submit().observe(getViewLifecycleOwner(), result -> {
+            switch (result.getStatus()) {
+                case ERROR:
+                    Throwable t = result.getError();
+                    if( t instanceof AuthException){
+                        Log.e( TAG, "Authentication Error", t );
+                        Toast.makeText(getContext(),  "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
+                                .show();
                     }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        if( t instanceof AuthException){
-                            Log.e( TAG, "Authentication Error", t );
-                            Toast.makeText(getContext(), "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else if( t instanceof HttpException){
-                            Log.e( TAG, "Server Error", t );
-                            Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else if( t instanceof IOException){
-                            Log.e( TAG, "Network Error", t );
-                            Toast.makeText(getContext(), "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else {
-                            Log.e( TAG, "Unexpected Error", t );
-                            Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
+                    else if( t instanceof RemoteException){
+                        Log.e( TAG, "Server Error", t );
+                        Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
+                                .show();
                     }
-                },
-                ContextCompat.getMainExecutor( getContext() )
-        );
+                    else if( t instanceof IOException){
+                        Log.e( TAG, "Network Error", t );
+                        Toast.makeText(getContext(),  "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
+                                .show();
+                    }
+                    else {
+                        Log.e( TAG, "Unexpected Error", t );
+                        Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
+                                .show();
+                    }
+                    break;
+                case SUCCESS:
+                    Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
+                    // mSharedViewModel.setupNewProduct();
+                    Navigation.findNavController(view)
+                            .popBackStack(R.id.registerProductFragment, true);
+                    break;
+                default:
+                    break;
+            }
+        });
+*/
     }
 }

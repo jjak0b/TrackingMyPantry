@@ -16,7 +16,8 @@ public class SectionProductInstanceDetailsFragment extends ProductInstanceDetail
     private _RegisterProductViewModel mSharedViewModel;
 
     @Override
-    protected ProductInstanceDetailsViewModel initViewModel() {
+    @NonNull
+    public ProductInstanceDetailsViewModel initViewModel() {
         return new ViewModelProvider(this).get(SectionProductInstanceDetailsViewModel.class);
     }
 

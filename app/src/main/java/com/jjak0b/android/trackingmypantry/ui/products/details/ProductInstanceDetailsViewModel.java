@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.products.details;
 
 import android.app.Application;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -48,9 +49,9 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
             }
         }.asLiveData();
 
-        mPantry = new MutableLiveData<>();
-        mQuantity = new MutableLiveData<>();
-        mExpireDate = new MutableLiveData<>();
+        mPantry = new MutableLiveData<>(Resource.loading(Pantry.creteDummy(null)));
+        mQuantity = new MutableLiveData<>(Resource.success(1));
+        mExpireDate = new MutableLiveData<>(Resource.success(new Date()));
 
         savable = new Savable<>();
 
@@ -133,9 +134,9 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
     }
 
     public void setPantry(Pantry pantry) {
-        if(!Objects.equals(pantry, this.mPantry.getValue())) {
+        if(!Objects.equals(pantry, this.mPantry.getValue().getData())) {
 
-            if( pantry == null ) {
+            if( pantry == null || TextUtils.isEmpty(pantry.getName()) ) {
                 this.mPantry.setValue(Resource.error(new FormException(
                         getApplication().getString(R.string.field_error_empty)),
                         null
@@ -155,7 +156,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
     public void setQuantity(int quantity) {
         if( quantity <= 0 ) quantity = 1;
 
-        if(!Objects.equals(quantity, this.mQuantity.getValue())) {
+        if(!Objects.equals(quantity, this.mQuantity.getValue().getData())) {
             this.mQuantity.setValue(Resource.success(quantity));
             updateValidity();
         }
@@ -175,7 +176,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
             expireDate = calendar.getTime();
         }
 
-        if(!Objects.equals(expireDate, this.mExpireDate.getValue())) {
+        if(!Objects.equals(expireDate, this.mExpireDate.getValue().getData())) {
             this.mExpireDate.setValue(Resource.success(expireDate));
             updateValidity();
         }

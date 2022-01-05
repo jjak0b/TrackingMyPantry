@@ -58,6 +58,11 @@ public class SectionProductDetailsFragment extends Fragment {
     private ActivityResultLauncher<String[]> requestScanCameraPermissionsLauncher;
 
     @NonNull
+    public SectionProductDetailsViewModel initViewModel() {
+        return new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
+    }
+
+    @NonNull
     private SectionProductDetailsViewModel getViewModel() {
         return mViewModel;
     }
@@ -65,7 +70,7 @@ public class SectionProductDetailsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
+        mViewModel = initViewModel();
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
         mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
 
@@ -146,6 +151,7 @@ public class SectionProductDetailsFragment extends Fragment {
         barcodeInputLayout.setEnabled(true);
         barcodeInputLayout.setStartIconVisible(true);
         barcodeInputLayout.setEndIconVisible(hasFeatureCamera);
+        barcodeInputLayout.setErrorIconDrawable(null);
 
         editBarcode.addTextChangedListener( new InputUtil.FieldTextWatcher() {
             @Override
@@ -160,11 +166,11 @@ public class SectionProductDetailsFragment extends Fragment {
 
             switch (resource.getStatus()) {
                 case LOADING:
-                    editBarcode.setError(null);
+                    barcodeInputLayout.setError(null);
                     barcodeInputLayout.setStartIconOnClickListener(null);
                     break;
                 case SUCCESS:
-                    editBarcode.setError(null);
+                    barcodeInputLayout.setError(null);
                     barcodeInputLayout.setStartIconOnClickListener(v -> {
                         search( resource.getData() );
                     });
@@ -172,7 +178,7 @@ public class SectionProductDetailsFragment extends Fragment {
                 case ERROR:
                     barcodeInputLayout.setStartIconOnClickListener(null);
                     if( resource.getError() instanceof FormException ) {
-                        editBarcode.setError(resource.getError().getLocalizedMessage(), null);
+                        barcodeInputLayout.setError(resource.getError().getLocalizedMessage());
                     }
                     break;
             }
@@ -276,6 +282,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
     private void setupTags(@NonNull View view, @Nullable Bundle savedInstanceState) {
         final NachoTextView chipsInput = (NachoTextView) view.findViewById(R.id.chips_input);
+        final TextInputLayout tagsInputLayout = view.findViewById(R.id.tagsInputLayout);
 
         ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(),
                 android.R.layout.simple_spinner_dropdown_item);
@@ -289,16 +296,14 @@ public class SectionProductDetailsFragment extends Fragment {
 
         getViewModel().getAssignedTags().observe( getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
-                case LOADING:
-                    chipsInput.setError(null);
-                    break;
                 case SUCCESS:
+                    tagsInputLayout.setError(null);
                     chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( resource.getData() ) );
                     chipsInput.setSelection(chipsInput.getText().length());
                     break;
                 case ERROR:
                     if( resource.getError() instanceof FormException){
-                        chipsInput.setError(((FormException) resource.getError()).getLocalizedMessage(requireContext()));
+                        tagsInputLayout.setError(((FormException) resource.getError()).getLocalizedMessage(requireContext()));
                     }
 
                     break;

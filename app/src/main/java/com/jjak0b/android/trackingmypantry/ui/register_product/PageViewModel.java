@@ -27,7 +27,9 @@ public class PageViewModel extends ViewModel {
     }
 
     public void setMaxNavigableTabCount( Integer c ) {
-        maxTabCount.setValue( c );
+        if( !Objects.equals(maxTabCount.getValue(), c ) ){
+            maxTabCount.setValue( c );
+        }
     }
 
     public boolean canSelectNextTab() {

@@ -40,12 +40,22 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         mBarcode = new MutableLiveData<>(Resource.loading(null));
         mProduct = new MutableLiveData<>(Resource.loading(null));
         mAssignedTags = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
+
+        savable.enableSave(false);
+        reset();
     }
 
     @Override
     protected void onCleared() {
         savable.onCleared();
         super.onCleared();
+    }
+
+
+    public void reset() {
+        setBarcode(null);
+        setProduct((Product) null);
+        setAssignedTags(new ArrayList<>(0));
     }
 
     public LiveData<Resource<String>> getBarcode() {
@@ -68,7 +78,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
             else {
                 mBarcode.setValue(Resource.success(barcode));
             }
-            getProductPreview();
+            updateValidity();
         }
     }
 
@@ -86,6 +96,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
                 mProduct.setValue(Resource.success(product));
             }
         }
+        updateValidity();
     }
 
     public void setProduct(ProductWithTags productWithTags) {
@@ -106,6 +117,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
     public void setAssignedTags(List<ProductTag> tags ) {
         mAssignedTags.setValue( Resource.loading(tags) );
         mAssignedTags.setValue( Resource.success(tags) );
+        updateValidity();
     }
 
     public LiveData<Resource<List<ProductTag>>> getSuggestionTags() {
@@ -127,6 +139,16 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         });
     }
 
+    private boolean updateValidity() {
+        boolean isValid = true;
+
+        isValid = isValid && Transformations.onValid(getBarcode().getValue(), null);
+        isValid = isValid && Transformations.onValid(getProduct().getValue(), null);
+        isValid = isValid && Transformations.onValid(getAssignedTags().getValue(), null);
+
+        savable.enableSave(isValid);
+        return isValid;
+    }
 
     @Override
     public LiveData<Boolean> canSave() {

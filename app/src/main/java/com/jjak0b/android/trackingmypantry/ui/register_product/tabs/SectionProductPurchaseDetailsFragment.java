@@ -16,12 +16,12 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     private _RegisterProductViewModel mSharedViewModel;
 
     @Override
-    protected ProductPurchaseDetailsViewModel initViewModel() {
+    public ProductPurchaseDetailsViewModel initViewModel() {
         return new ViewModelProvider(this).get(SectionProductPurchaseDetailsViewModel.class);
     }
 
     @NonNull
-    public SectionProductPurchaseDetailsViewModel getViewModel() {
+    private SectionProductPurchaseDetailsViewModel getViewModel() {
         return (SectionProductPurchaseDetailsViewModel) mViewModel;
     }
 
@@ -36,13 +36,13 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), aBoolean -> {
-            if( !aBoolean  ) return;
+        mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), shouldSave -> {
+            if( !shouldSave  ) return;
             getViewModel().save();
         });
 
-        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
-            if( !shouldSave ) return;
+        getViewModel().onSave().observe( getViewLifecycleOwner(), isSaving -> {
+            if( !isSaving ) return;
 
             getViewModel().saveComplete();
         });

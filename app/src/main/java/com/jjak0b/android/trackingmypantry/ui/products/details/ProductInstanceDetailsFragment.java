@@ -39,8 +39,14 @@ public class ProductInstanceDetailsFragment extends Fragment {
         // Required empty public constructor
     }
 
-    protected ProductInstanceDetailsViewModel initViewModel() {
+    @NonNull
+    public ProductInstanceDetailsViewModel initViewModel() {
         return new ViewModelProvider(this).get(ProductInstanceDetailsViewModel.class);
+    }
+
+    @NonNull
+    private ProductInstanceDetailsViewModel getViewModel() {
+        return mViewModel;
     }
 
     @Override
@@ -60,12 +66,12 @@ public class ProductInstanceDetailsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        TextInputLayout expireDateInputLayout = view.findViewById( R.id.product_expire_date );
+        TextInputLayout expireDateInputLayout = view.findViewById( R.id.productExpireDateInputLayout);
         TextInputEditText expireDateInput = view.findViewById(R.id.editTextDate_register_product_expire_date);
+        TextInputLayout quantityInputLayout = view.findViewById(R.id.productQuantityInputLayout);
         TextInputEditText quantityInput = view.findViewById(R.id.input_product_quantity);
         MaterialAutoCompleteTextView pantryAutoCompleteSelector = view.findViewById( R.id.product_pantry_selector);
-        TextInputLayout pantryInputLayout = view.findViewById( R.id.product_pantry );
-
+        TextInputLayout pantryInputLayout = view.findViewById( R.id.productPantryInputLayout);
         Calendar expireDateCalendar = Calendar.getInstance();
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
         ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), android.R.layout.simple_spinner_dropdown_item);
@@ -85,7 +91,7 @@ public class ProductInstanceDetailsFragment extends Fragment {
                 if( c <= 0 ){
                     c = 1;
                 }
-                mViewModel.setQuantity(c);
+                getViewModel().setQuantity(c);
                 quantityInput.setText( String.valueOf( c ) );
             }
         });
@@ -105,7 +111,7 @@ public class ProductInstanceDetailsFragment extends Fragment {
                             expireDateCalendar.set(Calendar.MILLISECOND, 0);
                             Date date = expireDateCalendar.getTime();
 
-                            mViewModel.setExpireDate(date);
+                            getViewModel().setExpireDate(date);
                         }
                     },
                     expireDateCalendar.get(Calendar.YEAR),
@@ -121,11 +127,11 @@ public class ProductInstanceDetailsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Pantry selectedPantry = pantriesAdapter.getItem( position );
                 Log.d( TAG, "selected pantry: " + selectedPantry );
-                mViewModel.setPantry(selectedPantry);
+                getViewModel().setPantry(selectedPantry);
             }
         });
 
-        mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), resource -> {
+        getViewModel().getAvailablePantries().observe( getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     if( resource.getData() != null )
@@ -140,11 +146,12 @@ public class ProductInstanceDetailsFragment extends Fragment {
             }
         });
 
-        mViewModel.getPantry().observe( getViewLifecycleOwner(), resource -> {
+        getViewModel().getPantry().observe( getViewLifecycleOwner(), resource -> {
             Pantry pantry = resource.getData();
             pantryAutoCompleteSelector.setText( pantry != null ? pantry.toString() : null );
             switch (resource.getStatus()) {
                 case SUCCESS:
+                    pantryInputLayout.setError(null);
                     // unset pantry and set as custom after edited the text
                     pantryAutoCompleteSelector.setOnFocusChangeListener((v, hasFocus) -> {
                         if (!hasFocus) {
@@ -157,51 +164,66 @@ public class ProductInstanceDetailsFragment extends Fragment {
                             Log.d(TAG, "has been changed:" + hasBeenChanged);
                             if (hasBeenChanged) {
                                 if (pantryAutoCompleteSelector.getText().length() > 0)
-                                    mViewModel.setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
+                                    getViewModel().setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
                                 else
-                                    mViewModel.setPantry(null);
+                                    getViewModel().setPantry(null);
                             }
                         }
                     });
                     break;
                 case ERROR:
-                    pantryAutoCompleteSelector.setError(resource.getError().getLocalizedMessage());
+                    pantryAutoCompleteSelector.setOnFocusChangeListener((v, hasFocus) -> {
+                        if (!hasFocus) {
+
+                            String fieldValue = pantryAutoCompleteSelector.getText().toString();
+                            boolean hasBeenChanged =!Objects.equals(pantryAutoCompleteSelector.getText(), fieldValue);
+                            if (hasBeenChanged) {
+                                if (pantryAutoCompleteSelector.getText().length() > 0)
+                                    getViewModel().setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
+                                else
+                                    getViewModel().setPantry(null);
+                            }
+                        }
+                    });
+                    pantryInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
             }
         });
 
-        mViewModel.getQuantity().observe(getViewLifecycleOwner(), resource -> {
+        getViewModel().getQuantity().observe(getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
                 case SUCCESS:
+                    quantityInputLayout.setError(null);
                     String strValue = String.valueOf(resource.getData());
                     quantityInput.setText(strValue);
                     quantityInput.setSelection(strValue.length());
                     break;
                 case ERROR:
-                    quantityInput.setError(resource.getError().getLocalizedMessage());
+                    quantityInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
                 default:
                     break;
             }
         });
 
-        mViewModel.getExpireDate().observe(getViewLifecycleOwner(), resource -> {
+        getViewModel().getExpireDate().observe(getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
                 case SUCCESS:
+                    expireDateInputLayout.setError(null);
                     expireDateInput.setText( dateFormat.format( resource.getData() ) );
 
                     // dialog will start with this date set
                     expireDateCalendar.setTime(resource.getData());
                     break;
                 case ERROR:
-                    expireDateInput.setError(resource.getError().getLocalizedMessage());
+                    expireDateInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
                 default:
                     break;
             }
         });
 
-        mViewModel.onSave().observe(getViewLifecycleOwner(), shouldSave -> {
+        getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
             // close any open keyboard

@@ -7,10 +7,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
@@ -20,9 +20,9 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PurchaseInfoWithPlace;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.PlacesRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.data.repositories.PurchasesRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 
@@ -39,7 +39,7 @@ public class _RegisterProductViewModel extends AndroidViewModel {
 
     private LiveEvent<Boolean> onSave;
     private LiveEvent<Boolean> onCanSubmit;
-
+    private LiveEvent<Boolean> onBaseProductSet;
 
     private Savable<ProductWithTags> savableProductDetails;
     private Savable<ProductInstanceGroup> savableProductInfoDetails;
@@ -61,13 +61,16 @@ public class _RegisterProductViewModel extends AndroidViewModel {
         savableProductInfoDetails = new Savable<>();
         savableProductPurchaseDetails = new Savable<>();
 
+
+        onBaseProductSet = new LiveEvent<>();
+        onBaseProductSet.setValue(false);
+
         onSave = new LiveEvent<>();
         onCanSubmit = new LiveEvent<>();
-        initCanSubmit();
-    }
 
-    public void setBaseProduct() {
-
+        onBaseProductSet.addSource(mProductDetails, resource -> {
+            onBaseProductSet.setValue(resource.getStatus() == Status.SUCCESS);
+        });
     }
 
     public void setupNew() {
@@ -96,6 +99,22 @@ public class _RegisterProductViewModel extends AndroidViewModel {
 
     public MediatorLiveData<Boolean> onSavePurchaseDetails() {
         return savableProductPurchaseDetails.onSave();
+    }
+
+    public LiveEvent<Boolean> onBaseProductSet() {
+        return onBaseProductSet;
+    }
+
+    public LiveData<Resource<ProductWithTags>> getProductDetails() {
+        return mProductDetails;
+    }
+
+    public LiveData<Resource<ProductInstanceGroupInfo>> getProductGroupDetails() {
+        return mProductGroupDetails;
+    }
+
+    public LiveData<Resource<PurchaseInfoWithPlace>> getProductPurchaseDetails() {
+        return mProductPurchaseDetails;
     }
 
     public void setProductDetails(Resource<ProductWithTags> resource) {
