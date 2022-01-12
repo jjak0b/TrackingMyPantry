@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductV
 
 public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetailsFragment {
 
+    private final static String TAG = "SectionProductPurchaseDetailsFragment";
     private _RegisterProductViewModel mSharedViewModel;
 
     @Override
@@ -36,19 +38,36 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), shouldSave -> {
-            if( !shouldSave  ) return;
+        setupSave(view, savedInstanceState);
+        setupReset(view, savedInstanceState);
+    }
+
+    @Override
+    public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), isSaving -> {
+            if( !isSaving  ) return;
+            Log.d(TAG, "force saving");
             getViewModel().save();
         });
 
+        super.setupSave(view, savedInstanceState );
         getViewModel().onSave().observe( getViewLifecycleOwner(), isSaving -> {
+            Log.d(TAG, "isSaving=" +isSaving);
             if( !isSaving ) return;
 
             getViewModel().saveComplete();
         });
 
-        getViewModel().onSaved().observe(getViewLifecycleOwner(), purchaseInfoWithPlaceResource -> {
-            mSharedViewModel.setPurchaseDetails(purchaseInfoWithPlaceResource);
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "Saved purchase details: " + resource );
+            mSharedViewModel.setPurchaseDetails(resource);
+        });
+    }
+
+    @Override
+    public void setupReset(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedViewModel.onReset().observe(getViewLifecycleOwner(), shouldReset -> {
+            getViewModel().reset();
         });
     }
 }

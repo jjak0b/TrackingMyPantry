@@ -223,11 +223,18 @@ public class ProductInstanceDetailsFragment extends Fragment {
             }
         });
 
+    }
+
+    public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getViewModel().onSave().observe(getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;
 
             // close any open keyboard
             InputUtil.hideKeyboard(requireActivity());
         });
+    }
+
+    public void setupReset(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
     }
 }

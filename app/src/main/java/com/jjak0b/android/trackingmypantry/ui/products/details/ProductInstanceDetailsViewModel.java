@@ -11,13 +11,12 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
 import com.jjak0b.android.trackingmypantry.ui.util.Savable;
@@ -29,7 +28,7 @@ import java.util.Objects;
 
 public class ProductInstanceDetailsViewModel extends AndroidViewModel implements ISavable<ProductInstanceGroupInfo> {
 
-    protected PantryRepository pantryRepository;
+    protected PantriesRepository pantriesRepository;
     private MutableLiveData<Resource<Integer>> mQuantity;
     private MutableLiveData<Resource<Date>> mExpireDate;
     private MutableLiveData<Resource<Pantry>> mPantry;
@@ -40,14 +39,8 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
     public ProductInstanceDetailsViewModel(@NonNull Application application) {
         super(application);
         appExecutors = AppExecutors.getInstance();
-        pantryRepository = PantryRepository.getInstance(application);
-
-        mAvailablePantries = new IOBoundResource<List<Pantry>>(appExecutors) {
-            @Override
-            protected LiveData<List<Pantry>> loadFromDb() {
-                return pantryRepository.getPantries();
-            }
-        }.asLiveData();
+        pantriesRepository = PantriesRepository.getInstance(application);
+        mAvailablePantries = pantriesRepository.getPantries();
 
         mPantry = new MutableLiveData<>(Resource.loading(Pantry.creteDummy(null)));
         mQuantity = new MutableLiveData<>(Resource.success(1));

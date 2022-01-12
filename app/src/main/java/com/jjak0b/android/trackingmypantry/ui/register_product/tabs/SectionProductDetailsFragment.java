@@ -101,20 +101,27 @@ public class SectionProductDetailsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Log.e( TAG, "onViewCreated");
-        Log.e( TAG, getViewLifecycleOwner().toString() );
+        setupSave(view, savedInstanceState);
+        setupReset(view, savedInstanceState);
+        setupSearch(view, savedInstanceState);
+        setupProduct(view, savedInstanceState);
+        setupTags(view, savedInstanceState);
+    }
 
-
+    public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
+            Log.d(TAG, "canSave=" +canSave);
             if( canSave ) getViewModel().save();
         });
 
         mSharedViewModel.onSaveProductDetails().observe(getViewLifecycleOwner(), isSaving -> {
             if( !isSaving ) return;
+            Log.d(TAG, "force saving");
             getViewModel().save();
         });
 
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            Log.d(TAG, "isSaving=" +shouldSave);
             if( !shouldSave ) return;
 
             // close any open keyboard
@@ -135,10 +142,14 @@ public class SectionProductDetailsFragment extends Fragment {
                     break;
             }
         });
+    }
 
-        setupSearch(view, savedInstanceState);
-        setupProduct(view, savedInstanceState);
-        setupTags(view, savedInstanceState);
+    public void setupReset(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedViewModel.onReset().observe(getViewLifecycleOwner(), shouldReset -> {
+            if( shouldReset )
+                getViewModel().reset();
+                mProductPickerViewModel.setProductSource(null);
+        });
     }
 
     private void setupSearch(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -250,6 +261,7 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         getViewModel().getProduct().observe(getViewLifecycleOwner(), resource -> {
+            Log.e(TAG, "Product: " + resource );
             switch (resource.getStatus()) {
                 case ERROR:
                     Log.e(TAG, "Error on product changed: " , resource.getError() );
@@ -317,6 +329,7 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         getViewModel().getSuggestionTags().observe( getViewLifecycleOwner(), resource -> {
+            Log.e(TAG, "update suggestion tags " + resource.getData() );
             switch (resource.getStatus()) {
                 case SUCCESS:
                     adapter.addAll( resource.getData() );
@@ -381,4 +394,5 @@ public class SectionProductDetailsFragment extends Fragment {
             Toast.makeText(getContext(), "Unable to scan barcode", Toast.LENGTH_LONG ).show();
         }
     }
+
 }

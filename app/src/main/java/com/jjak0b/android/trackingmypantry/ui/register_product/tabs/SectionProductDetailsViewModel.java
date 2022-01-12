@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
@@ -30,16 +31,20 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
     private MutableLiveData<Resource<String>> mBarcode;
     private MutableLiveData<Resource<Product>> mProduct;
     private MutableLiveData<Resource<List<ProductTag>>> mAssignedTags;
+    private LiveData<Resource<List<ProductTag>>> mSuggestionsTags;
+    private AppExecutors appExecutors;
     private ProductsRepository productsRepository;
     private Savable<ProductWithTags> savable;
 
     public SectionProductDetailsViewModel(Application application) {
         super(application);
         productsRepository = ProductsRepository.getInstance(application);
+        appExecutors = AppExecutors.getInstance();
         savable = new Savable<>();
         mBarcode = new MutableLiveData<>(Resource.loading(null));
         mProduct = new MutableLiveData<>(Resource.loading(null));
         mAssignedTags = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
+        mSuggestionsTags = productsRepository.getTags();
 
         savable.enableSave(false);
         reset();
@@ -112,19 +117,70 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
     public LiveData<Resource<List<ProductTag>>> getAssignedTags() {
         return mAssignedTags;
+        /*
+        return Transformations.forward(mAssignedTags, resourceAssigned -> {
+            List<ProductTag> source = resourceAssigned.getData();
+            return Transformations.forwardOnce(mSuggestionsTags, resourceSuggestions -> {
+                List<ProductTag> all = resourceSuggestions.getData();
+
+                // make the returned list with unique items
+                // and if there are  some dummy items that match with a tag, will replace the dummy with it
+                return Transformations.simulateApi(
+                        appExecutors.diskIO(),
+                        appExecutors.mainThread(),
+                        () -> {
+                            TreeMap<String, ProductTag> suggestionsTagsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+                            ArrayList<ProductTag> unique = new ArrayList<>(source.size());
+                            for (ProductTag t : all) suggestionsTagsMap.put(t.getName(), t);
+                            for (ProductTag t : source ) {
+                                if( ProductTag.isDummy(t) ) {
+                                    ProductTag item = suggestionsTagsMap.get(t.getName());
+                                    if( item != null ) unique.add(item);
+                                }
+                                else {
+                                    unique.add(t);
+                                }
+                            }
+                            Log.d("test", "new tags " + unique.toString() );
+                            return unique;
+                        }
+                );
+            });
+        });
+        */
     }
 
     public void setAssignedTags(List<ProductTag> tags ) {
-        mAssignedTags.setValue( Resource.loading(tags) );
-        mAssignedTags.setValue( Resource.success(tags) );
-        updateValidity();
+        if(!Objects.equals(tags, mAssignedTags.getValue().getData())) {
+            mAssignedTags.setValue(Resource.loading(tags));
+            mAssignedTags.setValue(Resource.success(tags));
+            updateValidity();
+        }
     }
 
     public LiveData<Resource<List<ProductTag>>> getSuggestionTags() {
-        return productsRepository.getTags();
+
+        return mSuggestionsTags;
+        /*return Transformations.forward(getAssignedTags(), resourceAssigned -> {
+            return Transformations.forward(productsRepository.getTags(), resourceSuggestions -> {
+                List<ProductTag> allTags = resourceSuggestions.getData();
+                List<ProductTag> tagsToExclude = resourceAssigned.getData();
+
+                Log.d("test", "removing " + tagsToExclude.toString()  +"\nfrom " + allTags.toString());
+                return Transformations.simulateApi(
+                        appExecutors.diskIO(),
+                        appExecutors.mainThread(),
+                        () -> {
+                            allTags.removeAll(tagsToExclude);
+                            Log.d("test", "result: " + allTags );
+                            return allTags;
+                        }
+                );
+            });
+        });*/
     }
 
-    void resetProduct() {
+    public void resetProduct() {
         setProduct((ProductWithTags) null);
     }
 

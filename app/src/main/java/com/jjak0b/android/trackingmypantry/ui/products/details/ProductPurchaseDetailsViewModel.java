@@ -134,7 +134,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
                 purchaseInfoWPlace.info = new PurchaseInfo(
                         getCost().getValue().getData(),
                         getPurchaseDate().getValue().getData(),
-                        purchaseInfoWPlace.place.getId()
+                        purchaseInfoWPlace.place != null ? purchaseInfoWPlace.place.getId() : null
                 );
                 savable.setSavedResult(Resource.success(purchaseInfoWPlace));
             }
