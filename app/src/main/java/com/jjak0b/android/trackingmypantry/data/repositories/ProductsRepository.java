@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.data.repositories;
 
 import android.content.Context;
 import android.util.Log;
+import android.webkit.URLUtil;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -107,7 +108,8 @@ public class ProductsRepository {
                 // Fix colleagues Implementation quirks
                 for (Product product : item.getProducts() ) {
                     String imgURI = product.getImg();
-                    if( imgURI != null && !imgURI.startsWith("data:")) {
+                    boolean isValid = URLUtil.isDataUrl(imgURI) || URLUtil.isValidUrl(imgURI);
+                    if( imgURI != null && !isValid ) {
                         product.setImg("data:image/*;base64," + imgURI);
                     }
                 }
