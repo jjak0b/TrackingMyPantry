@@ -79,6 +79,8 @@
     <string name="action_register_product">Register product</string>
     <string name="action_next_product_section">Continue</string>
     <string name="pantries_no_pantry_available">there is no pantry that contains this product</string>
+    <string name="product_register_complete">Registered product successfully</string>
+    Register product successfully
     <!-- product suggestions -->
     <string name="suggested_products_toolbar_title">Suggested products</string>
     <string name="suggested_products_list_description">Select the product that you think best matches your product.</string>
@@ -101,7 +103,7 @@
 
     <string name="product_entry_removed_from_pantry">Product entry removed from the pantry</string>
     <string name="action_undo">Undo</string>
-
+    <string name="action_retry">Retry</string>
     <string name="product_expiration">Product expiration</string>
     <string name="location_inside_pantry">In \"%1$s\" pantry</string>
 
