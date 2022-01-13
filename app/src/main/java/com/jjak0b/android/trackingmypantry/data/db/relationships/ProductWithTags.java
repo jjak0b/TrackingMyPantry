@@ -27,4 +27,12 @@ public class ProductWithTags {
             )
     )
     public List<ProductTag> tags;
+
+    @Override
+    public String toString() {
+        return "ProductWithTags{" +
+                "product=" + product +
+                ", tags=" + tags +
+                '}';
+    }
 }

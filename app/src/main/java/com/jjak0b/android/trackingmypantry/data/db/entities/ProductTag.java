@@ -3,7 +3,6 @@ package com.jjak0b.android.trackingmypantry.data.db.entities;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -21,9 +20,12 @@ public class ProductTag {
     @NonNull
     String name;
 
-    @Ignore
-    public ProductTag( String name ){
-        this.name = name;
+    public static ProductTag creteDummy(String name){
+        return new ProductTag(0, name);
+    }
+
+    public static boolean isDummy( ProductTag t ) {
+        return t.id <= 0;
     }
 
     public ProductTag(long id, String name ){
@@ -57,7 +59,13 @@ public class ProductTag {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProductTag that = (ProductTag) o;
-        return id == that.id &&
+
+        if( isDummy(this) || isDummy(that) ) {
+            return Objects.equals(name.toLowerCase(), that.name.toLowerCase());
+        }
+        else {
+            return id == that.id &&
                 Objects.equals(name, that.name);
+        }
     }
 }

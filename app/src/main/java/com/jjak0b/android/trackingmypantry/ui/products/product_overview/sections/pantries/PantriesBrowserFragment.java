@@ -1,24 +1,22 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.NavDirections;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
@@ -62,7 +60,7 @@ public class PantriesBrowserFragment extends Fragment {
         mProductViewModel.getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
             Log.e( "MyPantries", "setting productID" );
             if( productWithTags != null ){
-                mViewModel.setProductID(productWithTags.product.getId());
+                mViewModel.setProductID(productWithTags.product.getBarcode());
             }
         });
 

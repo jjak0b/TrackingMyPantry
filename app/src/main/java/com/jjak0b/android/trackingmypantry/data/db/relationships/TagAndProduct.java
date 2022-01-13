@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.db.relationships;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Embedded;
 import androidx.room.Entity;
@@ -9,8 +10,6 @@ import androidx.room.Relation;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
-
-import androidx.annotation.NonNull;
 
 import java.util.List;
 
@@ -63,7 +62,7 @@ public class TagAndProduct {
     }
 
     public TagAndProduct(@NonNull Product p, @NonNull ProductTag t ) {
-        this.fk_productId = p.getId();
+        this.fk_productId = p.getBarcode();
         this.fk_tagId = t.getId();
     }
 

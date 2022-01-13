@@ -16,7 +16,8 @@ import java.util.Objects;
                     entity = Product.class,
                     parentColumns = "id",
                     childColumns = "product_id",
-                    onDelete = ForeignKey.CASCADE
+                    onDelete = ForeignKey.CASCADE,
+                    onUpdate = ForeignKey.CASCADE
             ),
             @ForeignKey(
                     entity = Pantry.class,
@@ -115,7 +116,19 @@ public class ProductInstanceGroup {
                 Objects.equals(expiryDate, that.expiryDate);
     }
 
-    public static ProductInstanceGroup from( ProductInstanceGroup o ){
+    @Override
+    public String toString() {
+        return "ProductInstanceGroup{" +
+                "id=" + id +
+                ", productId='" + productId + '\'' +
+                ", pantryId=" + pantryId +
+                ", quantity=" + quantity +
+                ", expiryDate=" + expiryDate +
+                ", currentAmountPercent=" + currentAmountPercent +
+                '}';
+    }
+
+    public static ProductInstanceGroup from(ProductInstanceGroup o ){
         ProductInstanceGroup newO = new ProductInstanceGroup();
         newO.setId(o.getId());
         newO.setPantryId(o.getPantryId());

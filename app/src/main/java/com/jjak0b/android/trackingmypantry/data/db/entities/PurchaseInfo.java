@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import java.util.Date;
@@ -52,6 +53,11 @@ public class PurchaseInfo {
         this.productId = productId;
         this.placeId = placeId;
         this.cost = cost;
+    }
+
+    @Ignore
+    public PurchaseInfo(float cost, Date purchaseDate, @Nullable String placeId) {
+        this( null, cost, purchaseDate, placeId);
     }
 
     public long getId() {

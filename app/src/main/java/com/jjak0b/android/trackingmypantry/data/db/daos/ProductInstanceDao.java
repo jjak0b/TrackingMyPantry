@@ -26,6 +26,9 @@ public abstract class ProductInstanceDao {
     @Query("SELECT * FROM products" )
     public abstract List<ProductWithInstances> getAllInstancesOfProduct();
 
+    @Query("SELECT * FROM productinstancegroup WHERE id = :group_id" )
+    public abstract LiveData<ProductInstanceGroup> getGroup(long group_id);
+
     @Transaction
     @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
     public abstract List<ProductInstanceGroupInfo> getListInfoOfAll(@Nullable String productID, @Nullable Long pantryID);

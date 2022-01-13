@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.db.daos;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -12,18 +13,16 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
 
-import androidx.annotation.NonNull;
-
 import java.util.List;
 
 @Dao
 public abstract class PantryDao {
 
-    @Query( "SELECT * FROM pantries WHERE pantry_id = :id" )
-    public abstract LiveData<Pantry> get(long id);
+    @Query( "SELECT * FROM pantries WHERE pantry_id = :id AND owner_id = :owner_id" )
+    public abstract LiveData<Pantry> get(long id, String owner_id);
 
-    @Query( "SELECT * FROM pantries" )
-    public abstract LiveData<List<Pantry>> getAll();
+    @Query( "SELECT * FROM pantries WHERE owner_id = :owner_id" )
+    public abstract LiveData<List<Pantry>> getAll(String owner_id);
 
     @Update(
             entity = ProductInstanceGroup.class,
@@ -35,6 +34,16 @@ public abstract class PantryDao {
             onConflict = OnConflictStrategy.IGNORE
     )
     public abstract ListenableFuture<Long> addPantry(Pantry pantry);
+
+    @Insert(
+            onConflict = OnConflictStrategy.IGNORE
+    )
+    public abstract long insert(Pantry pantry);
+
+    @Update(
+            onConflict = OnConflictStrategy.IGNORE
+    )
+    public abstract int update(Pantry pantry);
 
     @Query( "SELECT * FROM pantries AS P1 INNER JOIN ( SELECT DISTINCT P2.pantry_id FROM productinstancegroup AS G INNER JOIN pantries AS P2 ON G.pantry_id = P2.pantry_id WHERE product_id = (:productID) ) AS IDS ON P1.pantry_id = IDS.pantry_id ORDER BY P1.name ")
     public abstract LiveData<List<Pantry>> getAllThatContains(String productID);

@@ -17,7 +17,7 @@ import java.util.Objects;
 @Entity(
         tableName = "products",
         indices = {
-                @Index(value = {"barcode"}, unique = true),
+                @Index(value = {"id"}, unique = true),
                 @Index(value = {"remote_id"}, unique = true)
         }
 )
@@ -27,11 +27,13 @@ public class Product {
      * If null then this product hasn't been fetched on remote
      */
     @ColumnInfo( name = "remote_id")
+    @SerializedName("id")
     @Expose
     @Nullable
-    private String id;
+    private String remote_id;
 
     @PrimaryKey
+    @ColumnInfo( name = "id")
     @Expose
     @NonNull
     private String barcode;
@@ -59,15 +61,15 @@ public class Product {
     private String img;
 
     @Expose
-    @NonNull
+    @Nullable
     private Date createdAt;
 
     @Expose
-    @NonNull
+    @Nullable
     private Date updatedAt;
 
-    public Product(@Nullable String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable String userCreatorId, @NonNull Date createdAt, @NonNull Date updatedAt ) {
-        this.id = id;
+    public Product(@Nullable String remote_id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable String userCreatorId, @Nullable Date createdAt, @Nullable Date updatedAt ) {
+        this.remote_id = remote_id;
         this.barcode = barcode;
         this.name = name;
         this.description = description;
@@ -79,31 +81,26 @@ public class Product {
 
     @Ignore
     public Product(@NonNull String barcode, @NonNull String name, @Nullable String description ) {
-        this.barcode = barcode;
-        this.name = name;
-        this.description = description;
+        this(null, barcode, name, description, null, null, null, null);
     }
 
     @Ignore
-    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description) {
-        this( barcode, name, description );
-        this.id = id;
+    public Product(@NonNull String remote_id, @NonNull String barcode, @NonNull String name, @Nullable String description) {
+        this( remote_id, barcode, name, description, null, null, null, null );
     }
 
     @Ignore
-    public Product(@NonNull String id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img ) {
-        this( barcode, name, description );
-        this.id = id;
-        this.img = img;
+    public Product(@NonNull String remote_id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img ) {
+        this( remote_id, barcode, name, description, img, null, null, null );
     }
 
     @Ignore
     public Product( @NonNull Product p) {
-        this(p.id, p.barcode, p.name, p.description, p.img, p.userCreatorId, p.createdAt, p.updatedAt );
+        this(p.remote_id, p.barcode, p.name, p.description, p.img, p.userCreatorId, p.createdAt, p.updatedAt );
     }
 
-    public String getId() {
-        return id;
+    public String getRemote_id() {
+        return remote_id;
     }
 
     public String getBarcode() {
@@ -132,8 +129,8 @@ public class Product {
         return userCreatorId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setRemote_id(String remote_id) {
+        this.remote_id = remote_id;
     }
 
     public void setBarcode(String barcode) {
@@ -167,7 +164,7 @@ public class Product {
     @Override
     public String toString() {
         return "Product{" +
-                "id='" + id + '\'' +
+                "id='" + remote_id + '\'' +
                 ", barcode='" + barcode + '\'' +
                 ", userID='" + userCreatorId + '\'' +
                 ", name='" + name + '\'' +
@@ -183,8 +180,8 @@ public class Product {
         if (this == obj) return true;
         else if( obj != null && obj instanceof Product ){
             Product o = (Product)obj;
-            return Objects.equals( id, o.id)
-            && Objects.equals( id, o.id)
+            return Objects.equals(remote_id, o.remote_id)
+            && Objects.equals(remote_id, o.remote_id)
             && Objects.equals( barcode, o.barcode)
             && Objects.equals(userCreatorId, o.userCreatorId)
             && Objects.equals( name, o.name)
@@ -208,7 +205,7 @@ public class Product {
                 setName(p.getName());
                 setDescription(p.getDescription());
                 setBarcode(p.getBarcode());
-                setProductId(p.getId());
+                setProductId(p.getRemote_id());
                 setImg( p.getImg() );
                 setUserId(p.getUserCreatorId());
             }

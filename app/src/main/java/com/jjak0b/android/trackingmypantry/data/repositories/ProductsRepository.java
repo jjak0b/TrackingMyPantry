@@ -209,7 +209,7 @@ public class ProductsRepository {
             List<Product> products = result.getProducts();
             // this list can be very long, so do check on async
             return Transformations.simulateApi(mAppExecutors.diskIO(), mAppExecutors.mainThread(), () -> {
-                return product.getId() != null && products.stream().anyMatch(item -> Objects.equals(item.getId(), product.getId()));
+                return product.getRemote_id() != null && products.stream().anyMatch(item -> Objects.equals(item.getRemote_id(), product.getRemote_id()));
             });
         });
     }
@@ -247,15 +247,21 @@ public class ProductsRepository {
             // notify when both are done and so consume the search token
             if( resourceResourcePair.first.getStatus() != Status.LOADING
                 && resourceResourcePair.second.getStatus() != Status.LOADING) {
-                // stop listening
+
+                // stop listening both and detach pair source
                 mResult.removeSource(mPair);
                 mPair.removeSources(mProductResult, mVoteResult);
 
+                Log.d(TAG, "got result: " + resourceResourcePair );
                 // set the result value
-                mResult.setValue(resourceResourcePair.first);
+                // mResult.setValue(resourceResourcePair.first);
                 // unsetting the token here and not in #add or #addPreference because of async-ness
                 // since both could require the token and could happens that one of them could toggle it while the other one is using it
                 unsetSearchResult();
+
+                // attach to product source only
+                // without detaching pair and this, the unsetSearchResult will occur on each local update
+                mResult.addSource(mProductResult, mResult::setValue);
             }
         });
 
@@ -345,10 +351,7 @@ public class ProductsRepository {
                     // consume token
                     // mAppExecutors.mainThread().execute(() -> { unsetSearchResult(); });
 
-                    mProduct.postValue(new Product.Builder()
-                            .from(item)
-                            .build()
-                    );
+                    mProduct.postValue(item);
                 }
 
                 @Override
@@ -407,7 +410,7 @@ public class ProductsRepository {
                 if( shouldAddLocally ) {
                     // insert to local
                     mAppExecutors.diskIO().execute(() -> {
-                        productDao.insert(resourceFetched.getData());
+                        productDao.updateOrInsert(resourceFetched.getData());
                     });
 
                     // attach local live data source as live data response
@@ -419,6 +422,7 @@ public class ProductsRepository {
                     }.asLiveData();
                     // detach this source
                     mResult.removeSource(mFetchedSource);
+                    // attach local source
                     mResult.addSource(mLocalSource, mResult::setValue );
                 }
                 else {
@@ -446,58 +450,30 @@ public class ProductsRepository {
 
     public LiveData<Resource<ProductWithTags>> addDetails(@NonNull ProductWithTags data ) {
 
-        boolean shouldFetch = data.product.getId() == null;
-        final MutableLiveData<ProductWithTags> productToFetch = new MutableLiveData<>(data);
-        final MediatorLiveData<Resource<ProductWithTags>> mResult = new MediatorLiveData<>();
-
-        LiveData<Resource<ProductWithTags>> mProductResultSource = new NetworkBoundResource<ProductWithTags, CreateProduct>(mAppExecutors) {
+        return new NetworkBoundResource<ProductWithTags, ProductWithTags>(mAppExecutors) {
             @Override
-            protected void saveCallResult(CreateProduct item) {
-                // consume token
-                mAppExecutors.mainThread().execute(() -> unsetSearchResult());
-
-                ProductWithTags newPWtags = new ProductWithTags();
-                newPWtags.product = new Product.Builder().from(item).build();
-                newPWtags.tags = new ArrayList<>(data.tags);
-
-                productDao.insertProductAndAssignedTags(newPWtags.product, newPWtags.tags);
-            }
-
-            @Override
-            protected void onFetchFailed(Throwable cause) {
-                if( cause instanceof RemoteException ) {
-                    Log.e(TAG, "Unable to add product to remote " + data.product, cause);
-                }
-                else if( cause instanceof IOException ){
-                    // if we are offline or due to I/O errors add it locally
-                    mAppExecutors.diskIO().execute(() -> {
-                        productDao.insertProductAndAssignedTags(data.product, data.tags);
-                    });
-                }
+            protected void saveCallResult(ProductWithTags item) {
+                productDao.insertProductAndAssignedTags(
+                        item.product,
+                        item.tags
+                );
             }
 
             @Override
             protected boolean shouldFetch(@Nullable ProductWithTags data) {
-                // fetch only if we have no id, and let generate it to remote
-                return data == null || data.product.getId() == null;
+                return true;
             }
 
             @Override
             protected LiveData<ProductWithTags> loadFromDb() {
-                return productToFetch;
+                return productDao.getDetails(data.product.getBarcode());
             }
 
             @Override
-            protected LiveData<ApiResponse<CreateProduct>> createCall() {
-                return Transformations.switchMap(getSearchToken(), tokenRes -> {
-                    return dataSource.postProduct(new CreateProduct(
-                            data.product,
-                            tokenRes.getData()
-                    ));
-                });
+            protected LiveData<ApiResponse<ProductWithTags>> createCall() {
+                return Transformations.adapt(new MutableLiveData<>(Resource.success(data)));
             }
         }.asLiveData();
-        return mResult;
     }
 
     public LiveData<Resource<ProductWithTags>> update(@NonNull ProductWithTags data ) {
@@ -514,7 +490,7 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ProductWithTags> loadFromDb() {
-                return productDao.getProductWithTags(data.product.getId());
+                return productDao.getDetails(data.product.getBarcode());
             }
 
             @Override
@@ -550,7 +526,7 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<Void>> createCall() {
-                return dataSource.delete(product.getId());
+                return dataSource.delete(product.getRemote_id());
             }
         }.asLiveData();
     }

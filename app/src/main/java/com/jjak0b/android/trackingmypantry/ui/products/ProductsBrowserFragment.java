@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
-
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -93,7 +92,7 @@ public class ProductsBrowserFragment extends Fragment {
 
     private ProductListAdapter.OnProductClick onProductClick = product -> {
         Navigation.findNavController(getView())
-                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId(), product.getName() ));
+                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getBarcode(), product.getName() ));
     };
 
     private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {

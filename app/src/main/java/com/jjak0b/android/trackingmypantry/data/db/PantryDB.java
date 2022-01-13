@@ -11,7 +11,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PantryDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PlaceDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductDao;
@@ -23,13 +22,14 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.entities.User;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.TagAndProduct;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 @Database(
         entities = {
+                User.class,
                 Product.class,
                 ProductInstanceGroup.class,
                 ProductTag.class,

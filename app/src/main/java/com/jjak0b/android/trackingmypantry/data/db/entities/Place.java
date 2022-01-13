@@ -55,4 +55,13 @@ public class Place implements GeoJson {
     public BoundingBox bbox() {
         return feature.bbox();
     }
+
+    @Override
+    public String toString() {
+        return "Place{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", feature=" + feature +
+                '}';
+    }
 }

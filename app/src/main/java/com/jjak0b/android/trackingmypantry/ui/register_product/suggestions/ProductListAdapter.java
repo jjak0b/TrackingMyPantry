@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.ListAdapter;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
+import java.util.Objects;
+
 public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> {
 
     private ProductViewHolder.OnProductClickListener onProductClickListener;
@@ -32,12 +34,12 @@ public class ProductListAdapter extends ListAdapter<Product, ProductViewHolder> 
     static class ProductDiff extends DiffUtil.ItemCallback<Product> {
         @Override
         public boolean areItemsTheSame(@NonNull Product oldItem, @NonNull Product newItem) {
-            return oldItem == newItem;
+            return Objects.equals( oldItem.getRemote_id(), newItem.getRemote_id() );
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Product oldItem, @NonNull Product newItem) {
-            return oldItem.getId() != newItem.getId();
+            return Objects.equals( oldItem, newItem );
         }
     }
 }

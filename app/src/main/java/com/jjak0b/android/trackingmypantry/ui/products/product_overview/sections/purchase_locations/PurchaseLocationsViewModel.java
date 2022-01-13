@@ -8,9 +8,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +32,7 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
                     @Override
                     public LiveData<List<PlaceWithPurchases>> apply(Product input) {
                         if( product != null )
-                            return pantryRepository.getAllPurchaseInfo(input.getId());
+                            return pantryRepository.getAllPurchaseInfo(input.getBarcode());
                         else
                             return new MutableLiveData<>(null);
                     }

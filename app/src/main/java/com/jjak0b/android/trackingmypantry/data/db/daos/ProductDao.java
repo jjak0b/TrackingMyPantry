@@ -9,7 +9,6 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-
 import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
@@ -25,7 +24,7 @@ public abstract class ProductDao {
     @Transaction
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public void insertProductAndAssignedTags(Product p, List<ProductTag> tags ){
-        insertProduct(p);
+        updateOrInsert(p);
         long[] tag_ids = insertTags(tags);
         int size = tag_ids.length;
 
@@ -34,7 +33,7 @@ public abstract class ProductDao {
         int i = 0;
         for (ProductTag tag : tags) {
             long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
-            assignedTags.add( new TagAndProduct( p.getId(), tagId ) );
+            assignedTags.add( new TagAndProduct( p.getBarcode(), tagId ) );
             i++;
         }
 
@@ -53,7 +52,7 @@ public abstract class ProductDao {
         int i = 0;
         for (ProductTag tag : tags) {
             long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
-            assignedTags.add( new TagAndProduct( p.getId(), tagId ) );
+            assignedTags.add( new TagAndProduct( p.getBarcode(), tagId ) );
             i++;
         }
 
@@ -61,22 +60,30 @@ public abstract class ProductDao {
     }
 
     @Update
-    public abstract ListenableFuture<Void> updateProduct(Product p);
+    public abstract int updateProduct(Product p);
 
     @Update
     public abstract void updateTags(List<ProductTag> tags);
 
+    // if using OnConflictStrategy.REPLACE will trigger the OnDelete
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract long insertProduct(Product p);
+    abstract void insertProduct(Product p);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    public abstract void insert(Product product);
+    @Transaction
+    public int updateOrInsert(Product product) {
+        int updatedRows = updateProduct(product);
+        if( updatedRows > 0 ) return updatedRows;
+        else {
+            insertProduct(product);
+            return 1;
+        }
+    }
 
-    @Query("SELECT * FROM products WHERE barcode = :barcode" )
+    @Query("SELECT * FROM products WHERE id = :barcode" )
     public abstract LiveData<Product> get(String barcode);
 
     @Transaction
-    @Query("SELECT * FROM products WHERE barcode = :barcode" )
+    @Query("SELECT * FROM products WHERE id = :barcode" )
     public abstract LiveData<ProductWithTags> getDetails(String barcode);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -122,7 +129,7 @@ public abstract class ProductDao {
     @Query( "SELECT * " +
             "FROM products AS P " +
             "LEFT JOIN assignedTags AS AT ON P.id = AT.product_id AND ( AT.tag_id IN (:tagsIds) )" +
-            "WHERE (:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.barcode LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description ) " +
+            "WHERE (:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.id LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description ) " +
             "GROUP BY P.id " +
             "HAVING COUNT(AT.tag_id) >= :tagsCount"
 
@@ -132,7 +139,7 @@ public abstract class ProductDao {
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<Product>> getAll();
 
-    @Query( "SELECT * FROM products WHERE barcode = (:barcode)")
+    @Query( "SELECT * FROM products WHERE id = (:barcode)")
     public abstract LiveData<List<Product>> getProductsByBarcode(String barcode);
 
     @Query( "SELECT * FROM productTags")
