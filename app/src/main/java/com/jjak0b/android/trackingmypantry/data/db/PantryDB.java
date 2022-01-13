@@ -66,21 +66,6 @@ public abstract class PantryDB extends RoomDatabase {
             @Override
             public void onCreate(@NonNull SupportSQLiteDatabase db) {
                 super.onCreate(db);
-
-                databaseWriteExecutor.execute(() -> {
-                    try {
-                        instance.getPantryDao()
-                                .addPantry(
-                                        new Pantry(1, context.getResources()
-                                                .getString(R.string.pantries_default_pantry_name)
-                                        )
-                                ).get();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
             }
         };
     }
