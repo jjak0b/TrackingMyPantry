@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.data.db.entities;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -13,10 +14,7 @@ import java.util.Objects;
         indices = {
                 @Index(value = {"pantry_id", "owner_id"}, unique = true),
                 @Index(value = {"owner_id", "name"}, unique = true)
-        }
-
-
-        /*,
+        },
         foreignKeys = {
                 @ForeignKey(
                         entity = User.class,
@@ -24,7 +22,7 @@ import java.util.Objects;
                         childColumns = "owner_id",
                         onDelete = ForeignKey.CASCADE
                 )
-        }*/
+        }
 )
 public class Pantry {
     @PrimaryKey(autoGenerate = true)

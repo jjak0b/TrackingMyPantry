@@ -18,6 +18,7 @@ import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
@@ -25,6 +26,8 @@ import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.auth.AuthResultState;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.dataSource.LoginDataSource;
+import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
+import com.jjak0b.android.trackingmypantry.data.db.daos.UserDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.User;
 import com.jjak0b.android.trackingmypantry.data.services.API.AuthLoginResponse;
 import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
@@ -44,6 +47,8 @@ public class AuthRepository {
 
     private LoginDataSource dataSource;
     private AccountManager mAccountManager;
+    private PantryDB pantryDB;
+    private UserDao userDao;
     private AppExecutors appExecutors;
 
     private MediatorLiveData<Resource<LoggedAccount>> mLoggedAccount;
@@ -54,6 +59,8 @@ public class AuthRepository {
         this.dataSource = dataSource;
         this.mAccountManager = AccountManager.get(context);
         this.appExecutors = AppExecutors.getInstance();
+        this.pantryDB = PantryDB.getInstance(context);
+        this.userDao = pantryDB.getUserDao();
 
         this.mLoggedAccount = new MediatorLiveData<>();
         this.mLoggedAccount.setValue(Resource.error(new NotLoggedInException(), null));
@@ -206,19 +213,19 @@ public class AuthRepository {
      * @return
      */
     private LiveData<Resource<LoggedAccount>> getLoggedAccount(@NonNull Account account ) {
-        final MutableLiveData<LoggedAccount> mStoredLoggedAccount = new MutableLiveData<>(null);
-        return new NetworkBoundResource<LoggedAccount, User>(appExecutors) {
+
+        final MutableLiveData<User> mUser = new MutableLiveData<>(null);
+        final MutableLiveData<Resource<LoggedAccount>> mLoggedAccount = new MutableLiveData<>(Resource.loading(null));
+        final LiveData<Resource<User>> fetchedUser = new NetworkBoundResource<User, User>(appExecutors) {
             @Override
-            protected void saveCallResult(User user) {
-                mStoredLoggedAccount.postValue(new LoggedAccount.Builder()
-                        .setAccount(account)
-                        .setUser(user)
-                        .build());
+            protected void saveCallResult(User fetchedUser) {
+                userDao.updateOrInsert(fetchedUser);
+                mUser.postValue(fetchedUser);
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable LoggedAccount data) {
-                return data == null || Objects.equals(data.getAccount(), account);
+            protected boolean shouldFetch(@Nullable User data) {
+                return true;
             }
 
             @Override
@@ -227,8 +234,8 @@ public class AuthRepository {
             }
 
             @Override
-            protected LiveData<LoggedAccount> loadFromDb() {
-                return mStoredLoggedAccount;
+            protected LiveData<User> loadFromDb() {
+                return mUser;
             }
 
             @Override
@@ -238,6 +245,28 @@ public class AuthRepository {
                 });
             }
         }.asLiveData();
+
+        return Transformations.forwardOnce(fetchedUser, resourceFetchedUser -> {
+            String user_id = resourceFetchedUser.getData().getId();
+            return Transformations.forward(
+                    IOBoundResource.adapt(appExecutors, userDao.get(user_id)),
+                    resourceUser -> {
+                        User user = resourceUser.getData();
+                        if( user != null ) {
+                            mLoggedAccount.setValue(Resource.success(new LoggedAccount.Builder()
+                                    .setAccount(account)
+                                    .setUser(user)
+                                    .build()
+                            ));
+                        }
+                        else {
+                            mLoggedAccount.setValue(Resource.loading(null));
+                        }
+
+                        return mLoggedAccount;
+                    }
+            );
+        });
     }
 
     /**

@@ -16,6 +16,7 @@ import com.jjak0b.android.trackingmypantry.data.db.daos.PlaceDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductInstanceDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PurchaseInfoDao;
+import com.jjak0b.android.trackingmypantry.data.db.daos.UserDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
@@ -48,6 +49,7 @@ public abstract class PantryDB extends RoomDatabase {
     abstract public PantryDao getPantryDao();
     abstract public PlaceDao getPlaceDao();
     abstract public PurchaseInfoDao getPurchaseInfoDao();
+    abstract public UserDao getUserDao();
 
     private static volatile PantryDB instance;
     private static final int nTHREADS = 4;
