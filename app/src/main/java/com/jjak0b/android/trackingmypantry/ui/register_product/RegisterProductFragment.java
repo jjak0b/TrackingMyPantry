@@ -31,7 +31,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
  */
 public class RegisterProductFragment extends Fragment {
 
-    private _RegisterProductViewModel mSharedViewModel;
+    private RegisterProductViewModel mSharedViewModel;
     private PageViewModel mPageViewModel;
     private static final String TAG = "RegisterProductFragment";
 
@@ -52,7 +52,7 @@ public class RegisterProductFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
 
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);

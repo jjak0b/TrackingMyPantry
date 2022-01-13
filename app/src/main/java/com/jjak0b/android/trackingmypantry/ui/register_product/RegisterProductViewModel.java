@@ -31,7 +31,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
 import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
-public class _RegisterProductViewModel extends AndroidViewModel implements ISavable<Boolean> {
+public class RegisterProductViewModel extends AndroidViewModel implements ISavable<Boolean> {
 
     private static final String TAG = "RegisterProductViewModel";
     private ProductsRepository productsRepo;
@@ -52,7 +52,7 @@ public class _RegisterProductViewModel extends AndroidViewModel implements ISava
     private Savable<PurchaseInfoWithPlace> savableProductPurchaseDetails;
     private Savable<Boolean> savable;
 
-    public _RegisterProductViewModel(@NonNull Application application) {
+    public RegisterProductViewModel(@NonNull Application application) {
         super(application);
         productsRepo = ProductsRepository.getInstance(application);
         pantryRepo = PantriesRepository.getInstance(application);

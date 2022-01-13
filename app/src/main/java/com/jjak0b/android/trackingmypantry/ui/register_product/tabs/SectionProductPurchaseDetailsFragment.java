@@ -10,12 +10,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 
 public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetailsFragment {
 
     private final static String TAG = "SectionProductPurchaseDetailsFragment";
-    private _RegisterProductViewModel mSharedViewModel;
+    private RegisterProductViewModel mSharedViewModel;
 
     @Override
     public ProductPurchaseDetailsViewModel initViewModel() {
@@ -30,7 +30,7 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
     }
 
 

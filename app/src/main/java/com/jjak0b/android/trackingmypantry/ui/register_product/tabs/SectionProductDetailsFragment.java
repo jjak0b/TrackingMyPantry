@@ -38,8 +38,8 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.products.ProductViewHolder;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragmentDirections;
+import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
@@ -51,7 +51,7 @@ import java.util.ArrayList;
 public class SectionProductDetailsFragment extends Fragment {
 
     private SharedProductViewModel mProductPickerViewModel;
-    private _RegisterProductViewModel mSharedViewModel;
+    private RegisterProductViewModel mSharedViewModel;
     private SectionProductDetailsViewModel mViewModel;
 
     static final String TAG = "SectionProductDetailsProductFragment";
@@ -72,7 +72,7 @@ public class SectionProductDetailsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = initViewModel();
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
 
         requestScanCameraPermissionsLauncher = registerForActivityResult( new ActivityResultContracts.RequestMultiplePermissions(), areGranted -> {

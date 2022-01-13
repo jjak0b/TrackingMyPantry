@@ -10,12 +10,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product._RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 
 public class SectionProductInstanceDetailsFragment extends ProductInstanceDetailsFragment {
 
     private final static String TAG = "SectionProductInstanceDetailsFragment";
-    private _RegisterProductViewModel mSharedViewModel;
+    private RegisterProductViewModel mSharedViewModel;
 
     @Override
     @NonNull
@@ -31,7 +31,7 @@ public class SectionProductInstanceDetailsFragment extends ProductInstanceDetail
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(_RegisterProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
     }
 
     @Override
