@@ -39,12 +39,17 @@ class TagWithProducts {
                 @ForeignKey(
                         entity = Product.class,
                         parentColumns = "id",
-                        childColumns = "product_id"
+                        childColumns = "product_id",
+                        onDelete = ForeignKey.CASCADE,
+                        onUpdate = ForeignKey.CASCADE
+
                 ),
                 @ForeignKey(
                         entity = ProductTag.class,
                         parentColumns = "id",
-                        childColumns = "tag_id"
+                        childColumns = "tag_id",
+                        onDelete = ForeignKey.CASCADE,
+                        onUpdate = ForeignKey.CASCADE
                 )
         }
 )

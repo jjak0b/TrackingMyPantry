@@ -21,19 +21,22 @@ import java.util.List;
 @Dao
 public abstract class ProductDao {
 
+    @Query("SELECT * FROM assignedTags WHERE product_id = :product_id" )
+    public abstract List<TagAndProduct> getAssignedTags( String product_id );
+
     @Transaction
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public void insertProductAndAssignedTags(Product p, List<ProductTag> tags ){
+    public void replaceProductAssignedTags(Product p, List<ProductTag> tags ){
         updateOrInsert(p);
         long[] tag_ids = insertTags(tags);
         int size = tag_ids.length;
 
+        removeAssignedTags(getAssignedTags(p.getBarcode()));
         ArrayList<TagAndProduct> assignedTags = new ArrayList<>( size );
-
         int i = 0;
         for (ProductTag tag : tags) {
             long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
-            assignedTags.add( new TagAndProduct( p.getBarcode(), tagId ) );
+            TagAndProduct assigned = new TagAndProduct( p.getBarcode(), tagId );
+            assignedTags.add( assigned );
             i++;
         }
 
@@ -55,6 +58,7 @@ public abstract class ProductDao {
             assignedTags.add( new TagAndProduct( p.getBarcode(), tagId ) );
             i++;
         }
+
 
         insertAssignedTags( assignedTags );
     }
@@ -94,6 +98,8 @@ public abstract class ProductDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertAssignedTags(List<TagAndProduct> assignedTags );
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    public abstract void insertAssignedTags(TagAndProduct... assignedTags );
 
     @Delete
     public abstract ListenableFuture<Void> removeAssignedTags(List<TagAndProduct> assignedTags );

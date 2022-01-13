@@ -453,7 +453,7 @@ public class ProductsRepository {
         return new NetworkBoundResource<ProductWithTags, ProductWithTags>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductWithTags item) {
-                productDao.insertProductAndAssignedTags(
+                productDao.replaceProductAssignedTags(
                         item.product,
                         item.tags
                 );
