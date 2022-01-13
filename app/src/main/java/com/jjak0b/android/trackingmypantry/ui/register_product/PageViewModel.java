@@ -1,5 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product;
 
+import android.util.Pair;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -8,17 +10,30 @@ import java.util.Objects;
 
 public class PageViewModel extends ViewModel {
 
-    private MutableLiveData<Integer> mIndex = new MutableLiveData<>( 0 );
+    private MutableLiveData<Pair<Integer, Integer>> mIndex;
+    private MutableLiveData<Integer> maxTabCount;
 
-    private MutableLiveData<Integer> maxTabCount = new MutableLiveData<>( 1 );
+    public PageViewModel() {
+        super();
+        mIndex = new MutableLiveData<>(Pair.create(0,0));
+        maxTabCount = new MutableLiveData<>( 1 );
+    }
 
+    /**
+     * Set the current page index
+     * @param index
+     */
     public void setPageIndex(Integer index) {
-        if( !Objects.equals( mIndex.getValue(), index ) ){
-            mIndex.setValue(index);
+        if( !Objects.equals( mIndex.getValue().first, index ) ){
+            mIndex.setValue(Pair.create( index, mIndex.getValue().first) );
         }
     }
 
-    public LiveData<Integer> getPageIndex(){
+    /**
+     *
+     * @return a pair lived data of (current index, previous index)
+     */
+    public LiveData<Pair<Integer, Integer>> getPageIndex(){
         return mIndex;
     }
 
@@ -33,6 +48,6 @@ public class PageViewModel extends ViewModel {
     }
 
     public boolean canSelectNextTab() {
-        return mIndex.getValue() + 1 < maxTabCount.getValue();
+        return mIndex.getValue().first + 1 < maxTabCount.getValue();
     }
 }
