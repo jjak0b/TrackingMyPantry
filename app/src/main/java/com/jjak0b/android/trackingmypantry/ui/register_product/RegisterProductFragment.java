@@ -42,6 +42,14 @@ public class RegisterProductFragment extends Fragment {
 
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
+        mSharedViewModel.setupNew();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -51,9 +59,6 @@ public class RegisterProductFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
 
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);
         Button nextBtn = view.findViewById( R.id.continueBtn );
@@ -70,7 +75,7 @@ public class RegisterProductFragment extends Fragment {
 
         // when product is not ready so allow only tab 0
         mSharedViewModel.onBaseProductSet().observe(getViewLifecycleOwner(), hasBeenSet -> {
-            Log.e(TAG, "OnBaseProductSet " + hasBeenSet );
+            // Log.d(TAG, "IsBaseProductSet " + hasBeenSet );
             if( !hasBeenSet ){
                 mPageViewModel.setPageIndex( 0 );
                 mPageViewModel.setMaxNavigableTabCount( 1 );
@@ -86,8 +91,12 @@ public class RegisterProductFragment extends Fragment {
             int index = pageIndex.first;
             int prevIndex = pageIndex.second;
 
-            // trigger saving on previous page
-            saveOnChangePage( prevIndex );
+            Log.d(TAG, "going from page " + prevIndex + " to " + index );
+
+            if( index != prevIndex ) {
+                // trigger saving on previous page
+                saveOnChangePage(prevIndex);
+            }
 
             tabs.selectTab( tabs.getTabAt( index ) );
 
@@ -152,12 +161,12 @@ public class RegisterProductFragment extends Fragment {
 
 
         mSharedViewModel.canSave().observe(getViewLifecycleOwner(), canSave -> {
-            Log.e(TAG, "canSave="+canSave);
+            // Log.d(TAG, "canSave="+canSave);
         });
 
         mSharedViewModel.onSave().observe(getViewLifecycleOwner(), isSaving ->  {
             if( !isSaving ) {
-                Log.d(TAG, "not saving");
+                // Log.d(TAG, "not saving");
                 return;
             }
 
@@ -169,7 +178,7 @@ public class RegisterProductFragment extends Fragment {
         });
 
         mSharedViewModel.onSaved().observe(getViewLifecycleOwner(), resource -> {
-            Log.e(TAG, "saved result " + resource );
+            Log.d(TAG, "saved result " + resource );
             switch (resource.getStatus()) {
                 case LOADING:
                     break;

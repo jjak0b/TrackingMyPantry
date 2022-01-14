@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
 import android.app.Application;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -10,6 +11,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
@@ -30,12 +32,13 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
     private MutableLiveData<Resource<String>> mBarcode;
     private MutableLiveData<Resource<Product>> mProduct;
-    private MutableLiveData<Resource<List<ProductTag>>> mAssignedTags;
+    private MediatorLiveData<Resource<List<ProductTag>>> mAssignedTags;
     private LiveData<Resource<List<ProductTag>>> mSuggestionsTags;
     private AppExecutors appExecutors;
     private ProductsRepository productsRepository;
     private Savable<ProductWithTags> savable;
-
+    private LiveData<Resource<List<ProductTag>>> mProductTagsSource;
+    private LiveData<Resource<List<ProductTag>>> mProductTagsDefaultSource;
     public SectionProductDetailsViewModel(Application application) {
         super(application);
         productsRepository = ProductsRepository.getInstance(application);
@@ -43,12 +46,50 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         savable = new Savable<>();
         mBarcode = new MutableLiveData<>(Resource.loading(null));
         mProduct = new MutableLiveData<>(Resource.loading(null));
-        mAssignedTags = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
+        mProductTagsDefaultSource = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
+        mAssignedTags = new MediatorLiveData<>();
+        mAssignedTags.setValue(mProductTagsDefaultSource.getValue());
         mSuggestionsTags = productsRepository.getTags();
+
+        // override assigned tags on barcode change, with the ones assigned to existing product
+        final MutableLiveData<List<ProductTag>> mTags  = new MutableLiveData<>(new ArrayList<>(0));
+        LiveData<Resource<List<ProductTag>>> mAssignedTagsOnBarcode =
+                Transformations.forward(getBarcode(), resource -> {
+                    String barcode = resource.getData();
+                    Log.e("blabla1", "" + resource );
+                    return Transformations.forwardOnce(productsRepository.getDetails(barcode), detailsResource -> {
+                        ProductWithTags details = detailsResource.getData();
+                        Log.e("blabla2", "" + detailsResource );
+                        if( details != null ) {
+                            mTags.setValue(details.tags);
+                            return IOBoundResource.adapt(appExecutors, mTags );
+                        }
+                        else {
+                            return mProductTagsDefaultSource;
+                        }
+                    });
+                });
+
+        setProductTagsSource(mAssignedTagsOnBarcode);
 
         savable.enableSave(false);
         reset();
     }
+
+    private void setProductTagsSource(LiveData<Resource<List<ProductTag>>> source ) {
+        if( mProductTagsSource != null ) {
+            mAssignedTags.removeSource(mProductTagsSource);
+        }
+        if( source == null ) source = mProductTagsDefaultSource;
+
+        mProductTagsSource = source;
+
+        mAssignedTags.addSource(source, resource -> {
+            mAssignedTags.setValue(resource);
+        });
+    }
+
+
 
     @Override
     protected void onCleared() {
@@ -117,37 +158,6 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
     public LiveData<Resource<List<ProductTag>>> getAssignedTags() {
         return mAssignedTags;
-        /*
-        return Transformations.forward(mAssignedTags, resourceAssigned -> {
-            List<ProductTag> source = resourceAssigned.getData();
-            return Transformations.forwardOnce(mSuggestionsTags, resourceSuggestions -> {
-                List<ProductTag> all = resourceSuggestions.getData();
-
-                // make the returned list with unique items
-                // and if there are  some dummy items that match with a tag, will replace the dummy with it
-                return Transformations.simulateApi(
-                        appExecutors.diskIO(),
-                        appExecutors.mainThread(),
-                        () -> {
-                            TreeMap<String, ProductTag> suggestionsTagsMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-                            ArrayList<ProductTag> unique = new ArrayList<>(source.size());
-                            for (ProductTag t : all) suggestionsTagsMap.put(t.getName(), t);
-                            for (ProductTag t : source ) {
-                                if( ProductTag.isDummy(t) ) {
-                                    ProductTag item = suggestionsTagsMap.get(t.getName());
-                                    if( item != null ) unique.add(item);
-                                }
-                                else {
-                                    unique.add(t);
-                                }
-                            }
-                            Log.d("test", "new tags " + unique.toString() );
-                            return unique;
-                        }
-                );
-            });
-        });
-        */
     }
 
     public void setAssignedTags(List<ProductTag> tags ) {
@@ -159,40 +169,11 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
     }
 
     public LiveData<Resource<List<ProductTag>>> getSuggestionTags() {
-
         return mSuggestionsTags;
-        /*return Transformations.forward(getAssignedTags(), resourceAssigned -> {
-            return Transformations.forward(productsRepository.getTags(), resourceSuggestions -> {
-                List<ProductTag> allTags = resourceSuggestions.getData();
-                List<ProductTag> tagsToExclude = resourceAssigned.getData();
-
-                Log.d("test", "removing " + tagsToExclude.toString()  +"\nfrom " + allTags.toString());
-                return Transformations.simulateApi(
-                        appExecutors.diskIO(),
-                        appExecutors.mainThread(),
-                        () -> {
-                            allTags.removeAll(tagsToExclude);
-                            Log.d("test", "result: " + allTags );
-                            return allTags;
-                        }
-                );
-            });
-        });*/
     }
 
     public void resetProduct() {
         setProduct((ProductWithTags) null);
-    }
-
-    public LiveData<Resource<ProductWithTags>> getProductPreview() {
-        return Transformations.forward(getBarcode(), barcodeResource -> {
-            return Transformations.forward(productsRepository.getDetails(barcodeResource.getData()), detailsResource -> {
-                ProductWithTags model = detailsResource.getData();
-                setProduct(model);
-                // TODO merge current assigned tags with already stored
-                return new MutableLiveData<>(detailsResource);
-            });
-        });
     }
 
     private boolean updateValidity() {

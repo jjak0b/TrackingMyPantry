@@ -110,7 +110,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
     public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
-            Log.d(TAG, "canSave=" +canSave);
+            // Log.d(TAG, "canSave=" +canSave);
             if( canSave ) getViewModel().save();
         });
 
@@ -146,9 +146,11 @@ public class SectionProductDetailsFragment extends Fragment {
 
     public void setupReset(@NonNull View view, @Nullable Bundle savedInstanceState) {
         mSharedViewModel.onReset().observe(getViewLifecycleOwner(), shouldReset -> {
-            if( shouldReset )
+            if( shouldReset ) {
+                Log.d(TAG, "Resetting");
                 getViewModel().reset();
-                mProductPickerViewModel.setProductSource(null);
+                // mProductPickerViewModel.setProductSource(null);
+            }
         });
     }
 
@@ -231,7 +233,8 @@ public class SectionProductDetailsFragment extends Fragment {
                 barcodeWatcher[0] = new InputUtil.FieldTextWatcher() {
                     @Override
                     public void afterTextChanged(Editable s) {
-                        getViewModel().resetProduct();
+                        // reset picked product
+                        mProductPickerViewModel.setProductSource(null);
                         productForm.setVisibility( View.GONE );
                     }
                 };
@@ -255,13 +258,7 @@ public class SectionProductDetailsFragment extends Fragment {
             mProductPickerViewModel.setProductSource(null);
         });
 
-        // on product picked
-        mProductPickerViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
-            getViewModel().setProduct(resource.getData());
-        });
-
         getViewModel().getProduct().observe(getViewLifecycleOwner(), resource -> {
-            Log.e(TAG, "Product: " + resource );
             switch (resource.getStatus()) {
                 case ERROR:
                     Log.e(TAG, "Error on product changed: " , resource.getError() );
@@ -296,6 +293,11 @@ public class SectionProductDetailsFragment extends Fragment {
                 mSharedViewModel.setProductDetails(Resource.loading(null));
             }
         });
+
+        // on product picked
+        mProductPickerViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+            getViewModel().setProduct(resource.getData());
+        });
     }
 
     private void setupTags(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -329,7 +331,6 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         getViewModel().getSuggestionTags().observe( getViewLifecycleOwner(), resource -> {
-            Log.e(TAG, "update suggestion tags " + resource.getData() );
             switch (resource.getStatus()) {
                 case SUCCESS:
                     adapter.addAll( resource.getData() );
@@ -354,36 +355,15 @@ public class SectionProductDetailsFragment extends Fragment {
     }
 
     private void search(String barcode) {
-        mViewModel.setBarcode( barcode );
+        getViewModel().setBarcode( barcode );
         openBottomSheetDialog(getView(), barcode);
     }
 
     private void openBottomSheetDialog(View view, String barcode) {
         NavController navController = NavHostFragment.findNavController( this );
-        Log.e( TAG , "OPENING " + barcode);
-        Log.e( TAG , "CD: " + navController.getCurrentDestination());
 
-        /*if( navController
-                .getCurrentDestination()
-                .getId() == R.id.registerProductFragment )*/
-        {
             navController
                     .navigate(RegisterProductFragmentDirections.openSuggestedProducts(barcode));
-
-        }
-    }
-
-    private void closeBottomSheetDialog(View view) {
-        NavController navController = NavHostFragment.findNavController( this );
-        Log.e( TAG , "CLOSING");
-        Log.e( TAG , "CD: " + navController.getCurrentDestination());
-        /*if( navController
-                .getCurrentDestination()
-                .getId() == R.id.suggestedProductListDialogFragment )*/
-        {
-            navController
-                    .popBackStack(R.id.suggestedProductListDialogFragment, true);
-        }
     }
 
     private void startScanner() {

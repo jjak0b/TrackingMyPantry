@@ -150,11 +150,8 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
     private boolean updateValidity() {
         boolean isValid = true;
         isValid = isValid && Transformations.onValid(mProductDetails.getValue(), null);
-        Log.d(TAG, "test mProductDetails" + ""+isValid );
         isValid = isValid && Transformations.onValid(mProductGroupDetails.getValue(), null);
-        Log.d(TAG, "test mProductGroupDetails" + ""+isValid );
         isValid = isValid && Transformations.onValid(mProductPurchaseDetails.getValue(), null);
-        Log.d(TAG, "test mProductPurchaseDetails" + ""+isValid );
 
         savable.enableSave(isValid);
         return isValid;
