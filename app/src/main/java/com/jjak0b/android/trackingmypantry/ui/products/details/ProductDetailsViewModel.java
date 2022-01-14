@@ -61,17 +61,6 @@ public class ProductDetailsViewModel extends ProductInfoViewModel {
         });
     }
 
-    public LiveData<Resource<ProductWithTags>> getResultProductWithTags() {
-        return com.jjak0b.android.trackingmypantry.data.api.Transformations.forward(super.onSaved(), productResource -> {
-            return com.jjak0b.android.trackingmypantry.data.api.Transformations.forward(mTagsResult, tagsResource -> {
-                ProductWithTags productWithTags = new ProductWithTags();
-                productWithTags.product = productResource.getData();
-                productWithTags.tags = tagsResource.getData();
-                return new MutableLiveData<>(Resource.success(productWithTags));
-            });
-        });
-    }
-
     public void setProduct(ProductWithTags productWithTags) {
         if( productWithTags != null){
             super.setProduct(productWithTags.product);
