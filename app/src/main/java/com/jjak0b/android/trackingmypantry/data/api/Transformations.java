@@ -3,8 +3,10 @@ package com.jjak0b.android.trackingmypantry.data.api;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.arch.core.util.Function;
+import androidx.core.util.Pair;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -118,25 +120,32 @@ public class Transformations {
             @NonNull LiveData<Resource<I>> mSource,
             @NonNull final androidx.arch.core.util.Function<Resource<I>, LiveData<Resource<O>>> switchMapFunction) {
         final MediatorLiveData<Resource<O>> mediator = new MediatorLiveData<>();
+        final MutableLiveData<Pair<LiveData<Resource<O>>, LiveData<Resource<O>>>> mLDSource = new MutableLiveData<>(Pair.create(null, null));
+
+        mediator.addSource(mLDSource, switchedLD -> {
+            if( switchedLD.second != null )
+                mediator.removeSource(switchedLD.second);
+            if( switchedLD.first != null )
+                mediator.addSource(switchedLD.first, mediator::setValue);
+        });
+
         mediator.addSource(mSource, resource -> {
             // simulate an API behaviour
+            mLDSource.setValue(Pair.create(
+                    null,
+                    mLDSource.getValue().first
+            ));
             switch (resource.getStatus()) {
                 case SUCCESS:
-                    if (mSource != null) {
-                        mediator.removeSource(mSource);
+                    if( switchMapFunction != null ) {
+                        // forward function result
+                        mLDSource.setValue(Pair.create(
+                                switchMapFunction.apply(resource),
+                                mLDSource.getValue().first
+                        ));
                     }
-                    // forward function result
-                    LiveData<Resource<O>> switchedLD = androidx.lifecycle.Transformations
-                            .switchMap(mSource, switchMapFunction);
-                    mediator.addSource(
-                            switchedLD,
-                            mediator::setValue
-                    );
                     break;
                 case ERROR:
-                    if (mSource != null) {
-                        mediator.removeSource(mSource);
-                    }
                     // forward new value as error response
                     mediator.setValue(Resource.error(resource.getError(), null));
                     break;
