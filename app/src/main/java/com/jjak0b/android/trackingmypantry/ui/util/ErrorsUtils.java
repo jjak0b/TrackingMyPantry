@@ -43,6 +43,9 @@ public class ErrorsUtils {
                     context.getString(R.string.error_cause_unable_communicate)
             );
         }
+        else if( error instanceof FormException ) {
+            errorMsg = error.getLocalizedMessage();
+        }
         else {
             Log.e( debugTag, "Unexpected Error", error );
             errorMsg = context.getString(R.string.error_msg_type_cause,
