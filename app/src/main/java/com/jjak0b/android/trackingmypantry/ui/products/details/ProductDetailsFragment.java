@@ -8,11 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.ui.util.ChipTagUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 
 public class ProductDetailsFragment extends ProductInfoFragment {
 
@@ -20,6 +22,7 @@ public class ProductDetailsFragment extends ProductInfoFragment {
         return new ProductDetailsFragment();
     }
 
+    @Override
     protected ProductDetailsViewModel initViewModel() {
         return new ViewModelProvider(this).get(ProductDetailsViewModel.class);
     }
@@ -32,7 +35,13 @@ public class ProductDetailsFragment extends ProductInfoFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        setupTags(view, savedInstanceState);
+
+    }
+
+    public void setupTags(@NonNull View view, @Nullable Bundle savedInstanceState) {
         final NachoTextView chipsInput = (NachoTextView) view.findViewById(R.id.chips_input);
+        final TextInputLayout tagsInputLayout = view.findViewById(R.id.tagsInputLayout);
 
         ArrayAdapter<ProductTag> adapter = new ArrayAdapter<>(getContext(),
                 android.R.layout.simple_spinner_dropdown_item);
@@ -44,14 +53,33 @@ public class ProductDetailsFragment extends ProductInfoFragment {
             }
         });
 
-        getViewModel().getAssignedTags().observe( getViewLifecycleOwner(), productTags -> {
-            chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( productTags ) );
-            chipsInput.setSelection(chipsInput.getText().length());
+        getViewModel().getAssignedTags().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    tagsInputLayout.setError(null);
+                    chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( resource.getData() ) );
+                    chipsInput.setSelection(chipsInput.getText().length());
+                    break;
+                case ERROR:
+                    if( resource.getError() instanceof FormException){
+                        tagsInputLayout.setError(((FormException) resource.getError()).getLocalizedMessage(requireContext()));
+                    }
+
+                    break;
+            }
         });
-        getViewModel().getSuggestionTags().observe( getViewLifecycleOwner(), productTags -> {
-            adapter.clear();
-            adapter.addAll( productTags );
+
+        getViewModel().getSuggestionTags().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    adapter.addAll( resource.getData() );
+                    break;
+                default:
+                    adapter.clear();
+                    break;
+            }
         });
+
 
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             if( !shouldSave ) return;

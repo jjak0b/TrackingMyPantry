@@ -2,7 +2,6 @@ package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
 import android.app.Application;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -56,10 +55,8 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         LiveData<Resource<List<ProductTag>>> mAssignedTagsOnBarcode =
                 Transformations.forward(getBarcode(), resource -> {
                     String barcode = resource.getData();
-                    Log.e("blabla1", "" + resource );
                     return Transformations.forwardOnce(productsRepository.getDetails(barcode), detailsResource -> {
                         ProductWithTags details = detailsResource.getData();
-                        Log.e("blabla2", "" + detailsResource );
                         if( details != null ) {
                             mTags.setValue(details.tags);
                             return IOBoundResource.adapt(appExecutors, mTags );

@@ -99,7 +99,11 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
         super.onCleared();
     }
 
-    private boolean updateValidity() {
+    public void enableSave(boolean enable ) {
+        savable.enableSave(enable);
+    }
+
+    public boolean updateValidity() {
         boolean isValid = true;
 
         isValid = isValid && Transformations.onValid(getBarcode().getValue(), null);
@@ -120,18 +124,20 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
     }
 
     public void save() {
+        LiveData<Boolean> onSave = this.onSave();
+        MediatorLiveData<Resource<Product>> onSaved = savable.onSaved();
+
         savable.save();
 
-        savable.onSaved().removeSource(savable.onSave());
-        savable.onSaved().addSource(savable.onSave(), aBoolean -> {
-            if( aBoolean ){
+        onSaved.addSource(onSave, isSaving -> {
+            if( isSaving ){
                 savable.setSavedResult(Resource.loading(null));
                 return;
             }
-            savable.onSaved().removeSource(savable.onSave());
+            onSaved.removeSource(onSave);
 
-            savable.onSaved().addSource(getProduct(), old -> {
-                savable.onSaved().removeSource(getProduct());
+            onSaved.addSource(getProduct(), old -> {
+                onSaved.removeSource(getProduct());
 
                 Product.Builder builder = new Product.Builder().from(old);
 
@@ -150,9 +156,9 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
                         resourceScaled -> ImageUtil.getURI(resourceScaled.getData())
                 ) : new MutableLiveData<>(Resource.success(null));
 
-                savable.onSaved().addSource(resourceURI, resource -> {
+                onSaved.addSource(resourceURI, resource -> {
                     if (resource.getStatus() != Status.LOADING) {
-                        savable.onSaved().removeSource(resourceURI);
+                        onSaved.removeSource(resourceURI);
                         builder.setImg(resource.getData());
                         savable.setSavedResult(Resource.success(builder.build()));
                     }

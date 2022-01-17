@@ -2,11 +2,13 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.app.Application;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 
 public class EditProductDetailsViewModel extends ProductDetailsViewModel {
 
@@ -14,24 +16,14 @@ public class EditProductDetailsViewModel extends ProductDetailsViewModel {
         super(application);
     }
 
-    public ListenableFuture<Void> submit() {
-
-        Product old = getProduct().getValue();
-        ProductWithTags productWithTags = new ProductWithTags();
-
-        Product.Builder builder = new Product.Builder().from(old != null ? old : null)
-                .setName(getName().getValue().getData())
-                .setDescription(getDescription().getValue().getData())
-                .setBarcode(getBarcode().getValue().getData());
-
-        if( getImage().getValue() != null ) {
-            builder.setImg(ImageUtil.convert(getImage().getValue().getData()));
-        }
-
-        productWithTags.product = builder.build();
-        productWithTags.tags = getAssignedTags().getValue();
-
-        return pantryRepository.updateProductLocal(productWithTags);
+    @Override
+    public MediatorLiveData<Resource<ProductWithTags>> onSavedResult() {
+        final MediatorLiveData<Resource<ProductWithTags>> mediator = new MediatorLiveData<>();
+        final LiveData<Resource<ProductWithTags>> source = Transformations.forward(super.onSavedResult(), resource -> {
+           return productsRepository.addDetails(resource.getData());
+        });
+        mediator.addSource(source, mediator::setValue );
+        return mediator;
     }
 
 }

@@ -124,7 +124,7 @@
         app:destination="@id/settingsFragment" />
     <fragment
         android:id="@+id/editProductDetailsFragment"
-        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductInfoFragment"
+        android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductDetailsFragment"
         android:label="@string/product_section_edit_product_details" />
     <dialog
         android:id="@+id/productsSearchFilterFragmentDialog"
