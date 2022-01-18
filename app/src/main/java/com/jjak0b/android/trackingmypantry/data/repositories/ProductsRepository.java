@@ -25,6 +25,7 @@ import com.jjak0b.android.trackingmypantry.data.db.daos.ProductDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.data.filters.ProductFilterState;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
@@ -446,6 +447,24 @@ public class ProductsRepository {
                 return productDao.getDetails(barcode);
             }
         }.asLiveData();
+    }
+
+    public LiveData<Resource<List<ProductWithTags>>> getDetails( ProductFilterState filter ){
+        LiveData<List<ProductWithTags>> liveData;
+
+        if( filter == null ){
+            liveData = pantryDB.getProductDao().getAllProductsWithTags();
+        }
+        else {
+            liveData = pantryDB.getProductDao().getAllProductsWithTags(
+                    filter.barcode != null ? "%"+filter.barcode+"%" : null,
+                    filter.name != null ? "%"+filter.name+"%" : null,
+                    filter.description != null ? "%"+filter.description+"%" : null,
+                    filter.tagsIDs
+            );
+        }
+
+        return IOBoundResource.adapt(mAppExecutors, liveData);
     }
 
     public LiveData<Resource<ProductWithTags>> addDetails(@NonNull ProductWithTags data ) {
