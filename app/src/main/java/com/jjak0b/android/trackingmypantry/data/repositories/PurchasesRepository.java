@@ -12,6 +12,9 @@ import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PurchaseInfoDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
+
+import java.util.List;
 
 public class PurchasesRepository {
     private static PurchasesRepository instance;
@@ -54,5 +57,9 @@ public class PurchasesRepository {
 
     public LiveData<Resource<PurchaseInfo>> get(@NonNull final long purchase_id ) {
         return IOBoundResource.adapt(mAppExecutors, dao.getPurchaseInfo(purchase_id));
+    }
+
+    public LiveData<Resource<List<PlaceWithPurchases>>> getAllPurchasePlacesOf(@NonNull String productID) {
+        return IOBoundResource.adapt(mAppExecutors, dao.getAllPurchaseInfo(productID));
     }
 }

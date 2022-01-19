@@ -2,51 +2,43 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.app.Application;
 
-import androidx.arch.core.util.Function;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.repositories.PurchasesRepository;
 
 import java.util.List;
 import java.util.Objects;
 
 public class PurchaseLocationsViewModel extends AndroidViewModel {
 
-    private PantryRepository pantryRepository;
-    private MutableLiveData<Product> product;
-    private LiveData<List<PlaceWithPurchases>> purchaseInfoList;
+    private PurchasesRepository purchasesRepository;
+    private MutableLiveData<Resource<Product>> product;
+    private LiveData<Resource<List<PlaceWithPurchases>>> purchaseInfoList;
 
     public PurchaseLocationsViewModel(Application application) {
         super(application);
-        pantryRepository = PantryRepository.getInstance(application);
+        purchasesRepository = PurchasesRepository.getInstance(application);
 
-        product = new MutableLiveData<>(null);
-        purchaseInfoList = Transformations.switchMap(
-                product,
-                new Function<Product, LiveData<List<PlaceWithPurchases>>>() {
-                    @Override
-                    public LiveData<List<PlaceWithPurchases>> apply(Product input) {
-                        if( product != null )
-                            return pantryRepository.getAllPurchaseInfo(input.getBarcode());
-                        else
-                            return new MutableLiveData<>(null);
-                    }
-                }
-        );
+        product = new MutableLiveData<>(Resource.loading(null));
+        purchaseInfoList = Transformations.forward(product, resource -> {
+            Product product = resource.getData();
+            return purchasesRepository.getAllPurchasePlacesOf(product.getBarcode());
+        });
     }
 
 
-    public void setProduct(Product product) {
+    public void setProduct(Resource<Product> product) {
         if(!Objects.equals(product, this.product.getValue()))
             this.product.setValue(product);
     }
 
-    public LiveData<List<PlaceWithPurchases>> getPurchaseInfoList() {
+    public LiveData<Resource<List<PlaceWithPurchases>>> getPurchaseInfoList() {
         return purchaseInfoList;
     }
 }
