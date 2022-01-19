@@ -16,22 +16,23 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 public class EditProductDetailsFragment extends ProductDetailsFragment {
 
     private static final String TAG = "EditProductInfoFragment";
-    private ProductOverviewViewModel mProductViewModel;
+    private SharedProductViewModel mProductViewModel;
 
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
     }
 
     @Override
@@ -59,7 +60,16 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
         barcodeInputLayout.setStartIconVisible(false);
         barcodeInputLayout.setEndIconVisible(false);
 
-        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), getViewModel()::setProduct );
+        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    getViewModel().setProduct(resource.getData());
+                    break;
+                default:
+                    getViewModel().setProduct((Product) null);
+                    break;
+            }
+        });
 
         setupSave(view, savedInstanceState);
     }

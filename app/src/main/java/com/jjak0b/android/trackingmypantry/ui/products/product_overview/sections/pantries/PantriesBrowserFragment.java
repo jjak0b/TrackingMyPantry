@@ -19,14 +19,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserViewModel;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 
 public class PantriesBrowserFragment extends Fragment {
 
     private PantriesBrowserViewModel mViewModel;
-    private ProductOverviewViewModel mProductViewModel;
+    private SharedProductViewModel mProductViewModel;
     private PantryListAdapter listAdapter;
     private ProductsGroupsBrowserViewModel mProductsGroupsBrowserViewModel;
 
@@ -34,7 +35,7 @@ public class PantriesBrowserFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
-        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
         mProductsGroupsBrowserViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsGroupsBrowserViewModel.class);
     }
 
@@ -57,10 +58,16 @@ public class PantriesBrowserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
+        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
             Log.e( "MyPantries", "setting productID" );
-            if( productWithTags != null ){
-                mViewModel.setProductID(productWithTags.product.getBarcode());
+            switch (resource.getStatus()) {
+                case LOADING:
+                    mViewModel.setProductID(null);
+                    break;
+                default:
+                    Product item = resource.getData();
+                    mViewModel.setProductID(item != null ? item.getBarcode() : null );
+                    break;
             }
         });
 

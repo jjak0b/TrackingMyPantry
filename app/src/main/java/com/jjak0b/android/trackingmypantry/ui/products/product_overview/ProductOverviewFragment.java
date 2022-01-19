@@ -1,31 +1,34 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 
 public class ProductOverviewFragment extends Fragment {
 
-    private ProductOverviewViewModel mSharedViewModelForNav;
-    private ProductOverviewViewModel mSharedViewModel;
+    private ProductOverviewViewModel mViewModel;
+    private SharedProductViewModel mSharedViewModelForNav;
+    private SharedProductViewModel mSharedViewModel;
 
     private final static String TAG = "ProductOverview";
     public static ProductOverviewFragment newInstance() {
@@ -59,12 +62,15 @@ public class ProductOverviewFragment extends Fragment {
                 .navigate(ProductOverviewFragmentDirections.actionEditProductDetails())
         );
 
-        mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(ProductOverviewViewModel.class);
-        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(ProductOverviewViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(ProductOverviewViewModel.class);
+        mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(SharedProductViewModel.class);
+        // used for Edit product
+        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
 
-        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), productWithTags -> {
-            mSharedViewModelForNav.setProduct( productWithTags );
-            String imgURI = productWithTags != null ? productWithTags.product.getImg() : null;
+        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+
+            String imgURI = resource.getData() != null ? resource.getData().getImg() : null;
+
             Glide.with(view)
                     .load(imgURI)
                     .fitCenter()
@@ -78,7 +84,10 @@ public class ProductOverviewFragment extends Fragment {
                 .getProductID();
 
         Log.e(TAG, "setting ProductID " + productID);
-        mSharedViewModel.setProductID(productID);
+
+        LiveData<Resource<Product>> source = mViewModel.get(productID);
+        mSharedViewModel.setProductSource(source);
+        mSharedViewModelForNav.setProductSource(source);
 
     }
 

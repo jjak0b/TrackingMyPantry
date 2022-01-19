@@ -436,8 +436,8 @@ public class ProductsRepository {
         });
     }
 
-    public LiveData<Resource<ProductWithTags>> get(String barcode) {
-        return IOBoundResource.adapt(mAppExecutors, productDao.getProductWithTags(barcode));
+    public LiveData<Resource<Product>> get(String barcode) {
+        return IOBoundResource.adapt(mAppExecutors, productDao.get(barcode));
     }
 
     public LiveData<Resource<ProductWithTags>> getDetails(@NonNull String barcode) {
