@@ -8,14 +8,14 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
+import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 
 import java.util.Objects;
 
-public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGroups, PantryViewHolder> {
+public class PantryListAdapter extends ListAdapter<PantryDetails, PantryViewHolder> {
     private PantryInteractionsListener interactionsListener;
 
-    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<PantryWithProductInstanceGroups> diffCallback, PantryInteractionsListener listener ) {
+    protected PantryListAdapter(@NonNull DiffUtil.ItemCallback<PantryDetails> diffCallback, PantryInteractionsListener listener ) {
         super(diffCallback);
         this.interactionsListener = listener;
         setHasStableIds(true);
@@ -42,15 +42,15 @@ public class PantryListAdapter extends ListAdapter<PantryWithProductInstanceGrou
         holder.bindTo(viewModel);
     }
 
-    static class ProductDiff extends DiffUtil.ItemCallback<PantryWithProductInstanceGroups> {
+    static class ProductDiff extends DiffUtil.ItemCallback<PantryDetails> {
         @Override
-        public boolean areItemsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
+        public boolean areItemsTheSame(@NonNull PantryDetails oldItem, @NonNull PantryDetails newItem) {
             boolean isSame = oldItem.pantry.getId() == newItem.pantry.getId();
             return  isSame;
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull PantryWithProductInstanceGroups oldItem, @NonNull PantryWithProductInstanceGroups newItem) {
+        public boolean areContentsTheSame(@NonNull PantryDetails oldItem, @NonNull PantryDetails newItem) {
             boolean isSame = Objects.equals( oldItem, newItem );
             return  isSame;
         }

@@ -19,24 +19,26 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PantryWithProductInstanceGroups;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.ProductsGroupsBrowserViewModel;
+import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
+
+import java.util.List;
 
 public class PantriesBrowserFragment extends Fragment {
 
+    private static final String TAG = "PantriesBrowserFragment";
     private PantriesBrowserViewModel mViewModel;
     private SharedProductViewModel mProductViewModel;
     private PantryListAdapter listAdapter;
-    private ProductsGroupsBrowserViewModel mProductsGroupsBrowserViewModel;
+    private SharedPantryViewModel mSharedPantryViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PantriesBrowserViewModel.class);
         mProductViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
-        mProductsGroupsBrowserViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsGroupsBrowserViewModel.class);
+        mSharedPantryViewModel = new ViewModelProvider(requireParentFragment()).get(SharedPantryViewModel.class);
     }
 
     @Override
@@ -58,60 +60,52 @@ public class PantriesBrowserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
-            Log.e( "MyPantries", "setting productID" );
+        mProductViewModel.getItem().observe(getViewLifecycleOwner(), mViewModel::setProduct);
+
+        mViewModel.getList().observe( getViewLifecycleOwner(), resource -> {
+            Log.e(TAG, "newPantries:"+resource);
             switch (resource.getStatus()) {
                 case LOADING:
-                    mViewModel.setProductID(null);
+                    loadingBar.setVisibility( View.VISIBLE );
                     break;
-                default:
-                    Product item = resource.getData();
-                    mViewModel.setProductID(item != null ? item.getBarcode() : null );
+                case SUCCESS:
+                    List<PantryDetails> pantriesWGroups = resource.getData();
+                    if( pantriesWGroups == null || pantriesWGroups.isEmpty() ){
+                        listInfo.setVisibility( View.VISIBLE );
+                    }
+                    else {
+                        Log.e( TAG, "submitting new list of " + pantriesWGroups.size() + "elements from " +  this.toString() + " " );
+                        listInfo.setVisibility( View.GONE );
+                    }
+                    listAdapter.submitList( pantriesWGroups );
+                    loadingBar.setVisibility( View.GONE );
+                    break;
+                case ERROR:
+                    listInfo.setVisibility( View.VISIBLE );
+                    loadingBar.setVisibility( View.GONE );
+                    ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG);
                     break;
             }
-        });
-
-        mViewModel.getList().observe( getViewLifecycleOwner(), pantriesWGroups -> {
-            Log.e( "MyPantries", "submitting new list of " + pantriesWGroups.size() + "elements from " +  this.toString() + " " );
-            if( pantriesWGroups.isEmpty() ){
-                listInfo.setVisibility( View.VISIBLE );
-            }
-            else {
-                listInfo.setVisibility( View.GONE );
-
-            }
-            loadingBar.setVisibility( View.VISIBLE );
-            listAdapter.submitList( pantriesWGroups );
-            loadingBar.setVisibility( View.GONE );
         });
 
         // update groups browser on current pantry update
-        mViewModel.getCurrentPantry().observe(getViewLifecycleOwner(), pantryWithProductInstanceGroups -> {
-            if( pantryWithProductInstanceGroups == null ){
-                mProductsGroupsBrowserViewModel.setPantry(null);
-                mProductsGroupsBrowserViewModel.setGroups(null);
-            }
-            else {
-                mProductsGroupsBrowserViewModel.setPantry(pantryWithProductInstanceGroups.pantry);
-                mProductsGroupsBrowserViewModel.setGroups(pantryWithProductInstanceGroups.instances);
-            }
-        });
+        mSharedPantryViewModel.setItemSource(mViewModel.getCurrentPantry());
     }
 
     final PantryInteractionsListener pantryInteractionsListener = new PantryInteractionsListener() {
         @Override
-        public void onItemClicked(int pantryPosition, View pantryView, PantryWithProductInstanceGroups item) {
+        public void onItemClicked(int pantryPosition, View pantryView, PantryDetails item) {
             NavController navController = Navigation.findNavController(requireView());
             NavDirections direction = PantriesBrowserFragmentDirections.actionShowPantryContent();
             if( navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getAction(direction.getActionId()) != null ){
-                mViewModel.setCurrentPantry(item);
+                mViewModel.setCurrentPantry(item.pantry);
                 navController.navigate(direction);
             }
         }
 
         @Override
-        public void onItemLongClicked(int pantryPosition, View pantryView, PantryWithProductInstanceGroups item) {
+        public void onItemLongClicked(int pantryPosition, View pantryView, PantryDetails item) {
 
         }
     };

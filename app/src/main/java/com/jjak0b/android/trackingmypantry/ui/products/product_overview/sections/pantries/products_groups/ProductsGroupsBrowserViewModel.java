@@ -2,66 +2,58 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.app.Application;
 
-import androidx.lifecycle.AndroidViewModel;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
+import com.jjak0b.android.trackingmypantry.ui.util.ItemSourceViewModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
+public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<ProductInstanceGroup>> {
     private PantryRepository pantryRepository;
-    private MutableLiveData<List<ProductInstanceGroup>> groups;
-    private MutableLiveData<Pantry> pantry;
+    private PantriesRepository pantriesRepository;
 
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
         pantryRepository = PantryRepository.getInstance(application);
-        groups = new MutableLiveData<>(null);
-        pantry = new MutableLiveData<>(null);
+        pantriesRepository = PantriesRepository.getInstance(application);
     }
 
-    public void setGroups(List<ProductInstanceGroup> groups){
-        if( groups == null ){
-            this.groups.postValue(null);
-        }
-        else if( groups instanceof ArrayList ){
-            this.groups.postValue(groups);
-        }
-        else {
-            this.groups.postValue(new ArrayList<>(groups));
-        }
+    @MainThread
+    public void setGroupsOf(
+            @NonNull LiveData<Resource<Product>> mProductSource,
+            @NonNull LiveData<Resource<Pantry>> mPantrySource
+    ) {
+
+        final LiveData<Resource<List<ProductInstanceGroup>>> source = Transformations.forward(mProductSource, productResource -> {
+            return Transformations.forward(mPantrySource, pantryResource -> {
+                return pantriesRepository.getContent(
+                        productResource.getData().getBarcode(),
+                        pantryResource.getData().getId()
+                );
+            });
+        });
+
+        setItemSource(source);
     }
 
-    public LiveData<List<ProductInstanceGroup>> getGroups() {
-        return groups;
-    }
-
-    public LiveData<List<Pantry>> getAvailablePantries() {
-        return pantryRepository.getPantries();
-    }
-
-    public LiveData<Pantry> getPantry() {
-        return pantry;
-    }
-
-    public void setPantry(Pantry pantry) {
-        this.pantry.postValue(pantry);
+    public LiveData<Resource<List<Pantry>>> getAvailablePantries() {
+        return pantriesRepository.getPantries();
     }
 
     @Override
     protected void onCleared() {
-        this.groups.setValue(null);
-        this.groups = null;
-        this.pantry.setValue(null);
-        this.pantry = null;
         super.onCleared();
     }
 

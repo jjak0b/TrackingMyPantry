@@ -5,12 +5,17 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import java.util.Date;
 import java.util.Objects;
 
 @Entity(
+    indices = {
+            @Index(value = {"id","product_id"}, unique = true ),
+            @Index(value = {"id","pantry_id"}, unique = true )
+    },
     foreignKeys = {
             @ForeignKey(
                     entity = Product.class,

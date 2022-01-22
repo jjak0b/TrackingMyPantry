@@ -49,7 +49,7 @@ public abstract class ProductInstanceGroupListAdapter extends ListAdapter<Produc
     static class ProductDiff extends DiffUtil.ItemCallback<ProductInstanceGroup> {
         @Override
         public boolean areItemsTheSame(@NonNull ProductInstanceGroup oldItem, @NonNull ProductInstanceGroup newItem) {
-            boolean isSame = oldItem.getId() == newItem.getId();
+            boolean isSame = oldItem == newItem;
             return  isSame;
         }
 

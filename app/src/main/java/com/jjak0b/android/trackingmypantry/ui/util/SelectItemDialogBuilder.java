@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 
 import java.util.List;
 
@@ -19,23 +20,27 @@ public class SelectItemDialogBuilder<T> extends MaterialAlertDialogBuilder {
         super(context);
     }
 
-    public SelectItemDialogBuilder(@NonNull Context context, int overrideThemeResId) {
-        super(context, overrideThemeResId);
-    }
-
-    public SelectItemDialogBuilder loadOn(
-            @NonNull LiveData<List<T>> liveData,
+    public SelectItemDialogBuilder<T> loadOn(
+            @NonNull LiveData<Resource<List<T>>> liveData,
             @NonNull LifecycleOwner lifecycleOwner,
             @Nullable OnItemSubmitListener<T> submitListener) {
 
         ArrayAdapter<T> adapter = new ArrayAdapter<>(getContext(),
                 android.R.layout.select_dialog_singlechoice);
-        liveData.observe(lifecycleOwner, new Observer<List<T>>() {
+        liveData.observe(lifecycleOwner, new Observer<Resource<List<T>>>() {
             @Override
-            public void onChanged(List<T> items) {
-                adapter.clear();
-                adapter.addAll(items);
-                liveData.removeObserver(this::onChanged);
+            public void onChanged(Resource<List<T>> resource) {
+                switch (resource.getStatus()) {
+                    case LOADING:
+                        adapter.clear();
+                        break;
+                    case SUCCESS:
+                        adapter.addAll(resource.getData());
+                        liveData.removeObserver(this::onChanged);
+                        break;
+                    case ERROR:
+                        break;
+                }
             }
         });
 

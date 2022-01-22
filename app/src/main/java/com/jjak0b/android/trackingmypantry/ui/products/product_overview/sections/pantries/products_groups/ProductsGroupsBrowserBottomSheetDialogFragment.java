@@ -1,37 +1,37 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups;
 
-import androidx.appcompat.widget.PopupMenu;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModelProvider;
-
+import android.content.DialogInterface;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelStore;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStore;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.SharedPantryViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
+import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.QuantityPickerBuilder;
 import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
+import com.jjak0b.android.trackingmypantry.util.Callback;
 
 import java.util.List;
 
@@ -39,6 +39,8 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
 
     private final static String TAG = "ProductsGroupsBrowserBottomSheetDialogFragment";
     private ProductsGroupsBrowserViewModel mViewModel;
+    private SharedPantryViewModel mSharedPantryViewModel;
+    private SharedProductViewModel mSharedProductViewModel;
     private ProductInstanceGroupListAdapter listAdapter;
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
@@ -56,7 +58,15 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsGroupsBrowserViewModel.class);
+        mSharedPantryViewModel = new ViewModelProvider(requireParentFragment()).get(SharedPantryViewModel.class);
+        mSharedProductViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(ProductsGroupsBrowserViewModel.class);
+
+        mViewModel.setGroupsOf(
+                mSharedProductViewModel.getItem(),
+                mSharedPantryViewModel.getItem()
+        );
+
         listAdapter = new ProductInstanceGroupListAdapter(new ProductInstanceGroupListAdapter.ProductDiff(), interactionsListener) {
             @NonNull
             @Override
@@ -78,33 +88,51 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         TextView groupsInfo = view.findViewById(R.id.noGroupsInfo);
         groupsInfo.setVisibility(View.GONE);
 
-        mViewModel.getPantry().observe(getViewLifecycleOwner(), pantry -> {
-            if( pantry == null ){
-                toolbar.setTitle(R.string.product_pantry_name);
-            }
-            else {
-                toolbar.setTitle(pantry.getName());
+        mSharedPantryViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    Pantry pantry = resource.getData();
+                    toolbar.setLogo(null);
+                    toolbar.setSubtitle(pantry.getName());
+                    break;
+                default:
+                    toolbar.setLogo(R.drawable.loading_spinner);
+                    toolbar.setSubtitle(null);
+                    break;
             }
         });
 
-        mViewModel.getGroups().observe(getViewLifecycleOwner(), productInstanceGroups -> {
-            listAdapter.submitList(productInstanceGroups);
-            recyclerView.setVisibility(View.VISIBLE);
-            progressBar.setVisibility(View.GONE);
-            if( productInstanceGroups != null && !productInstanceGroups.isEmpty() ){
-                groupsInfo.setVisibility(View.GONE);
-            }
-            else {
-                groupsInfo.setVisibility(View.VISIBLE);
+        mViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "Submitted new Pantry content items "  +resource );
+            switch (resource.getStatus()) {
+                case LOADING:
+                    groupsInfo.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.VISIBLE);
+                    break;
+                case SUCCESS:
+                    progressBar.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    List<ProductInstanceGroup> list = resource.getData();
+                    if( list == null || list.isEmpty() ){
+                        groupsInfo.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        groupsInfo.setVisibility(View.GONE);
+                    }
+                    listAdapter.submitList(list);
+                    break;
+                case ERROR:
+                    progressBar.setVisibility(View.GONE);
+                    break;
             }
         });
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mViewModel.setPantry(null);
-        mViewModel.setGroups(null);
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        mViewModel.setItemSource(null);
     }
 
     final ProductInstanceGroupInteractionsListener interactionsListener = new ProductInstanceGroupInteractionsListener() {
@@ -192,7 +220,6 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
 
         @Override
         public void onMore(int groupPosition, ProductInstanceGroup group, PopupMenu popup) {
-            LiveData<List<Pantry>> livePantries = mViewModel.getAvailablePantries();
             popup.getMenu().clear();
             popup.getMenuInflater()
                     .inflate( R.menu.popup_menu_product_instance_group_operations, popup.getMenu() );
@@ -201,24 +228,12 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                 switch (item.getItemId()) {
                     case R.id.option_move_to:
                         new SelectItemDialogBuilder<Pantry>(requireContext())
-                                .loadOn( livePantries, getViewLifecycleOwner(), pantry -> {
-
-                                    NumberPicker quantityPicker = new NumberPicker(requireContext());
-                                    quantityPicker.setMinValue(1);
-                                    quantityPicker.setMaxValue(group.getQuantity());
-
-                                    new MaterialAlertDialogBuilder(requireContext())
-                                            .setView(quantityPicker)
-                                            .setCancelable(true)
-                                            .setTitle(R.string.product_quantity)
-                                            .setNegativeButton(android.R.string.cancel , null )
-                                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                                                mViewModel.moveToPantry(
-                                                        group, pantry, quantityPicker.getValue()
-                                                );
-                                            })
-                                            .create()
-                                            .show();
+                                .loadOn( mViewModel.getAvailablePantries(), getViewLifecycleOwner(), pantry -> {
+                                    showQuantityPicker(1, group.getQuantity(), quantity -> {
+                                        mViewModel.moveToPantry(
+                                                group, pantry, quantity
+                                        );
+                                    });
                                 })
                                 .setCancelable(true)
                                 .setNegativeButton(android.R.string.cancel, null)
@@ -234,4 +249,14 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         }
     };
 
+    public void showQuantityPicker(int min, int max, @NonNull Callback<Integer> onOk ) {
+        new QuantityPickerBuilder(requireContext())
+                .setMin(min)
+                .setMax(max)
+                .setPositiveButton(android.R.string.ok, onOk)
+                .setNegativeButton(android.R.string.cancel , null )
+                .setCancelable(true)
+                .setTitle(R.string.product_quantity)
+                .show();
+    }
 }

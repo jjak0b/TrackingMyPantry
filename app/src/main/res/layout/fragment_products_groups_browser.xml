@@ -20,20 +20,10 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|enterAlways|snap"
-            app:title="@string/product_pantry_name" />
+            app:subtitle="@string/product_pantry_name"
+            app:title="@string/product_section_pantry_overview" />
 
     </com.google.android.material.appbar.AppBarLayout>
-
-    <TextView
-        android:id="@+id/noGroupsInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:text="@string/pantries_no_stored_product"
-        android:textSize="24sp"
-        android:visibility="gone"
-        tools:visibility="visible" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -47,15 +37,33 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <ProgressBar
-                android:id="@+id/pantryLoadingBar"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/purchasesAppBar"
                 android:layout_gravity="center"
-                android:indeterminate="true"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/noGroupsInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/pantries_no_stored_product"
+                    android:textSize="24sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <ProgressBar
+                    android:id="@+id/pantryLoadingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/pantryAppBar"
+                    android:layout_gravity="center"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
 
             <include
                 layout="@layout/fragment_products_groups_browser_list"

@@ -14,6 +14,7 @@ import com.jjak0b.android.trackingmypantry.data.db.daos.PantryDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductInstanceDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 
 import java.util.List;
 
@@ -100,5 +101,13 @@ public class PantriesRepository {
 
     public LiveData<Resource<ProductInstanceGroup>> getGroup(long group_id) {
         return IOBoundResource.adapt(mAppExecutors, groupDao.getGroup(group_id));
+    }
+
+    public LiveData<Resource<List<PantryDetails>>> getAllContaining(String productID ){
+        return IOBoundResource.adapt(mAppExecutors, pantryDao.getAllWithGroupsContaining(productID));
+    }
+
+    public LiveData<Resource<List<ProductInstanceGroup>>> getContent(String product_id, long pantry_id) {
+        return IOBoundResource.adapt(mAppExecutors, pantryDao.getContent(product_id, pantry_id));
     }
 }
