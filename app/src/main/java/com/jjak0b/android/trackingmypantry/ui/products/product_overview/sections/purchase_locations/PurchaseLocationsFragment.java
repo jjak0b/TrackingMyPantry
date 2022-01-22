@@ -79,7 +79,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
         super.onViewCreated(view, savedInstanceState);
 
 
-        mProductViewModel.getProduct().observe( getViewLifecycleOwner(), mViewModel::setProduct);
+        mProductViewModel.getItem().observe( getViewLifecycleOwner(), mViewModel::setProduct);
 
         mapView = view.findViewById(R.id.mapView);
         MapboxMap mapboxMap = mapView.getMapboxMap();

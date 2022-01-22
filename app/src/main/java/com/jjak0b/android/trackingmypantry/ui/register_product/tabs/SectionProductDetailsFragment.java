@@ -234,7 +234,7 @@ public class SectionProductDetailsFragment extends Fragment {
                     @Override
                     public void afterTextChanged(Editable s) {
                         // reset picked product
-                        mProductPickerViewModel.setProductSource(null);
+                        mProductPickerViewModel.setItemSource(null);
                         productForm.setVisibility( View.GONE );
                     }
                 };
@@ -255,7 +255,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
         removeProductBtn.setOnClickListener(v -> {
             Log.d(TAG, "Unset picked product" );
-            mProductPickerViewModel.setProductSource(null);
+            mProductPickerViewModel.setItemSource(null);
         });
 
         getViewModel().getProduct().observe(getViewLifecycleOwner(), resource -> {
@@ -295,7 +295,7 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         // on product picked
-        mProductPickerViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+        mProductPickerViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
             getViewModel().setProduct(resource.getData());
         });
     }

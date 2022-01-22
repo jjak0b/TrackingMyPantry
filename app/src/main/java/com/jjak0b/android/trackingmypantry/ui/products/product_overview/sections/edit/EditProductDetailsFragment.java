@@ -60,7 +60,7 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
         barcodeInputLayout.setStartIconVisible(false);
         barcodeInputLayout.setEndIconVisible(false);
 
-        mProductViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+        mProductViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     getViewModel().setProduct(resource.getData());

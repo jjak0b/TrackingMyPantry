@@ -138,7 +138,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
 
     private void notifyResult(@NonNull LiveData<Resource<Product>> mResult) {
         final NavController navController = NavHostFragment.findNavController(this);
-        mSharedViewModel.setProductSource(mResult);
+        mSharedViewModel.setItemSource(mResult);
         mResult.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
             @Override
             public void onChanged(Resource<Product> resource) {

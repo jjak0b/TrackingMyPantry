@@ -118,7 +118,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
         Log.d(TAG, "submitting: " + result);
 
         MediatorLiveData<Resource<Product>> mProduct = new MediatorLiveData<>();
-        sharedViewModel.setProductSource(mProduct);
+        sharedViewModel.setItemSource(mProduct);
 
         LiveData<Resource<Product>> operation = getViewModel().submit(result.getData());
         operation.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {

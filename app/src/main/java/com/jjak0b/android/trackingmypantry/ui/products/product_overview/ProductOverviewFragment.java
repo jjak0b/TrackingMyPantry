@@ -67,7 +67,7 @@ public class ProductOverviewFragment extends Fragment {
         // used for Edit product
         mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
 
-        mSharedViewModel.getProduct().observe(getViewLifecycleOwner(), resource -> {
+        mSharedViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
 
             String imgURI = resource.getData() != null ? resource.getData().getImg() : null;
 
@@ -86,8 +86,8 @@ public class ProductOverviewFragment extends Fragment {
         Log.e(TAG, "setting ProductID " + productID);
 
         LiveData<Resource<Product>> source = mViewModel.get(productID);
-        mSharedViewModel.setProductSource(source);
-        mSharedViewModelForNav.setProductSource(source);
+        mSharedViewModel.setItemSource(source);
+        mSharedViewModelForNav.setItemSource(source);
 
     }
 
