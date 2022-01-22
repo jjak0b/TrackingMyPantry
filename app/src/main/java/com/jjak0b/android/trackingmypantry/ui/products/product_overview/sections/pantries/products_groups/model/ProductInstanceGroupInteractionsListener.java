@@ -14,6 +14,6 @@ public interface ProductInstanceGroupInteractionsListener {
     void onItemLongClicked(int pantryPosition, View pantryView, Pantry item, List<ProductInstanceGroup> content);
     void onConsume( int groupPosition, ProductInstanceGroup group, int amount);
     void onRemove( int groupPosition, ProductInstanceGroup group, int quantity);
-    void onMove( int groupPosition, ProductInstanceGroup group);
+    void onMove( int groupPosition, ProductInstanceGroup group, Pantry destination, int quantity);
     void onMore(int groupPosition, ProductInstanceGroup group, PopupMenu popupMenu);
 }

@@ -92,7 +92,7 @@ public abstract class ProductInstanceDao {
     }
 
     @Transaction
-    public void mergeUpdate(ProductInstanceGroup group) {
+    public int mergeUpdate(ProductInstanceGroup group) {
         ProductInstanceGroup match = getFirstMatchingGroup(
                 group.getProductId(),
                 group.getPantryId(),
@@ -103,25 +103,21 @@ public abstract class ProductInstanceDao {
         if( match != null ) {
             // merge and update merged
             match.setQuantity(match.getQuantity()+group.getQuantity());
-            update(match);
+            int count = update(match);
             // delete entry because we just virtually merged it
             if(!Objects.equals(match.getId(), group.getId())){
                 delete(group);
             }
+
+            return count;
         }
         else {
-            update(group);
+            return update(group);
         }
     }
 
     @Insert
-    public abstract ListenableFuture<long[]> insertAll(ProductInstanceGroup... instances);
-
-    @Insert
     abstract long insert(ProductInstanceGroup group);
-
-    @Update
-    public abstract ListenableFuture<Void> updateAll(ProductInstanceGroup... instances);
 
     @Update
     abstract int update(ProductInstanceGroup instance);
@@ -130,5 +126,8 @@ public abstract class ProductInstanceDao {
     abstract void delete(ProductInstanceGroup group);
 
     @Delete
-    public abstract ListenableFuture<Void> deleteAll(ProductInstanceGroup... instances);
+    public abstract void deleteAll(ProductInstanceGroup... instances);
+
+    @Update
+    public abstract int updateAll(ProductInstanceGroup... instances);
 }

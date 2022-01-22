@@ -14,16 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStore;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.SharedPantryViewModel;
@@ -148,74 +148,58 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
 
         @Override
         public void onConsume(int groupPosition, ProductInstanceGroup group, int amount) {
+            LiveData<Resource<Void>> result = mViewModel.consume(group, amount);
+            result.observe(getViewLifecycleOwner(), resource -> {
+                Log.d(TAG, "Consuming " + amount + " from group\n" + resource);
+                if( resource.getStatus() != Status.LOADING ) {
+                    result.removeObservers(getViewLifecycleOwner());
+                }
 
-            recyclerView.setVisibility(View.GONE);
-            progressBar.setVisibility(View.VISIBLE);
-
-            Futures.addCallback(mViewModel.consume(group, amount),
-                    new FutureCallback<Void>() {
-                        @Override
-                        public void onSuccess(@Nullable Void result) {
-                            recyclerView.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                            // Toast.makeText(requireContext(),
-                            //         "Yum",
-                            //         Toast.LENGTH_SHORT
-                            // ).show();*/
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {
-                            Log.e(TAG, "Unable to consume " + group.toString() + ", cause: ", t);
-                            recyclerView.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                            Toast.makeText(requireContext(),
-                                    getString(R.string.error_generic_failed_unknown, getString(R.string.option_consume)),
-                                    Toast.LENGTH_SHORT
-                            ).show();
-                        }
-                    },
-                    ContextCompat.getMainExecutor(requireContext())
-            );
+                if( resource.getStatus() == Status.ERROR) {
+                    Toast.makeText(requireContext(),
+                            getString(R.string.error_generic_failed_unknown, getString(R.string.option_consume)),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
         }
 
         @Override
         public void onRemove(int groupPosition, ProductInstanceGroup group, int quantity) {
-            mViewModel.delete(group, quantity);
+            LiveData<Resource<Void>> result = mViewModel.delete(group, quantity);
+            result.observe(getViewLifecycleOwner(), resource -> {
+                Log.d(TAG, "Removing " + quantity + " from group\n" + resource);
+                if( resource.getStatus() != Status.LOADING ) {
+                    result.removeObservers(getViewLifecycleOwner());
+                }
 
-            recyclerView.setVisibility(View.GONE);
-            progressBar.setVisibility(View.VISIBLE);
-
-            Futures.addCallback(mViewModel.delete(group, quantity),
-                    new FutureCallback<Void>() {
-                        @Override
-                        public void onSuccess(@Nullable Void result) {
-                            recyclerView.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                            // Toast.makeText(requireContext(),
-                            //         "Yum",
-                            //         Toast.LENGTH_SHORT
-                            // ).show();*/
-                        }
-
-                        @Override
-                        public void onFailure(Throwable t) {
-                            Log.e(TAG, "Unable to delete " + group.toString() + ", cause: ", t);
-                            recyclerView.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                            Toast.makeText(requireContext(),
-                                    getString(R.string.error_generic_failed_unknown, getString(R.string.option_remove_entry)),
-                                    Toast.LENGTH_SHORT
-                            ).show();
-                        }
-                    },
-                    ContextCompat.getMainExecutor(requireContext())
-            );
+                if( resource.getStatus() == Status.ERROR) {
+                    Toast.makeText(requireContext(),
+                            getString(R.string.error_generic_failed_unknown, getString(R.string.option_remove_entry)),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
         }
 
         @Override
-        public void onMove(int groupPosition, ProductInstanceGroup group) {
+        public void onMove(int groupPosition, ProductInstanceGroup group, Pantry destination, int quantity) {
+            LiveData<Resource<Long>> result = mViewModel.moveToPantry(
+                    group, destination, quantity
+            );
+            result.observe(getViewLifecycleOwner(), resource -> {
+                Log.d(TAG, "Moving " + quantity + " to " + destination + " from group\n" + resource);
+                if( resource.getStatus() != Status.LOADING ) {
+                    result.removeObservers(getViewLifecycleOwner());
+                }
 
+                if( resource.getStatus() == Status.ERROR) {
+                    Toast.makeText(requireContext(),
+                            getString(R.string.error_generic_failed_unknown, getString(R.string.option_move_to_pantry)),
+                            Toast.LENGTH_SHORT
+                    ).show();
+                }
+            });
         }
 
         @Override
@@ -230,9 +214,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                         new SelectItemDialogBuilder<Pantry>(requireContext())
                                 .loadOn( mViewModel.getAvailablePantries(), getViewLifecycleOwner(), pantry -> {
                                     showQuantityPicker(1, group.getQuantity(), quantity -> {
-                                        mViewModel.moveToPantry(
-                                                group, pantry, quantity
-                                        );
+                                        interactionsListener.onMove(groupPosition, group, pantry, quantity);
                                     });
                                 })
                                 .setCancelable(true)

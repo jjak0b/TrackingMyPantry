@@ -5,28 +5,24 @@ import android.app.Application;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.ItemSourceViewModel;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<ProductInstanceGroup>> {
-    private PantryRepository pantryRepository;
     private PantriesRepository pantriesRepository;
 
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
-        pantryRepository = PantryRepository.getInstance(application);
         pantriesRepository = PantriesRepository.getInstance(application);
     }
 
@@ -57,37 +53,37 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
         super.onCleared();
     }
 
-    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup... entry){
-        return pantryRepository.deleteProductInstanceGroup(entry);
-    }
 
-    public ListenableFuture<Void> moveToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
+    public LiveData<Resource<Long>> moveToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
         if( quantity < 1 || entry.getPantryId() == destination.getId() ) {
-            return Futures.immediateFuture(null);
+            return new MutableLiveData<>(Resource.error(null, null));
         }
 
-        return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
+        return pantriesRepository.moveGroupToPantry(entry, destination, quantity);
     }
 
-    public ListenableFuture<Void> delete( ProductInstanceGroup entry, int quantity){
+    public LiveData<Resource<Void>> delete( ProductInstanceGroup entry, int quantity){
 
         // remove the item on adapter
         if( entry.getQuantity() <= quantity){
-            return pantryRepository.deleteProductInstanceGroup(entry);
+            return pantriesRepository.deleteGroups(entry);
         }
         else {
             ProductInstanceGroup updatedGroup = ProductInstanceGroup.from(entry);
             updatedGroup.setQuantity( updatedGroup.getQuantity() - quantity );
-            return pantryRepository.updateProductInstanceGroup(updatedGroup);
+            return androidx.lifecycle.Transformations.map(
+                    pantriesRepository.updateGroups(updatedGroup),
+                    voidMapFunc::apply
+            );
         }
     }
 
-    public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amountPercent){
+    public LiveData<Resource<Void>> consume(ProductInstanceGroup entry, int amountPercent){
 
         ProductInstanceGroup updatedEntry = ProductInstanceGroup.from(entry);
 
         if( amountPercent <= 0 ){
-            return Futures.immediateFuture(null);
+            return new MutableLiveData<>(Resource.error(null, null));
         }
 
         // add the consumed entry as new entry and update quantity of old one
@@ -100,29 +96,40 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
 
             updatedEntry.setQuantity(updatedEntry.getQuantity()-consumedEntry.getQuantity());
 
-            return Futures.transform(
-                    Futures.allAsList(
-                            pantryRepository.updateProductInstanceGroup(updatedEntry),
-                            pantryRepository.addProductInstanceGroup(
-                                    consumedEntry,
-                                    null,
-                                    Pantry.creteDummy(updatedEntry.getPantryId())
-                            )
-                    ),
-                    input -> null,
-                    MoreExecutors.directExecutor()
-            );
+
+            LiveData<Resource<Long>> onConsume = Transformations.forwardOnce( pantriesRepository.updateGroups(updatedEntry), input -> {
+                return pantriesRepository.addGroup(consumedEntry, null, Pantry.creteDummy(updatedEntry.getPantryId()) );
+            });
+
+            return androidx.lifecycle.Transformations.map(onConsume, voidMapFunc::apply );
         }
         // we have only 1 entry so just update it
         else {
             updatedEntry.setCurrentAmountPercent(entry.getCurrentAmountPercent()-amountPercent);
 
             if( updatedEntry.getCurrentAmountPercent() > 0 ){
-                return pantryRepository.updateAndMergeProductInstanceGroup(updatedEntry);
+                return androidx.lifecycle.Transformations.map(
+                        pantriesRepository.updateAndMergeGroups(updatedEntry),
+                        voidMapFunc::apply
+                );
             }
             else {
-                return pantryRepository.deleteProductInstanceGroup(updatedEntry);
+                return androidx.lifecycle.Transformations.map(
+                        pantriesRepository.deleteGroups(updatedEntry),
+                        voidMapFunc::apply
+                );
             }
         }
     }
+
+    private final Function<Resource<?>, Resource<Void>> voidMapFunc = input -> {
+        switch (input.getStatus()) {
+            case SUCCESS:
+                return Resource.success(null);
+            case ERROR:
+                return Resource.error(input.getError(), null);
+            default:
+                return Resource.loading(null);
+        }
+    };
 }
