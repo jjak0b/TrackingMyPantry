@@ -20,6 +20,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|enterAlways|snap"
+            app:menu="@menu/groups_browser_menu"
             app:subtitle="@string/product_pantry_name"
             app:title="@string/product_section_pantry_overview" />
 

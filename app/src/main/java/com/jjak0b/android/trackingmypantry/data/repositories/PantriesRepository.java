@@ -80,6 +80,30 @@ public class PantriesRepository {
         });
     }
 
+    public LiveData<Resource<Void>> remove(@NonNull Pantry pantry) {
+        return Transformations.simulateApi(
+                mAppExecutors.diskIO(),
+                mAppExecutors.mainThread(),
+                () -> { pantryDao.delete(pantry); return null; }
+        );
+    }
+
+    public LiveData<Resource<Integer>> update(@NonNull Pantry pantry) {
+        return Transformations.forwardOnce(authRepo.getLoggedAccount(), resourceAccount -> {
+            pantry.setUserId(resourceAccount.getData().getId());
+            return Transformations.simulateApi(
+                    mAppExecutors.diskIO(),
+                    mAppExecutors.mainThread(),
+                    () -> pantryDao.update(pantry)
+            );
+        });
+    }
+
+    public LiveData<Resource<Pantry>> searchPantry(String name) {
+        return Transformations.forward(authRepo.getLoggedAccount(), resource -> {
+            return IOBoundResource.adapt(mAppExecutors, pantryDao.get(name, resource.getData().getId()));
+        });
+    }
     public LiveData<Resource<Pantry>> getPantry(long pantry_id ) {
         return Transformations.forward(authRepo.getLoggedAccount(), resource -> {
             return IOBoundResource.adapt(mAppExecutors, pantryDao.get(pantry_id, resource.getData().getId()));

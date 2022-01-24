@@ -2,25 +2,32 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStore;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
@@ -29,6 +36,8 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.SharedPantryViewModel;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.QuantityPickerBuilder;
 import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
 import com.jjak0b.android.trackingmypantry.util.Callback;
@@ -93,7 +102,9 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                 case SUCCESS:
                     Pantry pantry = resource.getData();
                     toolbar.setLogo(null);
-                    toolbar.setSubtitle(pantry.getName());
+                    if( pantry != null ) {
+                        toolbar.setSubtitle(pantry.getName());
+                    }
                     break;
                 default:
                     toolbar.setLogo(R.drawable.loading_spinner);
@@ -127,6 +138,8 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                     break;
             }
         });
+
+        setupToolbar(toolbar);
     }
 
     @Override
@@ -239,6 +252,138 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                 .setNegativeButton(android.R.string.cancel , null )
                 .setCancelable(true)
                 .setTitle(R.string.product_quantity)
+                .show();
+    }
+
+    void setupToolbar(Toolbar toolbar) {
+        toolbar.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.action_rename:
+                    onActionClickRename();
+                    return true;
+                case R.id.action_remove:
+                    onActionClickRemove();
+                    return true;
+                default:
+                    // If we got here, the user's action was not recognized.
+                    // Invoke the superclass to handle it.
+                    return super.onOptionsItemSelected(item);
+            }
+        });
+    }
+
+    /**
+     * Shows up a dialog to prompt user to rename the current pantry's name
+     */
+    public void onActionClickRename() {
+
+        PantryActionsDialogViewModel viewModel = new ViewModelProvider(this).get(PantryActionsDialogViewModel.class);
+        LiveData<Resource<Pantry>> mCurrentPantry = mSharedPantryViewModel.getItem();
+
+        // update the dialog viewmodel with current pantry
+        Observer<Resource<Pantry>> mCurrentPantryObserver = viewModel::setPantry;
+        mCurrentPantry.observe(getViewLifecycleOwner(), mCurrentPantryObserver );
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.option_rename)
+                .setMessage(R.string.pantry_action_rename_description)
+                .setView(R.layout.rename_pantry_layout)
+                // Submit rename
+                .setPositiveButton(R.string.option_rename, (dialogInterface, i) -> {
+
+                    LiveData<Resource<Integer>> onRename = viewModel.submitRename();
+                    onRename.observe(getViewLifecycleOwner(), resource -> {
+                        if( resource.getStatus() != Status.LOADING ) {
+                            onRename.removeObservers(getViewLifecycleOwner());
+
+                            // close dialog
+                            dialogInterface.dismiss();
+
+                            // notify error to user
+                            if( resource.getStatus() == Status.ERROR) {
+                                new MaterialAlertDialogBuilder(requireContext())
+                                        .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show();
+                            }
+                        }
+                    });
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .setOnDismissListener(dialogInterface -> {
+                    // remove observers used for this dialog
+                    mCurrentPantry.removeObserver(mCurrentPantryObserver);
+                    viewModel.getName().removeObservers(getViewLifecycleOwner());
+                })
+                .create();
+        dialog.show();
+
+        TextInputEditText editText = dialog.findViewById(R.id.editText);
+        TextInputLayout inputLayout = dialog.findViewById(R.id.inputLayout);
+        Button okBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+        editText.addTextChangedListener(new InputUtil.FieldTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                viewModel.setName(s.toString());
+            }
+        });
+
+        viewModel.getName().observe(getViewLifecycleOwner(), resource -> {
+            okBtn.setEnabled(resource.getStatus() == Status.SUCCESS );
+
+            editText.setText(resource.getData());
+            editText.setSelection(editText.length());
+
+            switch (resource.getStatus()) {
+                case LOADING:
+                    inputLayout.setError(null);
+                    break;
+                case ERROR:
+                    String errorMsg = ErrorsUtils.getErrorMessage(dialog.getContext(), resource.getError(), TAG );
+                    inputLayout.setError(errorMsg);
+
+                    break;
+            }
+        });
+    }
+
+    public void onActionClickRemove() {
+        PantryActionsDialogViewModel viewModel = new ViewModelProvider(this).get(PantryActionsDialogViewModel.class);
+        LiveData<Resource<Pantry>> mCurrentPantry = mSharedPantryViewModel.getItem();
+
+        // update the dialog viewmodel with current pantry
+        Observer<Resource<Pantry>> mCurrentPantryObserver = viewModel::setPantry;
+        mCurrentPantry.observe(getViewLifecycleOwner(), mCurrentPantryObserver );
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                    LiveData<Resource<Void>> onRemove = viewModel.submitRemove();
+                    onRemove.observe(getViewLifecycleOwner(), resource -> {
+                        if( resource.getStatus() != Status.LOADING ) {
+                            onRemove.removeObservers(getViewLifecycleOwner());
+
+                            // close dialog
+                            dialogInterface.dismiss();
+
+                            // notify error to user
+                            if( resource.getStatus() == Status.ERROR) {
+                                new MaterialAlertDialogBuilder(requireContext())
+                                        .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show();
+                            }
+                        }
+                    });
+                })
+                .setNegativeButton(android.R.string.no, null )
+                .setTitle(R.string.option_remove_entry)
+                .setMessage(R.string.pantry_action_remove_description)
+                .setOnDismissListener(dialogInterface -> {
+                    // remove observers used for this dialog
+                    mCurrentPantry.removeObserver(mCurrentPantryObserver);
+                    viewModel.getName().removeObservers(getViewLifecycleOwner());
+                })
                 .show();
     }
 }

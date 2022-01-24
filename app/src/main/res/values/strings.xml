@@ -101,7 +101,11 @@
     <string name="option_remove_entry">Remove</string>
     <string name="option_move_to_pantry">Move to</string>
     <string name="option_consume">Consume</string>
+    <string name="option_rename">Rename</string>
 
+    <string name="pantry_action_rename_description">Edit the pantry name</string>
+    <string name="pantry_name_already_exists">This name already exists</string>
+    <string name="pantry_action_remove_description">This operation will delete all articles of each product contained in this pantry.\nAre you sure you want to continue ?</string>
     <string name="product_entry_removed_from_pantry">Product entry removed from the pantry</string>
     <string name="action_undo">Undo</string>
     <string name="action_retry">Retry</string>

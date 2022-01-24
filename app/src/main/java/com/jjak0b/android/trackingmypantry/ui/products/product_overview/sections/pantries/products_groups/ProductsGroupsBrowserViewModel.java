@@ -15,15 +15,17 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup
 import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.ItemSourceViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<ProductInstanceGroup>> {
     private PantriesRepository pantriesRepository;
-
+    private LiveData<Resource<List<ProductInstanceGroup>>> mDefaultList;
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
         pantriesRepository = PantriesRepository.getInstance(application);
+        mDefaultList = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
     }
 
     @MainThread
@@ -34,10 +36,15 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
 
         final LiveData<Resource<List<ProductInstanceGroup>>> source = Transformations.forward(mProductSource, productResource -> {
             return Transformations.forward(mPantrySource, pantryResource -> {
-                return pantriesRepository.getContent(
-                        productResource.getData().getBarcode(),
-                        pantryResource.getData().getId()
-                );
+                if( productResource.getData() != null && pantryResource.getData() != null  ) {
+                    return pantriesRepository.getContent(
+                            productResource.getData().getBarcode(),
+                            pantryResource.getData().getId()
+                    );
+                }
+                else {
+                    return mDefaultList;
+                }
             });
         });
 

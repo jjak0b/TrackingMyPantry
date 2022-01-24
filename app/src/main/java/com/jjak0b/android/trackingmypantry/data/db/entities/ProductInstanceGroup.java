@@ -28,7 +28,7 @@ import java.util.Objects;
                     entity = Pantry.class,
                     parentColumns = "pantry_id",
                     childColumns = "pantry_id",
-                    onDelete = ForeignKey.SET_DEFAULT
+                    onDelete = ForeignKey.CASCADE
             )
     }
 )

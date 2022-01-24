@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.data.db.daos;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
@@ -20,6 +21,9 @@ public abstract class PantryDao {
 
     @Query("SELECT * FROM pantries WHERE pantry_id = :id AND owner_id = :owner_id")
     public abstract LiveData<Pantry> get(long id, String owner_id);
+
+    @Query("SELECT * FROM pantries WHERE name = :name AND owner_id = :owner_id")
+    public abstract LiveData<Pantry> get(String name, String owner_id);
 
     @Query("SELECT * FROM pantries WHERE owner_id = :owner_id")
     public abstract LiveData<List<Pantry>> getAll(String owner_id);
@@ -44,6 +48,9 @@ public abstract class PantryDao {
             onConflict = OnConflictStrategy.IGNORE
     )
     public abstract int update(Pantry pantry);
+
+    @Delete
+    public abstract void delete(Pantry pantry);
 
     @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID ORDER BY expiryDate, currentAmountPercent, quantity")
     public abstract LiveData<List<ProductInstanceGroup>> getContent(String productID, long pantryID);
