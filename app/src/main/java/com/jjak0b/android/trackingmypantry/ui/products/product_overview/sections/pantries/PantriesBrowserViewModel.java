@@ -22,15 +22,20 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
     private PantriesRepository pantriesRepository;
 
     private MutableLiveData<Resource<Product>> mProduct;
+    private MutableLiveData<Resource<Pantry>> mPantry;
+    private LiveData<Resource<Pantry>> mCurrentPantry;
     private LiveData<Resource<List<PantryDetails>>> list;
-    private MutableLiveData<Resource<Pantry>> mCurrentPantry;
-
     public PantriesBrowserViewModel(@NonNull Application application) {
         super(application);
         pantriesRepository = PantriesRepository.getInstance(application);
 
         mProduct = new MutableLiveData<>(Resource.loading(null));
-        mCurrentPantry = new MutableLiveData<>(Resource.loading(null));
+        mPantry = new MutableLiveData<>(Resource.loading(null));
+
+        mCurrentPantry = Transformations.forward(mPantry, input -> {
+            return pantriesRepository.getPantry(input.getData().getId());
+        });
+
         list = Transformations.forward(mProduct, input -> {
             return pantriesRepository.getAllContaining(input.getData().getBarcode());
         });
@@ -44,10 +49,10 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
     }
 
     public void setCurrentPantry(Pantry mCurrentPantry) {
-        if( !Objects.equals(mCurrentPantry, this.mCurrentPantry.getValue().getData())) {
-            this.mCurrentPantry.postValue(Resource.loading(mCurrentPantry));
+        if( !Objects.equals(mCurrentPantry, this.mPantry.getValue().getData())) {
+            this.mPantry.setValue(Resource.loading(mCurrentPantry));
             if(mCurrentPantry != null){
-                this.mCurrentPantry.postValue(Resource.success(mCurrentPantry));
+                this.mPantry.setValue(Resource.success(mCurrentPantry));
             }
         }
     }

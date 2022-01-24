@@ -45,7 +45,7 @@ public class PantryListAdapter extends ListAdapter<PantryDetails, PantryViewHold
     static class ProductDiff extends DiffUtil.ItemCallback<PantryDetails> {
         @Override
         public boolean areItemsTheSame(@NonNull PantryDetails oldItem, @NonNull PantryDetails newItem) {
-            boolean isSame = oldItem.pantry.getId() == newItem.pantry.getId();
+            boolean isSame = oldItem.pantry == newItem.pantry;
             return  isSame;
         }
 
