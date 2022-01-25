@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.data.db.daos;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
@@ -9,7 +10,6 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithInstances;
@@ -36,8 +36,9 @@ public abstract class ProductInstanceDao {
     @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
     public abstract LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
     @Transaction
-    @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
-    public abstract ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
+    @Query("SELECT * FROM productinstancegroup AS G INNER JOIN (SELECT pantry_id, owner_id FROM pantries ) AS P ON P.pantry_id = G.pantry_id WHERE ( P.owner_id = :userOwnerID AND (:productID IS NULL OR G.product_id = :productID ) AND (:pantryID IS NULL OR G.pantry_id = :pantryID ) )" )
+    public abstract List<ProductInstanceGroupInfo> getInfoOfAll(@NonNull String userOwnerID, @Nullable String productID, @Nullable Long pantryID);
+
 
     @Transaction
     @Query("SELECT * FROM productinstancegroup WHERE id IN (:groupID)" )

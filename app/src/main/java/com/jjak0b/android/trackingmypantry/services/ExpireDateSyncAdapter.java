@@ -1,11 +1,11 @@
 package com.jjak0b.android.trackingmypantry.services;
 
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -19,16 +19,15 @@ import android.os.RemoteException;
 import android.provider.CalendarContract;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
 import androidx.preference.PreferenceManager;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.repositories.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
+import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
+import com.jjak0b.android.trackingmypantry.data.db.daos.ProductInstanceDao;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
-
-import androidx.annotation.NonNull;
+import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,9 +61,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int OPERATION_EVENT_UPDATE = 1;
     public static final int OPERATION_EVENT_REMOVE = 2;
 
-    // Define a variable to contain a content resolver instance
-    ContentResolver mContentResolver;
-    PantryRepository pantryRepository;
+    private ProductInstanceDao groupDao;
 
     class EventCreator {
         private ContentProviderOperation.Builder builder;
@@ -105,12 +101,8 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
      */
     public ExpireDateSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
-        /*
-         * If your app uses a content resolver, get an instance of it
-         * from the incoming Context
-         */
-        mContentResolver = context.getContentResolver();
-        pantryRepository = PantryRepository.getInstance(context);
+        PantryDB db = PantryDB.getInstance(getContext());
+        groupDao = db.getProductInstanceDao();
     }
 
     /**
@@ -123,18 +115,20 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
             boolean autoInitialize,
             boolean allowParallelSyncs) {
         super(context, autoInitialize, allowParallelSyncs);
-        /*
-         * If your app uses a content resolver, get an instance of it
-         * from the incoming Context
-         */
-        mContentResolver = context.getContentResolver();
-        pantryRepository = PantryRepository.getInstance(context);
+
+        PantryDB db = PantryDB.getInstance(getContext());
+        groupDao = db.getProductInstanceDao();
     }
 
     class LocalEventEntry {
         public long eventID;
     }
 
+    class Filter {
+        public Long pantryID;
+        public String productID;
+        public Long groupID;
+    }
     /*
      * Specify the code you want to run in the sync adapter. The entire
      * sync adapter runs in a background thread, so you don't have to set
@@ -150,21 +144,19 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
         Log.d(TAG, "sync started");
-        mContentResolver = getContext().getContentResolver();
-        pantryRepository = PantryRepository.getInstance(getContext());
+        AccountManager accountManager = AccountManager.get(getContext());
 
         final List<LocalEventEntry> localEventsUpdated = new LinkedList<>();
         final ArrayList<ContentProviderOperation> toRemove = new ArrayList<>();
         final ArrayList<ContentProviderOperation> toUpdate = new ArrayList<>();
         final ArrayList<ContentProviderOperation> toCreate = new ArrayList<>();
         final ArrayList<ContentProviderOperation> toRemind = new ArrayList<>();
-        ListenableFuture<List<ProductInstanceGroupInfo>> futureList;
-        Long groupID = extras.getLong(EXTRA_EVENT_GROUP_ID);
-        String productID = extras.getString(EXTRA_EVENT_PRODUCT_ID);
-        Long pantryID = extras.getLong(EXTRA_EVENT_PANTRY_ID);
+        String userID = accountManager.getUserData(account, Authenticator.ACCOUNT_ID );
+        Filter filter = new Filter();
+        filter.groupID = extras.getLong(EXTRA_EVENT_GROUP_ID);
+        filter.productID = extras.getString(EXTRA_EVENT_PRODUCT_ID);
+        filter.pantryID = extras.getLong(EXTRA_EVENT_PANTRY_ID);
         HashMap<Long, LocalEventEntry> localEvents;
-
-        futureList = pantryRepository.getInfoOfAll(null, null);
 
         try {
             // retrieve or create the calendar
@@ -179,7 +171,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
             }
 
             // Current stored product groups
-            List<ProductInstanceGroupInfo> infoGroups = futureList.get();
+            List<ProductInstanceGroupInfo> infoGroups = groupDao.getInfoOfAll(userID, filter.productID, filter.pantryID);
             Log.d(TAG, "syncing " + infoGroups.size() + " events" );
 
             // Current stored events of product groups
@@ -252,7 +244,7 @@ public class ExpireDateSyncAdapter extends AbstractThreadedSyncAdapter {
                 step++;
             }
 
-        } catch (ExecutionException | InterruptedException | RemoteException e) {
+        } catch ( RemoteException e) {
             Log.e(TAG, "Error on fetching event items", e );
         }
         Log.d(TAG, "sync ended");
