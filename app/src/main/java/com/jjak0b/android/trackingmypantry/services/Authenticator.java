@@ -15,12 +15,12 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleService;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
+import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
 import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
-import com.jjak0b.android.trackingmypantry.ui.auth.AuthActivity;
-import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.ui.auth.AuthActivity;
 
 import java.io.IOException;
 import java.util.Date;
@@ -34,6 +34,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     private static final String TAG = Authenticator.class.getName();
     public static final String ACCOUNT_TYPE = "lam21.modron.network";
+    public static final String ACCOUNT_ID = "userID";
     public static final String TOKEN_TYPE = "Bearer";
     public static final long TOKEN_EXPIRY_TIME = (7 * 24 * 60 * 60 * 1000);
 

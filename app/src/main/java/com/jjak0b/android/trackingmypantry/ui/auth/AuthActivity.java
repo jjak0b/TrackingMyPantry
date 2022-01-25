@@ -78,7 +78,7 @@ public class AuthActivity extends AppCompatActivity {
                     case SUCCESS:
                         if( mAccountAuthenticatorResponse != null ) {
                             Bundle data = resource.getData();
-
+                            Bundle userData = data.getBundle(AccountManager.KEY_USERDATA);
                             Account account = new Account(
                                     data.getString(AccountManager.KEY_ACCOUNT_NAME),
                                     data.getString(AccountManager.KEY_ACCOUNT_TYPE)
@@ -87,7 +87,7 @@ public class AuthActivity extends AppCompatActivity {
                             if( mAccountManager.addAccountExplicitly(
                                     account,
                                     data.getString(AccountManager.KEY_PASSWORD),
-                                    null
+                                    userData
                             )) {
                                 Log.d(TAG, "New account added: " + account.name );
                             }

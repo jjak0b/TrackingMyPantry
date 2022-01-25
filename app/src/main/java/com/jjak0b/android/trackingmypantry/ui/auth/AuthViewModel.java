@@ -3,7 +3,6 @@ package com.jjak0b.android.trackingmypantry.ui.auth;
 import android.accounts.AccountManager;
 import android.app.Application;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -20,8 +19,6 @@ import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
 import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
 import com.jjak0b.android.trackingmypantry.data.services.API.RegisterCredentials;
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
-
-import java.io.IOException;
 
 public class AuthViewModel extends AndroidViewModel {
 
@@ -50,7 +47,11 @@ public class AuthViewModel extends AndroidViewModel {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     User user = resource.getData();
+                    Bundle userData = new Bundle();
+                    userData.putString(Authenticator.ACCOUNT_ID, user.getId());
+
                     Bundle bundle = new Bundle();
+                    bundle.putBundle(AccountManager.KEY_USERDATA, userData );
                     bundle.putString(AccountManager.KEY_ACCOUNT_TYPE, Authenticator.ACCOUNT_TYPE);
                     bundle.putString(AccountManager.KEY_ACCOUNT_NAME, credentials.getEmail());
                     bundle.putString(AccountManager.KEY_PASSWORD, credentials.getPassword());
