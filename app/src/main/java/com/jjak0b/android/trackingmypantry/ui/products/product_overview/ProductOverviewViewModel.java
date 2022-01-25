@@ -23,4 +23,7 @@ public class ProductOverviewViewModel extends AndroidViewModel {
         return productsRepository.get(barcode);
     }
 
+    public LiveData<Resource<Product>> remove(Product product) {
+        return productsRepository.remove(product);
+    }
 }

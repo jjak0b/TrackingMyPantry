@@ -3,6 +3,9 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -12,17 +15,22 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 public class ProductOverviewFragment extends Fragment {
 
@@ -37,6 +45,7 @@ public class ProductOverviewFragment extends Fragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
     }
 
@@ -91,4 +100,54 @@ public class ProductOverviewFragment extends Fragment {
 
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.product_overview_menu, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_remove:
+                onActionRemove();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void onActionRemove() {
+        LiveData<Resource<Product>> mCurrentProduct = mSharedViewModel.getItem();
+        NavController navController = Navigation.findNavController(requireView());
+        new MaterialAlertDialogBuilder(requireContext())
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+
+                    LiveData<Resource<Product>> onRemove = Transformations.forwardOnce( mCurrentProduct, resource -> {
+                        return mViewModel.remove(resource.getData());
+                    });
+
+                    onRemove.observe(getViewLifecycleOwner(), resource -> {
+                        if( resource.getStatus() != Status.LOADING ) {
+                            onRemove.removeObservers(getViewLifecycleOwner());
+
+                            // close dialog
+                            dialogInterface.dismiss();
+                            navController.popBackStack();
+
+                            // notify error to user
+                            if( resource.getStatus() == Status.ERROR) {
+                                new MaterialAlertDialogBuilder(requireContext())
+                                        .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
+                                        .setPositiveButton(android.R.string.ok, null)
+                                        .show();
+                            }
+                        }
+                    });
+                })
+                .setNegativeButton(android.R.string.no, null )
+                .setTitle(R.string.option_remove_entry)
+                .setMessage(R.string.product_action_remove_description)
+                .show();
+    }
 }
