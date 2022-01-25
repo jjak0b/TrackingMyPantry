@@ -93,7 +93,7 @@ public abstract class ProductDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract long[] insertTags(List<ProductTag> tags);
 
-    @Delete
+    @Delete(entity = Product.class)
     public abstract void remove(Product... products);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

@@ -1,19 +1,21 @@
 package com.jjak0b.android.trackingmypantry.data.dataSource;
 
 import android.content.Context;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
 
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
 import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
 import com.jjak0b.android.trackingmypantry.data.services.RemoteProductsAPIService;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
 
 public class ProductsDataSource {
 
@@ -59,6 +61,7 @@ public class ProductsDataSource {
      */
     public LiveData<ApiResponse<ProductsList>> search(@NonNull String barcode ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
+            Log.e("Products data source", "searching by " + barcode + " with " +authorization);
             return service._getProducts(authorization.getData(), barcode);
         });
     }
@@ -114,7 +117,7 @@ public class ProductsDataSource {
      * @param productID
      * @return
      */
-    public LiveData<ApiResponse<Void>> delete(@NonNull String productID) {
+    public LiveData<ApiResponse<Product>> delete(@NonNull String productID) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service.removeProduct(authorization.getData(), productID);
         });
