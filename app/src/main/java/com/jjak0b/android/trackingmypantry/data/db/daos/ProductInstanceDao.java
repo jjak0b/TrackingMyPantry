@@ -11,8 +11,6 @@ import androidx.room.Transaction;
 import androidx.room.Update;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithInstances;
 import com.jjak0b.android.trackingmypantry.data.db.results.ExpirationInfo;
 
 import java.util.Date;
@@ -22,21 +20,8 @@ import java.util.Objects;
 @Dao
 public abstract class ProductInstanceDao {
 
-
-    @Transaction
-    @Query("SELECT * FROM products" )
-    public abstract List<ProductWithInstances> getAllInstancesOfProduct();
-
     @Query("SELECT * FROM productinstancegroup WHERE id = :group_id" )
     public abstract LiveData<ProductInstanceGroup> getGroup(long group_id);
-
-    @Transaction
-    @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
-    public abstract List<ProductInstanceGroupInfo> getListInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
-    @Transaction
-    @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
-    public abstract LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
-
 
     @Query("SELECT G.product_id, G.pantry_id, G.expiryDate, PR.name AS product_name, P.name AS pantry_name, SUM(G.quantity) as quantity" +
             " FROM pantries AS P INNER JOIN  productinstancegroup AS G INNER JOIN products AS PR" +
@@ -49,29 +34,6 @@ public abstract class ProductInstanceDao {
             " GROUP BY G.product_id, G.pantry_id, G.expiryDate ORDER BY G.expiryDate"
     )
     public abstract List<ExpirationInfo> getInfoOfAll(@NonNull String userOwnerID, @Nullable String productID, @Nullable Long pantryID, @Nullable Date expiryDate);
-
-    @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID" )
-    public abstract List<ProductInstanceGroup> getAllInstancesOfProduct(String productID, long pantryID);
-
-    final String getProductsWithTags = "SELECT * FROM products AS P INNER JOIN ( SELECT product_id FROM assignedTags AS AT INNER JOIN productTags AS T ON AT.tag_id = T.id WHERE T.name in (:tags) ) as FILTER ON P.id = product_id";
-    // String filterByGroupCount = "GROUP BY FILTER.productId HAVING COUNT( FILTER.productId ) >= COUNT( (:tags) ) ORDER BY COUNT( FILTER.productId ) ASC, P.name ASC";
-
-    @Transaction
-    @Query( getProductsWithTags /*+ " "+ filterByGroupCount*/)
-    /**
-     * Get all products with instances that match with at least the specified tags
-     * if tags.length > 0 then will be filtered only the products the the specified tags
-     * otherwise will include all
-     */
-    public abstract LiveData<List<ProductWithInstances>> searchAllInstancesOfProduct(String[] tags );
-
-
-    @Transaction
-    @Query( getProductsWithTags + " WHERE P.name LIKE (:content) or P.description LIKE '%' || (:content) || '%' " /*+ filterByGroupCount*/)
-    /**
-     * Get all products with instances that match with at least the specified tags and content
-     */
-    public abstract LiveData<List<ProductWithInstances>> searchAllInstancesOfProduct(String[] tags, String content);
 
     /**
      * Get first entry that match with the same product ID and same pantry ID and others params

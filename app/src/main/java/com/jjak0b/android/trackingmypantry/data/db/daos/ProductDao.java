@@ -9,7 +9,6 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
@@ -66,9 +65,6 @@ public abstract class ProductDao {
     @Update
     public abstract int updateProduct(Product p);
 
-    @Update
-    public abstract void updateTags(List<ProductTag> tags);
-
     // if using OnConflictStrategy.REPLACE will trigger the OnDelete
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract void insertProduct(Product p);
@@ -98,19 +94,9 @@ public abstract class ProductDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insertAssignedTags(List<TagAndProduct> assignedTags );
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public abstract void insertAssignedTags(TagAndProduct... assignedTags );
 
     @Delete
-    public abstract ListenableFuture<Void> removeAssignedTags(List<TagAndProduct> assignedTags );
-
-    @Transaction
-    @Query( "SELECT * FROM products WHERE id = (:product_id)")
-    public abstract LiveData<ProductWithTags> getProductWithTags( String product_id );
-
-
-    @Query( "SELECT * FROM assignedTags WHERE product_id = (:product_id)")
-    public abstract ListenableFuture<List<TagAndProduct>> getProductAssignedTags(String product_id);
+    public abstract void removeAssignedTags(List<TagAndProduct> assignedTags );
 
     @Transaction
     @Query( "SELECT * FROM products")
