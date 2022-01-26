@@ -1,10 +1,5 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.Observer;
-
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -18,6 +13,10 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
@@ -122,7 +121,6 @@ public class RegisterFragment extends LoginFormFragment {
 
     private void updateUiWithUser(LoggedInUserView model) {
         String welcome = getString(R.string.welcome_register, model.getDisplayName());
-        // TODO : initiate successful logged in experience
 
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(getContext().getApplicationContext(), welcome, Toast.LENGTH_LONG).show();

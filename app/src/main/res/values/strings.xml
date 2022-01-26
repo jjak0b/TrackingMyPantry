@@ -10,8 +10,6 @@
     <string name="loading">Loading ...</string>
     <string name="barcode_scanner_hint">Point your camera at a barcode</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
@@ -57,8 +55,6 @@
 
     <string name="menu_products">My products</string>
     <string name="menu_signin">Sign in</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <!-- pantries -->
     <string name="pantries_no_product_available">There are no available products</string>
