@@ -73,13 +73,13 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
 
         // remove the item on adapter
         if( entry.getQuantity() <= quantity){
-            return pantriesRepository.deleteGroups(entry);
+            return pantriesRepository.deleteGroup(entry);
         }
         else {
             ProductInstanceGroup updatedGroup = ProductInstanceGroup.from(entry);
             updatedGroup.setQuantity( updatedGroup.getQuantity() - quantity );
             return androidx.lifecycle.Transformations.map(
-                    pantriesRepository.updateGroups(updatedGroup),
+                    pantriesRepository.updateGroup(updatedGroup),
                     voidMapFunc::apply
             );
         }
@@ -104,7 +104,7 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
             updatedEntry.setQuantity(updatedEntry.getQuantity()-consumedEntry.getQuantity());
 
 
-            LiveData<Resource<Long>> onConsume = Transformations.forwardOnce( pantriesRepository.updateGroups(updatedEntry), input -> {
+            LiveData<Resource<Long>> onConsume = Transformations.forwardOnce( pantriesRepository.updateGroup(updatedEntry), input -> {
                 return pantriesRepository.addGroup(consumedEntry, null, Pantry.creteDummy(updatedEntry.getPantryId()) );
             });
 
@@ -122,7 +122,7 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
             }
             else {
                 return androidx.lifecycle.Transformations.map(
-                        pantriesRepository.deleteGroups(updatedEntry),
+                        pantriesRepository.deleteGroup(updatedEntry),
                         voidMapFunc::apply
                 );
             }

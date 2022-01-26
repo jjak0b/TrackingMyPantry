@@ -13,6 +13,7 @@ import androidx.room.Update;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithInstances;
+import com.jjak0b.android.trackingmypantry.data.db.results.ExpirationInfo;
 
 import java.util.Date;
 import java.util.List;
@@ -35,14 +36,19 @@ public abstract class ProductInstanceDao {
     @Transaction
     @Query("SELECT * FROM productinstancegroup WHERE ( (:productID IS NULL OR product_id = :productID ) AND (:pantryID IS NULL OR pantry_id = :pantryID ) )" )
     public abstract LiveData<List<ProductInstanceGroupInfo>> getLiveInfoOfAll(@Nullable String productID, @Nullable Long pantryID);
-    @Transaction
-    @Query("SELECT * FROM productinstancegroup AS G INNER JOIN (SELECT pantry_id, owner_id FROM pantries ) AS P ON P.pantry_id = G.pantry_id WHERE ( P.owner_id = :userOwnerID AND (:productID IS NULL OR G.product_id = :productID ) AND (:pantryID IS NULL OR G.pantry_id = :pantryID ) )" )
-    public abstract List<ProductInstanceGroupInfo> getInfoOfAll(@NonNull String userOwnerID, @Nullable String productID, @Nullable Long pantryID);
 
 
-    @Transaction
-    @Query("SELECT * FROM productinstancegroup WHERE id IN (:groupID)" )
-    public abstract ListenableFuture<List<ProductInstanceGroupInfo>> getInfoOfAll(long... groupID);
+    @Query("SELECT G.product_id, G.pantry_id, G.expiryDate, PR.name AS product_name, P.name AS pantry_name, SUM(G.quantity) as quantity" +
+            " FROM pantries AS P INNER JOIN  productinstancegroup AS G INNER JOIN products AS PR" +
+            " ON P.pantry_id = G.pantry_id AND PR.id = G.product_id" +
+            " WHERE (" +
+                " ( :userOwnerID IS NULL OR P.owner_id = :userOwnerID )" +
+                " AND (:productID IS NULL OR G.product_id = :productID )" +
+                " AND (:pantryID IS NULL OR G.pantry_id = :pantryID )" +
+                " AND (:expiryDate IS NULL OR G.expiryDate = :expiryDate ) )" +
+            " GROUP BY G.product_id, G.pantry_id, G.expiryDate ORDER BY G.expiryDate"
+    )
+    public abstract List<ExpirationInfo> getInfoOfAll(@NonNull String userOwnerID, @Nullable String productID, @Nullable Long pantryID, @Nullable Date expiryDate);
 
     @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID" )
     public abstract List<ProductInstanceGroup> getAllInstancesOfProduct(String productID, long pantryID);

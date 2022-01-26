@@ -18,7 +18,9 @@ import com.jjak0b.android.trackingmypantry.data.db.daos.ProductInstanceDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.results.ExpirationInfo;
 import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
+import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.util.List;
 
@@ -156,52 +158,86 @@ public class PantriesRepository {
 
         result.addSource(onInsert, resource -> {
             if( resource.getStatus() == Status.SUCCESS ) {
-                expireEventsRepo.insertExpiration(resource.getData());
+                // observe change event
+                LiveData<Resource<Void>> onEventChange = expireEventsRepo.insertExpiration(
+                        new ExpirationInfo.Dummy()
+                            .setPantryID(instanceGroup.getPantryId())
+                            .setProductID(instanceGroup.getProductId())
+                            .setExpireDate(instanceGroup.getExpiryDate())
+                            .setQuantity(instanceGroup.getQuantity())
+                );
+                result.addSource(onEventChange, resource1 -> {
+                    if( resource1.getStatus() != Status.LOADING ) result.removeSource(onEventChange);
+                });
+                // detach this and attach normal flow
                 result.removeSource(onInsert);
-
                 result.addSource(onInsert, result::setValue );
+            }
+            else {
+                result.setValue(resource);
             }
         });
 
         return result;
     }
 
-    public LiveData<Resource<Void>> deleteGroups(@NonNull ProductInstanceGroup... entries) {
+    public LiveData<Resource<Void>> deleteGroup(@NonNull ProductInstanceGroup entry) {
         final MediatorLiveData<Resource<Void>> result = new MediatorLiveData<>();
         LiveData<Resource<Void>> onDelete = Transformations.simulateApi(
                 mAppExecutors.diskIO(),
                 mAppExecutors.mainThread(),
-                () -> { groupDao.deleteAll(entries); return null; }
+                () -> { groupDao.deleteAll(entry); return null; }
         );
 
         result.addSource(onDelete, resource -> {
             if( resource.getStatus() == Status.SUCCESS ) {
-                for (ProductInstanceGroup group : entries) {
-                    expireEventsRepo.removeExpiration(group.getId());
-                }
+                // observe change event
+                LiveData<Resource<Void>> onEventChange = expireEventsRepo.removeExpiration(
+                        new ExpirationInfo.Dummy()
+                                .setPantryID(entry.getPantryId())
+                                .setProductID(entry.getProductId())
+                                .setExpireDate(entry.getExpiryDate())
+                                .setQuantity(entry.getQuantity())
+                );
+                result.addSource(onEventChange, resource1 -> {
+                    if( resource1.getStatus() != Status.LOADING ) result.removeSource(onEventChange);
+                });
+                // detach this and attach normal flow
                 result.removeSource(onDelete);
-                result.addSource(onDelete, result::setValue);
+                result.addSource(onDelete, result::setValue );
+            }
+            else {
+                result.setValue(resource);
             }
         });
 
         return result;
     }
 
-    public LiveData<Resource<Integer>> updateGroups(@NonNull ProductInstanceGroup... entries) {
+    public LiveData<Resource<Integer>> updateGroup(@NonNull ProductInstanceGroup entry) {
         final MediatorLiveData<Resource<Integer>> result = new MediatorLiveData<>();
         LiveData<Resource<Integer>> onUpdate = Transformations.simulateApi(
                 mAppExecutors.diskIO(),
                 mAppExecutors.mainThread(),
-                () -> groupDao.updateAll(entries)
+                () -> groupDao.updateAll(entry)
         );
 
         result.addSource(onUpdate, resource -> {
             if( resource.getStatus() == Status.SUCCESS ) {
-                for (ProductInstanceGroup entry : entries) {
-                    expireEventsRepo.updateExpiration(null, null, entry.getId());
-                }
+                // observe change event
+                LiveData<Resource<Void>> onEventChange = expireEventsRepo.updateExpiration(
+                        new ExpirationInfo.Dummy(entry)
+                                .setPantryID(0)
+                );
+                result.addSource(onEventChange, resource1 -> {
+                    if( resource1.getStatus() != Status.LOADING ) result.removeSource(onEventChange);
+                });
+                // detach this and attach normal flow
                 result.removeSource(onUpdate);
-                result.addSource(onUpdate, result::setValue);
+                result.addSource(onUpdate, result::setValue );
+            }
+            else {
+                result.setValue(resource);
             }
         });
 
@@ -211,17 +247,27 @@ public class PantriesRepository {
     public LiveData<Resource<Integer>> updateAndMergeGroups(ProductInstanceGroup entry ){
 
         final MediatorLiveData<Resource<Integer>> result = new MediatorLiveData<>();
-        LiveData<Resource<Integer>> onDelete = Transformations.simulateApi(
+        LiveData<Resource<Integer>> onUpdate = Transformations.simulateApi(
                 mAppExecutors.diskIO(),
                 mAppExecutors.mainThread(),
                 () -> groupDao.mergeUpdate(entry)
         );
 
-        result.addSource(onDelete, resource -> {
+        result.addSource(onUpdate, resource -> {
             if( resource.getStatus() == Status.SUCCESS ) {
-                expireEventsRepo.updateExpiration(null, null, entry.getId());
-                result.removeSource(onDelete);
-                result.addSource(onDelete, result::setValue);
+                // observe change event
+                LiveData<Resource<Void>> onEventChange = expireEventsRepo.updateExpiration(
+                        new ExpirationInfo.Dummy(entry)
+                );
+                result.addSource(onEventChange, resource1 -> {
+                    if( resource1.getStatus() != Status.LOADING ) result.removeSource(onEventChange);
+                });
+                // detach this and attach normal flow
+                result.removeSource(onUpdate);
+                result.addSource(onUpdate, result::setValue );
+            }
+            else {
+                result.setValue(resource);
             }
         });
 
@@ -265,10 +311,29 @@ public class PantriesRepository {
 
             result.addSource(onMove, resource -> {
                 if( resource.getStatus() == Status.SUCCESS ) {
-                    expireEventsRepo.insertExpiration(resource.getData());
-                    result.removeSource(onMove);
+                    // observe change event
+                    ResourceUtils.ResourcePairLiveData<Void, Void> mPair
+                            = ResourceUtils.ResourcePairLiveData.create(
+                                expireEventsRepo.updateExpiration(
+                                        new ExpirationInfo.Dummy(entry)
+                                ),
+                                expireEventsRepo.updateExpiration(
+                                        new ExpirationInfo.Dummy(newGroup)
+                                )
+                            );
+                    result.addSource(mPair, pair -> {
+                        if( pair.first.getStatus() != Status.LOADING
+                        && pair.second.getStatus() != Status.LOADING ) {
+                            result.removeSource(mPair);
+                        }
+                    });
 
+                    // detach this and attach normal flow
+                    result.removeSource(onMove);
                     result.addSource(onMove, result::setValue );
+                }
+                else {
+                    result.setValue(resource);
                 }
             });
             return result;
