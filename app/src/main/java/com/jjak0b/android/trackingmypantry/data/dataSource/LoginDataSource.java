@@ -36,9 +36,9 @@ public class LoginDataSource {
         return instance;
     }
 
-    public LiveData<ApiResponse<User>> _register(@NonNull RegisterCredentials credentials) {
+    public LiveData<ApiResponse<User>> register(@NonNull RegisterCredentials credentials) {
         MediatorLiveData<ApiResponse<User>> mediator = new MediatorLiveData<>();
-        LiveData<ApiResponse<User>> mRealLogin = service._createUser( credentials );
+        LiveData<ApiResponse<User>> mRealLogin = service.createUser( credentials );
 
         // Add a mediator to specify (if any) why we got an unauthorized error
         mediator.addSource( mRealLogin, response -> {
@@ -56,9 +56,9 @@ public class LoginDataSource {
         return mediator;
     }
 
-    public LiveData<ApiResponse<AuthLoginResponse>> _login(@NonNull LoginCredentials credentials ) {
+    public LiveData<ApiResponse<AuthLoginResponse>> login(@NonNull LoginCredentials credentials ) {
         MediatorLiveData<ApiResponse<AuthLoginResponse>> mediator = new MediatorLiveData<>();
-        LiveData<ApiResponse<AuthLoginResponse>> mRealLogin = service._getAccessToken( credentials );
+        LiveData<ApiResponse<AuthLoginResponse>> mRealLogin = service.getAccessToken( credentials );
 
         // Add a mediator to specify (if any) why we got an unauthorized error
         mediator.addSource( mRealLogin, response -> {
@@ -76,13 +76,13 @@ public class LoginDataSource {
         return mediator ;
     }
 
-    public LiveData<ApiResponse<User>> _whoAmI(@NonNull String accessToken){
+    public LiveData<ApiResponse<User>> whoAmI(@NonNull String accessToken){
         StringBuilder authorization = new StringBuilder()
                 .append( "Bearer ")
                 .append( accessToken );
 
         MediatorLiveData<ApiResponse<User>> mediator = new MediatorLiveData<>();
-        LiveData<ApiResponse<User>> mRealAPI = service._whoAmI(authorization.toString());
+        LiveData<ApiResponse<User>> mRealAPI = service.whoAmI(authorization.toString());
 
         // Add a mediator to specify (if any) why we got an unauthorized error
         mediator.addSource( mRealAPI, response -> {

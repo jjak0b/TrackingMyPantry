@@ -19,7 +19,7 @@ public interface RemoteAuthAPIService {
      * @see LiveDataCallAdapterFactory
      */
     @POST("/auth/login")
-    LiveData<ApiResponse<AuthLoginResponse>> _getAccessToken(
+    LiveData<ApiResponse<AuthLoginResponse>> getAccessToken(
             @Body LoginCredentials credentials
     );
 
@@ -27,12 +27,12 @@ public interface RemoteAuthAPIService {
      * @see LiveDataCallAdapterFactory
      */
     @POST("users")
-    LiveData<ApiResponse<User>> _createUser(
+    LiveData<ApiResponse<User>> createUser(
             @Body RegisterCredentials credentials
     );
 
     @GET("users/me")
-    LiveData<ApiResponse<User>> _whoAmI(
+    LiveData<ApiResponse<User>> whoAmI(
             @Header("Authorization") String authorization
     );
 }

@@ -114,7 +114,7 @@ public abstract class ProductDao {
      */
     public LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds){
         // call real method, to provide some extra info
-        return _getAllProductsWithTags(barcode, name, description, tagsIds, tagsIds.size() );
+        return getAllProductsWithTags(barcode, name, description, tagsIds, tagsIds.size() );
     }
 
     @Transaction
@@ -126,7 +126,7 @@ public abstract class ProductDao {
             "HAVING COUNT(AT.tag_id) >= :tagsCount"
 
     )
-    abstract LiveData<List<ProductWithTags>> _getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
+    abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
 
     @Query( "SELECT * FROM products")
     public abstract LiveData<List<Product>> getAll();

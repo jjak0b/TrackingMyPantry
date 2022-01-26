@@ -35,7 +35,6 @@ import com.jjak0b.android.trackingmypantry.data.services.API.RegisterCredentials
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import retrofit2.Response;
 
@@ -140,7 +139,7 @@ public class AuthRepository {
             @Override
             protected LiveData<ApiResponse<User>> createCall() {
                 return Transformations.switchMap(signIn(credentials), resource -> {
-                    return dataSource._whoAmI(resource.getData());
+                    return dataSource.whoAmI(resource.getData());
                 });
             }
         }.asLiveData();
@@ -172,7 +171,7 @@ public class AuthRepository {
 
             @Override
             protected LiveData<ApiResponse<User>> createCall() {
-                return dataSource._register(credentials);
+                return dataSource.register(credentials);
             }
         }.asLiveData();
     }
@@ -202,7 +201,7 @@ public class AuthRepository {
 
             @Override
             protected LiveData<ApiResponse<AuthLoginResponse>> createCall() {
-                return dataSource._login(credentials);
+                return dataSource.login(credentials);
             }
         }.asLiveData();
     }
@@ -241,7 +240,7 @@ public class AuthRepository {
             @Override
             protected LiveData<ApiResponse<User>> createCall() {
                 return Transformations.switchMap(getAuthToken(account), resource -> {
-                    return dataSource._whoAmI(resource.getData());
+                    return dataSource.whoAmI(resource.getData());
                 });
             }
         }.asLiveData();

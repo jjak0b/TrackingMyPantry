@@ -20,13 +20,13 @@ import retrofit2.http.Query;
 public interface RemoteProductsAPIService {
 
     @GET("products")
-    LiveData<ApiResponse<ProductsList>> _getProducts(
+    LiveData<ApiResponse<ProductsList>> getProducts(
             @Header("Authorization") String authorization,
             @Query("barcode") String barcode
     );
 
     @POST("products")
-    LiveData<ApiResponse<CreateProduct>> _postProduct(
+    LiveData<ApiResponse<CreateProduct>> postProduct(
             @Header("Authorization") String authorization,
             @Body CreateProduct product
     );
@@ -39,7 +39,7 @@ public interface RemoteProductsAPIService {
     );
 
     @POST("votes")
-    LiveData<ApiResponse<VoteResponse>> _voteProduct(
+    LiveData<ApiResponse<VoteResponse>> voteProduct(
             @Header("Authorization") String authorization,
             @Body Vote vote
     );

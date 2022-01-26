@@ -62,7 +62,7 @@ public class ProductsDataSource {
     public LiveData<ApiResponse<ProductsList>> search(@NonNull String barcode ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             Log.e("Products data source", "searching by " + barcode + " with " +authorization);
-            return service._getProducts(authorization.getData(), barcode);
+            return service.getProducts(authorization.getData(), barcode);
         });
     }
 
@@ -81,7 +81,7 @@ public class ProductsDataSource {
      */
     public LiveData<ApiResponse<VoteResponse>> postPreference(@NonNull Vote vote ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
-            return service._voteProduct(authorization.getData(), vote);
+            return service.voteProduct(authorization.getData(), vote);
         });
     }
 
@@ -100,7 +100,7 @@ public class ProductsDataSource {
      */
     public LiveData<ApiResponse<CreateProduct>> postProduct(@NonNull CreateProduct product ) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
-            return service._postProduct(authorization.getData(), product);
+            return service.postProduct(authorization.getData(), product);
         });
     }
 
