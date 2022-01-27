@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
     defaultConfig {
@@ -68,7 +68,7 @@ dependencies {
     implementation 'com.mapbox.plugin:maps-annotation:10.0.0-rc.9'
 
     // room
-    def room_version = "2.3.0"
+    def room_version = "2.4.1"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-guava:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"

@@ -45,7 +45,7 @@ public class ProductTag {
         return t.id <= 0;
     }
 
-    public ProductTag(long id, String name, String userId ){
+    public ProductTag(long id, @NonNull String name, String userId ){
         this.id = id;
         this.name = name;
         this.userId = userId;
@@ -67,7 +67,7 @@ public class ProductTag {
         this.id = id;
     }
 
-    public void setName(String name) {
+    public void setName(@NonNull String name) {
         this.name = name;
     }
 
@@ -77,7 +77,8 @@ public class ProductTag {
 
     @Override
     public String toString() {
-        return getName();
+        // Ensure won't return null
+        return String.valueOf(getName());
     }
 
     @Override
@@ -87,12 +88,17 @@ public class ProductTag {
         ProductTag that = (ProductTag) o;
 
         if( isDummy(this) || isDummy(that) ) {
-            return Objects.equals(name.toLowerCase(), that.name.toLowerCase());
+            return ( name != null && that.name != null ) && Objects.equals(name.toLowerCase(), that.name.toLowerCase());
         }
         else {
             return id == that.id &&
                 Objects.equals(name, that.name)
                 && Objects.equals(userId, that.userId);
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, userId);
     }
 }

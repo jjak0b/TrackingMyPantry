@@ -67,6 +67,8 @@ public class UserProduct {
     @NonNull
     private String userOwnerId;
 
+    @ColumnInfo(name = "p_name")
+    @SerializedName("name")
     @Expose
     @NonNull
     private String name;
@@ -219,5 +221,10 @@ public class UserProduct {
                 && Objects.equals(img, o.img)
                 && Objects.equals(createdAt, o.createdAt)
                 && Objects.equals(updatedAt, o.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(remote_id, barcode, userCreatorId, userOwnerId, name, description, img, createdAt, updatedAt);
     }
 }

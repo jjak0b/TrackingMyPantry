@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
+import androidx.room.Index;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
@@ -11,6 +12,9 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 @Entity(
         tableName = "assignedTags",
         primaryKeys = {"product_id", "owner_id", "tag_id"},
+        indices = {
+                @Index(value = {"product_id", "owner_id"})
+        },
         foreignKeys = {
                 @ForeignKey(
                         entity = UserProduct.class,
@@ -30,11 +34,11 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 )
 public class TagAndUserProductCrossRef {
     @NonNull
-    @ColumnInfo(name = "product_id", index = true)
+    @ColumnInfo(name = "product_id")
     public String fk_productId;
 
     @NonNull
-    @ColumnInfo(name = "owner_id", index = true)
+    @ColumnInfo(name = "owner_id")
     public String fk_userId;
 
     @ColumnInfo(name = "tag_id", index = true )

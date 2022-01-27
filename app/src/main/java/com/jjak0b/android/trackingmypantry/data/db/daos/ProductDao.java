@@ -1,9 +1,13 @@
 package com.jjak0b.android.trackingmypantry.data.db.daos;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Transformations;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.MapInfo;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
@@ -17,9 +21,24 @@ import com.jjak0b.android.trackingmypantry.data.db.relationships.TagAndUserProdu
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Dao
 public abstract class ProductDao {
+
+    final static String assignedTagsOfOwner = " SELECT AT.*, T.id, T.name " +
+            " FROM assignedTags AS AT" +
+            " INNER JOIN productTags T " +
+            " ON AT.tag_id = T.id AND AT.owner_id = T.owner_id " +
+            " WHERE AT.owner_id = :ownerID " +
+            " ORDER BY T.name ";
+
+    final static String getProductsWithTagsOfOwner = " SELECT P.*, AT.tag_id, AT.id, AT.name " +
+            " FROM userProducts AS P " +
+            " LEFT JOIN (" + assignedTagsOfOwner +") AS AT " +
+            " ON P.product_id = AT.product_id AND P.owner_id = AT.owner_id " +
+            " WHERE P.owner_id = :ownerID" +
+            " ORDER BY P.p_name";
 
     @Query("SELECT * FROM assignedTags WHERE product_id = :product_id AND owner_id = :ownerID" )
     public abstract List<TagAndUserProductCrossRef> getAssignedTags(String product_id, String ownerID );
@@ -94,9 +113,13 @@ public abstract class ProductDao {
     @Query("SELECT * FROM userProducts WHERE product_id = :barcode AND owner_id = :ownerID" )
     public abstract LiveData<UserProduct> get(String barcode, String ownerID );
 
-    @Transaction
-    @Query("SELECT * FROM userProducts WHERE product_id = :barcode AND owner_id = :ownerID" )
-    public abstract LiveData<ProductWithTags> getDetails(String barcode, String ownerID);
+    @Query("SELECT * FROM ( " + getProductsWithTagsOfOwner +" ) WHERE product_id = :barcode AND owner_id = :ownerID" )
+    @MapInfo(keyColumn = "product_id", valueColumn = "tag_id")
+    public abstract LiveData<Map<UserProduct, List<ProductTag>>> getMapDetails(String barcode, String ownerID);
+
+    public LiveData<ProductWithTags> getDetails(String barcode, String ownerID) {
+        return toProductWithTags(getMapDetails(barcode, ownerID));
+    }
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     abstract long[] insertTags(List<ProductTag> tags);
@@ -110,17 +133,32 @@ public abstract class ProductDao {
     @Delete
     public abstract void removeAssignedTags(List<TagAndUserProductCrossRef> assignedTags );
 
-    @Transaction
-    @Query( "SELECT * FROM " +
-            " ( SELECT * FROM userProducts WHERE owner_id = :ownerID ) AS P"
-           /* " INNER JOIN ( SELECT * FROM assignedTags WHERE owner_id = :ownerID ) AS AT " +
-            " INNER JOIN ( SELECT * FROM productTags WHERE owner_id = :ownerID ) AS T" +
-            " ON AT.product_id = P.product_id AND AT.tag_id = T.id" +
-            " WHERE AT.owner_id = :ownerID AND P.owner_id = :ownerID AND T.owner_id = :ownerID"
+    @Query( "" + getProductsWithTagsOfOwner)
+    @MapInfo(keyColumn = "product_id", valueColumn = "id")
+    public abstract LiveData<Map<UserProduct, List<ProductTag>>> getMapOfProductWithTags(String ownerID );
 
-            */
+    public LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID ) {
+        return toListOfProductWithTags(getMapOfProductWithTags(ownerID));
+        // return toListOfProductWithTags(getMapOfProductWithTags(ownerID, null, null, null, new ArrayList<>(0), 0 ));
+    }
+
+    @Query( " SELECT * " +
+            " FROM (" + getProductsWithTagsOfOwner +  ") AS P " +
+            " INNER JOIN " +
+            "   ( SELECT DISTINCT AT.product_id FROM ( " + getProductsWithTagsOfOwner +" ) AS AT " +
+                " WHERE (" +
+                " ((:barcode IS NULL AND :name IS NULL AND :description IS NULL ) " +
+                    " OR (AT.product_id LIKE :barcode OR AT.p_name LIKE :name OR AT.description LIKE :description ))" +
+                " ) " +
+               " GROUP BY AT.product_id, AT.tag_id" +
+                " HAVING :tagsCount = 0 OR ( :tagsCount > 0 AND COUNT( DISTINCT AT.tag_id) >= :tagsCount AND AT.tag_id IN (:tagsIds))" +
+            " ) AS AT" +
+            " ON P.product_id = AT.product_id" +
+            " WHERE P.owner_id = :ownerID " +
+            " ORDER BY P.p_name"
     )
-    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID );
+    @MapInfo(keyColumn = "product_id", valueColumn = "tag_id")
+    public abstract LiveData<Map<UserProduct, List<ProductTag>>> getMapOfProductWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds, int tagsCount );
 
     /**
      * get all Product with tags filtered with each following "condition n" in END.
@@ -134,24 +172,40 @@ public abstract class ProductDao {
      */
     public LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds){
         // call real method, to provide some extra info
-        return getAllProductsWithTags(ownerID, barcode, name, description, tagsIds, tagsIds.size() );
+        return toListOfProductWithTags(getMapOfProductWithTags(ownerID, barcode, name, description, tagsIds, tagsIds.size() ));
     }
-
-    @Transaction
-    @Query( "SELECT * " +
-            "FROM userproducts AS P " +
-            "LEFT JOIN assignedTags AS AT ON P.product_id = AT.product_id AND ( AT.tag_id IN (:tagsIds) )" +
-            "WHERE P.owner_id = :ownerID" +
-            " AND ((:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.product_id LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description )) " +
-            "GROUP BY P.product_id " +
-            "HAVING COUNT(AT.tag_id) >= :tagsCount"
-
-    )
-    abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
 
     @Query( "SELECT * FROM userProducts WHERE product_id = (:barcode)")
     public abstract LiveData<List<UserProduct>> getProductsByBarcode(String barcode);
 
     @Query( "SELECT * FROM productTags WHERE owner_id = :ownerID")
     public abstract LiveData<List<ProductTag>> getAllTags(String ownerID);
+
+
+    static LiveData<ProductWithTags> toProductWithTags(LiveData<Map<UserProduct, List<ProductTag>>> liveData ) {
+        return Transformations.map(toListOfProductWithTags(liveData), input -> {
+           return input != null && input.size() > 0 ? input.get(0): null;
+        });
+    }
+
+    static LiveData<List<ProductWithTags>> toListOfProductWithTags(LiveData<Map<UserProduct, List<ProductTag>>> liveData ) {
+        return Transformations.map(liveData, input -> {
+            List<ProductWithTags> list = new ArrayList<>(input.keySet().size());
+            for ( Map.Entry<UserProduct, List<ProductTag>> entry : input.entrySet() ) {
+                ProductWithTags p = new ProductWithTags();
+                p.product = entry.getKey();
+                p.tags = entry.getValue();
+                // Note: this check is required because Room's Map doesn't remove "null" values that exists in query result rows
+                // This case happen whens product doesn't have any tag assigned by the user
+                // So Room map the product to a list with a single ProductTag, with all values to null/0
+                if( p.tags.size() == 1 && ProductTag.isDummy(p.tags.get(0)) )
+                    p.tags.remove(0);
+
+                Log.e("Dao", "" + p.tags );
+                list.add(p);
+            }
+
+            return list;
+        });
+    }
 }

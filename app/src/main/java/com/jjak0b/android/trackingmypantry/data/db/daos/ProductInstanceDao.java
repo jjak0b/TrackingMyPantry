@@ -23,7 +23,7 @@ public abstract class ProductInstanceDao {
     @Query("SELECT * FROM productinstancegroup WHERE id = :group_id" )
     public abstract LiveData<ProductInstanceGroup> getGroup(long group_id);
 
-    @Query("SELECT G.product_id, G.pantry_id, G.expiryDate, PR.name AS product_name, P.name AS pantry_name, SUM(G.quantity) as quantity" +
+    @Query("SELECT G.product_id, G.pantry_id, G.expiryDate, PR.p_name AS product_name, P.name AS pantry_name, SUM(G.quantity) as quantity" +
             " FROM pantries AS P INNER JOIN  productinstancegroup AS G INNER JOIN userproducts AS PR" +
             " ON P.pantry_id = G.pantry_id AND PR.product_id = G.product_id" +
             " WHERE (" +
