@@ -16,7 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
@@ -66,7 +66,7 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
                     getViewModel().setProduct(resource.getData());
                     break;
                 default:
-                    getViewModel().setProduct((Product) null);
+                    getViewModel().setProduct((UserProduct) null);
                     break;
             }
         });

@@ -42,7 +42,12 @@ public abstract class PantryDao {
     @Query("SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID ORDER BY expiryDate, currentAmountPercent, quantity")
     public abstract LiveData<List<ProductInstanceGroup>> getContent(String productID, long pantryID);
 
-    @Query("SELECT P.*, SUM(G.quantity) as totalQuantity FROM ( SELECT id, pantry_id, product_id, quantity FROM productinstancegroup ) AS G INNER JOIN pantries AS P ON G.pantry_id = P.pantry_id WHERE G.product_id = :productID GROUP BY G.pantry_id ORDER BY P.name"  )
-    public abstract LiveData<List<PantryDetails>> getAllWithGroupsContaining(String productID);
+    @Query("SELECT P.*, SUM(G.quantity) as totalQuantity " +
+            " FROM ( SELECT id, pantry_id, product_id, quantity FROM productinstancegroup ) AS G" +
+            " INNER JOIN pantries AS P" +
+            " ON G.pantry_id = P.pantry_id" +
+            " WHERE P.owner_id = :ownerID AND G.product_id = :productID" +
+            " GROUP BY G.pantry_id ORDER BY P.name"  )
+    public abstract LiveData<List<PantryDetails>> getAllWithGroupsContaining(String ownerID, String productID);
 
 }

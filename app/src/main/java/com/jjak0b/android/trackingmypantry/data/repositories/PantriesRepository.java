@@ -16,8 +16,8 @@ import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PantryDao;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductInstanceDao;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.results.ExpirationInfo;
 import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
@@ -64,8 +64,9 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<Pantry>> add(@NonNull Pantry pantry ) {
-        return Transformations.forwardOnce(authRepo.getLoggedAccount(), resourceAccount -> {
-            pantry.setUserId(resourceAccount.getData().getId());
+        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            pantry.setUserId(ownerID);
             return Transformations.forwardOnce(
                     Transformations.simulateApi(
                             mAppExecutors.diskIO(),
@@ -91,8 +92,9 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<Integer>> update(@NonNull Pantry pantry) {
-        return Transformations.forwardOnce(authRepo.getLoggedAccount(), resourceAccount -> {
-            pantry.setUserId(resourceAccount.getData().getId());
+        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            pantry.setUserId(ownerID);
             return Transformations.simulateApi(
                     mAppExecutors.diskIO(),
                     mAppExecutors.mainThread(),
@@ -102,33 +104,37 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<Pantry>> searchPantry(String name) {
-        return Transformations.forward(authRepo.getLoggedAccount(), resource -> {
-            return IOBoundResource.adapt(mAppExecutors, pantryDao.get(name, resource.getData().getId()));
+        return Transformations.forward(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            return IOBoundResource.adapt(mAppExecutors, pantryDao.get(name, ownerID));
         });
     }
     public LiveData<Resource<Pantry>> getPantry(long pantry_id ) {
-        return Transformations.forward(authRepo.getLoggedAccount(), resource -> {
-            return IOBoundResource.adapt(mAppExecutors, pantryDao.get(pantry_id, resource.getData().getId()));
+        return Transformations.forward(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            return IOBoundResource.adapt(mAppExecutors, pantryDao.get(pantry_id, ownerID));
         });
     }
 
     public LiveData<Resource<List<Pantry>>> getPantries(){
-        return Transformations.forward(authRepo.getLoggedAccount(), resource -> {
-            return IOBoundResource.adapt(
-                    mAppExecutors,
-                    pantryDao.getAll(resource.getData().getId())
-            );
+        return Transformations.forward(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            return IOBoundResource.adapt(mAppExecutors, pantryDao.getAll(ownerID));
         });
     }
     public LiveData<Resource<ProductInstanceGroup>> add(@NonNull ProductInstanceGroup group) {
-        return Transformations.forward(
-                Transformations.simulateApi(
-                        mAppExecutors.diskIO(),
-                        mAppExecutors.mainThread(),
-                        () -> groupDao.mergeInsert(group)
-                ),
-                resourceID -> getGroup(resourceID.getData())
-        );
+        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            group.setUserId(ownerID);
+            return Transformations.forward(
+                    Transformations.simulateApi(
+                            mAppExecutors.diskIO(),
+                            mAppExecutors.mainThread(),
+                            () -> groupDao.mergeInsert(group)
+                    ),
+                    resourceID -> getGroup(resourceID.getData())
+            );
+        });
     }
 
     public LiveData<Resource<ProductInstanceGroup>> getGroup(long group_id) {
@@ -136,25 +142,33 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<List<PantryDetails>>> getAllContaining(String productID ){
-        return IOBoundResource.adapt(mAppExecutors, pantryDao.getAllWithGroupsContaining(productID));
+        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            return IOBoundResource.adapt(mAppExecutors, pantryDao.getAllWithGroupsContaining(ownerID, productID));
+        });
     }
 
     public LiveData<Resource<List<ProductInstanceGroup>>> getContent(String product_id, long pantry_id) {
         return IOBoundResource.adapt(mAppExecutors, pantryDao.getContent(product_id, pantry_id));
     }
 
-    public LiveData<Resource<Long>> addGroup(@NonNull ProductInstanceGroup instanceGroup, @Nullable Product product, @NonNull Pantry pantry ) {
+    public LiveData<Resource<Long>> addGroup(@NonNull ProductInstanceGroup instanceGroup, @Nullable UserProduct product, @NonNull Pantry pantry ) {
         instanceGroup.setPantryId(pantry.getId());
         if( product != null ) {
             instanceGroup.setProductId(product.getBarcode());
         }
 
         final MediatorLiveData<Resource<Long>> result = new MediatorLiveData<>();
-        final LiveData<Resource<Long>> onInsert = Transformations.simulateApi(
-                mAppExecutors.diskIO(),
-                mAppExecutors.mainThread(),
-                () -> groupDao.mergeInsert(instanceGroup)
-        );
+
+        final LiveData<Resource<Long>> onInsert = Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            instanceGroup.setUserId(ownerID);
+            return Transformations.simulateApi(
+                    mAppExecutors.diskIO(),
+                    mAppExecutors.mainThread(),
+                    () -> groupDao.mergeInsert(instanceGroup)
+            );
+        });
 
         result.addSource(onInsert, resource -> {
             if( resource.getStatus() == Status.SUCCESS ) {

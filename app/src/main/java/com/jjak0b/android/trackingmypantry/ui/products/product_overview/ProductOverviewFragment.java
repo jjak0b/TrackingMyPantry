@@ -28,7 +28,7 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
@@ -94,7 +94,7 @@ public class ProductOverviewFragment extends Fragment {
 
         Log.e(TAG, "setting ProductID " + productID);
 
-        LiveData<Resource<Product>> source = mViewModel.get(productID);
+        LiveData<Resource<UserProduct>> source = mViewModel.get(productID);
         mSharedViewModel.setItemSource(source);
         mSharedViewModelForNav.setItemSource(source);
 
@@ -118,12 +118,12 @@ public class ProductOverviewFragment extends Fragment {
     }
 
     private void onActionRemove() {
-        LiveData<Resource<Product>> mCurrentProduct = mSharedViewModel.getItem();
+        LiveData<Resource<UserProduct>> mCurrentProduct = mSharedViewModel.getItem();
         NavController navController = Navigation.findNavController(requireView());
         new MaterialAlertDialogBuilder(requireContext())
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
 
-                    LiveData<Resource<Product>> onRemove = Transformations.forwardOnce( mCurrentProduct, resource -> {
+                    LiveData<Resource<UserProduct>> onRemove = Transformations.forwardOnce( mCurrentProduct, resource -> {
                         return mViewModel.remove(resource.getData());
                     });
 

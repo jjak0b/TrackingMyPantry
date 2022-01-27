@@ -14,11 +14,12 @@ import java.util.Objects;
 @Entity(
     indices = {
             @Index(value = {"id","product_id"}, unique = true ),
-            @Index(value = {"id","pantry_id"}, unique = true )
+            @Index(value = {"id","pantry_id"}, unique = true ),
+            @Index(value = {"pantry_id", "product_id", "expiryDate", "currentAmountPercent", "quantity"}, unique = true )
     },
     foreignKeys = {
             @ForeignKey(
-                    entity = Product.class,
+                    entity = ProductShared.class,
                     parentColumns = "id",
                     childColumns = "product_id",
                     onDelete = ForeignKey.CASCADE,
@@ -43,6 +44,10 @@ public class ProductInstanceGroup {
 
     @ColumnInfo( name = "pantry_id")
     long pantryId;
+
+    @ColumnInfo( name = "owner_id")
+    @NonNull
+    String userId;
 
     @ColumnInfo( defaultValue = "1" )
     int quantity;
@@ -108,6 +113,15 @@ public class ProductInstanceGroup {
         this.quantity = quantity;
     }
 
+    @NonNull
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(@NonNull String userId) {
+        this.userId = userId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -116,6 +130,7 @@ public class ProductInstanceGroup {
         return  Objects.equals(id ,  that.id) &&
                 Objects.equals(pantryId, that.pantryId) &&
                 Objects.equals(productId, that.productId)  &&
+                Objects.equals(userId, that.userId)  &&
                 Objects.equals(quantity, that.quantity) &&
                 Objects.equals(currentAmountPercent, that.currentAmountPercent) &&
                 Objects.equals(expiryDate, that.expiryDate);
@@ -127,6 +142,7 @@ public class ProductInstanceGroup {
                 "id=" + id +
                 ", productId='" + productId + '\'' +
                 ", pantryId=" + pantryId +
+                ", userId=" + userId +
                 ", quantity=" + quantity +
                 ", expiryDate=" + expiryDate +
                 ", currentAmountPercent=" + currentAmountPercent +
@@ -138,6 +154,7 @@ public class ProductInstanceGroup {
         newO.setId(o.getId());
         newO.setPantryId(o.getPantryId());
         newO.setProductId(o.getProductId());
+        newO.setUserId(o.getUserId());
         newO.setQuantity(o.getQuantity());
         newO.setExpiryDate(o.getExpiryDate());
         newO.setCurrentAmountPercent(o.getCurrentAmountPercent());

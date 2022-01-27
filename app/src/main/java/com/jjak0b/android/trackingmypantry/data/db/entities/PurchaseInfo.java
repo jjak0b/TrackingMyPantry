@@ -16,7 +16,7 @@ import java.util.Objects;
         tableName = "purchaseInfo",
         foreignKeys = {
                 @ForeignKey(
-                        entity = Product.class,
+                        entity = ProductShared.class,
                         parentColumns = "id",
                         childColumns = "product_id",
                         onDelete = ForeignKey.CASCADE
@@ -26,6 +26,12 @@ import java.util.Objects;
                         parentColumns = "id",
                         childColumns = "place_id",
                         onDelete = ForeignKey.SET_DEFAULT
+                ),
+                @ForeignKey(
+                        entity = User.class,
+                        parentColumns = "id",
+                        childColumns = "user_id",
+                        onDelete = ForeignKey.CASCADE
                 )
         }
 )
@@ -47,17 +53,22 @@ public class PurchaseInfo {
     @Nullable
     String placeId;
 
-    public PurchaseInfo(@NonNull String productId, float cost, Date purchaseDate, @Nullable String placeId) {
+    @NonNull
+    @ColumnInfo( name = "user_id" )
+    String userId;
+
+    public PurchaseInfo(@NonNull String productId, float cost, Date purchaseDate, @Nullable String placeId, @NonNull String userId ) {
         this.id = 0;
         this.purchaseDate = purchaseDate;
         this.productId = productId;
         this.placeId = placeId;
+        this.userId = userId;
         this.cost = cost;
     }
 
     @Ignore
     public PurchaseInfo(float cost, Date purchaseDate, @Nullable String placeId) {
-        this( null, cost, purchaseDate, placeId);
+        this( null, cost, purchaseDate, placeId, null);
     }
 
     public long getId() {
@@ -102,6 +113,15 @@ public class PurchaseInfo {
         this.cost = cost;
     }
 
+    @NonNull
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(@NonNull String userId) {
+        this.userId = userId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -110,6 +130,7 @@ public class PurchaseInfo {
         return Objects.equals(id, id) &&
                 Objects.equals(productId, that.productId) &&
                 Objects.equals(placeId, that.placeId) &&
+                Objects.equals(userId, that.userId) &&
                 Objects.equals(purchaseDate, that.purchaseDate) &&
                 Float.compare(that.cost, cost) == 0;
     }
@@ -123,6 +144,7 @@ public class PurchaseInfo {
                 ", cost=" + cost +
                 ", productId='" + productId + '\'' +
                 ", placeId='" + placeId + '\'' +
+                ", userId='" + userId + '\'' +
                 '}';
     }
 }

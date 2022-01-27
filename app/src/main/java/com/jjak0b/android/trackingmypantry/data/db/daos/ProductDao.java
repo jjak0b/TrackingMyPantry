@@ -9,10 +9,11 @@ import androidx.room.Query;
 import androidx.room.Transaction;
 import androidx.room.Update;
 
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductShared;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.TagAndProduct;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.TagAndUserProductCrossRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,57 +21,68 @@ import java.util.List;
 @Dao
 public abstract class ProductDao {
 
-    @Query("SELECT * FROM assignedTags WHERE product_id = :product_id" )
-    public abstract List<TagAndProduct> getAssignedTags( String product_id );
+    @Query("SELECT * FROM assignedTags WHERE product_id = :product_id AND owner_id = :ownerID" )
+    public abstract List<TagAndUserProductCrossRef> getAssignedTags(String product_id, String ownerID );
 
     @Transaction
-    public void replaceProductAssignedTags(Product p, List<ProductTag> tags ){
+    public void replaceProductAssignedTags(UserProduct p, List<ProductTag> tags ){
         updateOrInsert(p);
-        long[] tag_ids = insertTags(tags);
+        long[] tag_ids = updateOrInsert(tags);
         int size = tag_ids.length;
-
-        removeAssignedTags(getAssignedTags(p.getBarcode()));
-        ArrayList<TagAndProduct> assignedTags = new ArrayList<>( size );
+        String ownerID = p.getUserOwnerId();
+        String productID = p.getBarcode();
+        List<TagAndUserProductCrossRef> alreadyAssigned = getAssignedTags(productID, ownerID);
+        ArrayList<TagAndUserProductCrossRef> toAssign = new ArrayList<>( size );
         int i = 0;
         for (ProductTag tag : tags) {
-            long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
-            TagAndProduct assigned = new TagAndProduct( p.getBarcode(), tagId );
-            assignedTags.add( assigned );
+            long tagId = tag_ids[ i ] > 0 ? tag_ids[ i ] : tag.getId();
+            TagAndUserProductCrossRef assigned = new TagAndUserProductCrossRef( productID, ownerID, tagId );
+            toAssign.add( assigned );
             i++;
         }
 
-        insertAssignedTags( assignedTags );
+        // tags to add
+        toAssign.removeAll(alreadyAssigned);
+
+        // tags to remove
+        List<TagAndUserProductCrossRef> toRemove = new ArrayList<>(alreadyAssigned);
+        toRemove.removeAll(toAssign);
+
+
+        removeAssignedTags( toRemove );
+        insertAssignedTags( toAssign );
     }
 
-    @Transaction
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public void updateProductAndAssignedTags(Product p, List<ProductTag> tags ){
-        updateProduct(p);
-        long[] tag_ids = insertTags(tags); // insert missing
-        int size = tag_ids.length;
-
-        ArrayList<TagAndProduct> assignedTags = new ArrayList<>( size );
-
+    private long[] updateOrInsert(List<ProductTag> tags) {
+        long[] inserted = insertTags(tags);
+        ArrayList<ProductTag> alreadyAdded = new ArrayList<>(inserted.length);
         int i = 0;
         for (ProductTag tag : tags) {
-            long tagId = tag_ids[ i ] >= 0 ? tag_ids[ i ] : tag.getId();
-            assignedTags.add( new TagAndProduct( p.getBarcode(), tagId ) );
+            if( inserted[ i ] == 0 ) {
+                alreadyAdded.add( tag );
+            }
             i++;
         }
-
-
-        insertAssignedTags( assignedTags );
+        update(alreadyAdded);
+        return inserted;
     }
 
     @Update
-    public abstract int updateProduct(Product p);
+    public abstract int update(List<ProductTag> tags);
+
+    @Update
+    public abstract int updateProduct(UserProduct p);
 
     // if using OnConflictStrategy.REPLACE will trigger the OnDelete
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    abstract void insertProduct(Product p);
+    abstract void insertProduct(UserProduct p);
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract void insert(ProductShared product);
 
     @Transaction
-    public int updateOrInsert(Product product) {
+    public int updateOrInsert(UserProduct product) {
+        insert(new ProductShared(product.getBarcode()));
         int updatedRows = updateProduct(product);
         if( updatedRows > 0 ) return updatedRows;
         else {
@@ -79,28 +91,36 @@ public abstract class ProductDao {
         }
     }
 
-    @Query("SELECT * FROM products WHERE id = :barcode" )
-    public abstract LiveData<Product> get(String barcode);
+    @Query("SELECT * FROM userProducts WHERE product_id = :barcode AND owner_id = :ownerID" )
+    public abstract LiveData<UserProduct> get(String barcode, String ownerID );
 
     @Transaction
-    @Query("SELECT * FROM products WHERE id = :barcode" )
-    public abstract LiveData<ProductWithTags> getDetails(String barcode);
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract long[] insertTags(List<ProductTag> tags);
-
-    @Delete(entity = Product.class)
-    public abstract void remove(Product... products);
+    @Query("SELECT * FROM userProducts WHERE product_id = :barcode AND owner_id = :ownerID" )
+    public abstract LiveData<ProductWithTags> getDetails(String barcode, String ownerID);
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    public abstract void insertAssignedTags(List<TagAndProduct> assignedTags );
+    abstract long[] insertTags(List<ProductTag> tags);
+
+    @Delete(entity = UserProduct.class)
+    public abstract void remove(UserProduct... products);
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    public abstract void insertAssignedTags(List<TagAndUserProductCrossRef> assignedTags );
 
     @Delete
-    public abstract void removeAssignedTags(List<TagAndProduct> assignedTags );
+    public abstract void removeAssignedTags(List<TagAndUserProductCrossRef> assignedTags );
 
     @Transaction
-    @Query( "SELECT * FROM products")
-    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags();
+    @Query( "SELECT * FROM " +
+            " ( SELECT * FROM userProducts WHERE owner_id = :ownerID ) AS P"
+           /* " INNER JOIN ( SELECT * FROM assignedTags WHERE owner_id = :ownerID ) AS AT " +
+            " INNER JOIN ( SELECT * FROM productTags WHERE owner_id = :ownerID ) AS T" +
+            " ON AT.product_id = P.product_id AND AT.tag_id = T.id" +
+            " WHERE AT.owner_id = :ownerID AND P.owner_id = :ownerID AND T.owner_id = :ownerID"
+
+            */
+    )
+    public abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID );
 
     /**
      * get all Product with tags filtered with each following "condition n" in END.
@@ -112,28 +132,26 @@ public abstract class ProductDao {
      * @param tagsIds
      * @return  all Product with tags with a filter applied
      */
-    public LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds){
+    public LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds){
         // call real method, to provide some extra info
-        return getAllProductsWithTags(barcode, name, description, tagsIds, tagsIds.size() );
+        return getAllProductsWithTags(ownerID, barcode, name, description, tagsIds, tagsIds.size() );
     }
 
     @Transaction
     @Query( "SELECT * " +
-            "FROM products AS P " +
-            "LEFT JOIN assignedTags AS AT ON P.id = AT.product_id AND ( AT.tag_id IN (:tagsIds) )" +
-            "WHERE (:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.id LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description ) " +
-            "GROUP BY P.id " +
+            "FROM userproducts AS P " +
+            "LEFT JOIN assignedTags AS AT ON P.product_id = AT.product_id AND ( AT.tag_id IN (:tagsIds) )" +
+            "WHERE P.owner_id = :ownerID" +
+            " AND ((:barcode IS NULL AND :name IS NULL AND :description IS NULL ) OR (P.product_id LIKE :barcode OR P.name LIKE :name OR P.description LIKE :description )) " +
+            "GROUP BY P.product_id " +
             "HAVING COUNT(AT.tag_id) >= :tagsCount"
 
     )
-    abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
+    abstract LiveData<List<ProductWithTags>> getAllProductsWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds, int tagsCount);
 
-    @Query( "SELECT * FROM products")
-    public abstract LiveData<List<Product>> getAll();
+    @Query( "SELECT * FROM userProducts WHERE product_id = (:barcode)")
+    public abstract LiveData<List<UserProduct>> getProductsByBarcode(String barcode);
 
-    @Query( "SELECT * FROM products WHERE id = (:barcode)")
-    public abstract LiveData<List<Product>> getProductsByBarcode(String barcode);
-
-    @Query( "SELECT * FROM productTags")
-    public abstract LiveData<List<ProductTag>> getAllTags();
+    @Query( "SELECT * FROM productTags WHERE owner_id = :ownerID")
+    public abstract LiveData<List<ProductTag>> getAllTags(String ownerID);
 }

@@ -14,7 +14,7 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
@@ -22,7 +22,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 
 import java.util.Objects;
 
-public class ProductInfoViewModel extends AndroidViewModel implements ISavable<Product> {
+public class ProductInfoViewModel extends AndroidViewModel implements ISavable<UserProduct> {
     private final static int BITMAP_SIZE = 256;
     protected AppExecutors appExecutors;
 
@@ -31,9 +31,9 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
     private MediatorLiveData<Resource<String>> description;
     private MediatorLiveData<Resource<Bitmap>> image;
 
-    private MutableLiveData<Product> originalProduct;
+    private MutableLiveData<UserProduct> originalProduct;
 
-    private Savable<Product> savable;
+    private Savable<UserProduct> savable;
 
     public ProductInfoViewModel(Application application) {
         super(application);
@@ -125,7 +125,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
 
     public void save() {
         LiveData<Boolean> onSave = this.onSave();
-        MediatorLiveData<Resource<Product>> onSaved = savable.onSaved();
+        MediatorLiveData<Resource<UserProduct>> onSaved = savable.onSaved();
 
         savable.save();
 
@@ -139,7 +139,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
             onSaved.addSource(getProduct(), old -> {
                 onSaved.removeSource(getProduct());
 
-                Product.Builder builder = new Product.Builder().from(old);
+                UserProduct builder = new UserProduct(old);
 
                 builder.setBarcode(getBarcode().getValue().getData());
                 builder.setName(getName().getValue().getData());
@@ -160,7 +160,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
                     if (resource.getStatus() != Status.LOADING) {
                         onSaved.removeSource(resourceURI);
                         builder.setImg(resource.getData());
-                        savable.setSavedResult(Resource.success(builder.build()));
+                        savable.setSavedResult(Resource.success(builder));
                     }
                 });
             });
@@ -171,15 +171,15 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<P
         return savable.onSave();
     }
 
-    public MediatorLiveData<Resource<Product>> onSaved() {
+    public MediatorLiveData<Resource<UserProduct>> onSaved() {
         return savable.onSaved();
     }
 
-    public LiveData<Product> getProduct() {
+    public LiveData<UserProduct> getProduct() {
         return originalProduct;
     }
 
-    public void setProduct(Product product) {
+    public void setProduct(UserProduct product) {
         originalProduct.setValue(product);
     }
 

@@ -14,8 +14,8 @@ import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
@@ -30,7 +30,7 @@ import java.util.Objects;
 public class SectionProductDetailsViewModel extends AndroidViewModel implements ISavable<ProductWithTags>{
 
     private MutableLiveData<Resource<String>> mBarcode;
-    private MutableLiveData<Resource<Product>> mProduct;
+    private MutableLiveData<Resource<UserProduct>> mProduct;
     private MediatorLiveData<Resource<List<ProductTag>>> mAssignedTags;
     private LiveData<Resource<List<ProductTag>>> mSuggestionsTags;
     private AppExecutors appExecutors;
@@ -97,7 +97,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
     public void reset() {
         setBarcode(null);
-        setProduct((Product) null);
+        setProduct((UserProduct) null);
         setAssignedTags(new ArrayList<>(0));
     }
 
@@ -125,11 +125,11 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         }
     }
 
-    public LiveData<Resource<Product>> getProduct() {
+    public LiveData<Resource<UserProduct>> getProduct() {
         return mProduct;
     }
 
-    public void setProduct(Product product) {
+    public void setProduct(UserProduct product) {
         if(!Objects.equals(product, mProduct.getValue().getData())) {
             Throwable error = null;
             if( product == null ) {
@@ -148,7 +148,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
             setAssignedTags(productWithTags.tags);
         }
         else {
-            setProduct((Product) null);
+            setProduct((UserProduct) null);
             setAssignedTags(new ArrayList<>(0));
         }
     }
@@ -207,7 +207,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
             savable.onSaved().removeSource(savable.onSave());
 
 
-            ResourceUtils.ResourcePairLiveData<Product, List<ProductTag>> mPair =
+            ResourceUtils.ResourcePairLiveData<UserProduct, List<ProductTag>> mPair =
                     ResourceUtils.ResourcePairLiveData.create(getProduct(), getAssignedTags() );
 
             savable.onSaved().addSource(mPair, resourceResourcePair -> {

@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder {
 
@@ -31,7 +31,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         image = (ImageView) itemView.findViewById(R.id.cardThumbnail);
     }
 
-    public void bind(@NonNull Product product, OnProductClickListener onProductClickListener ){
+    public void bind(@NonNull UserProduct product, OnProductClickListener onProductClickListener ){
         title.setText( product.getName());
         description.setText(product.getDescription());
 
@@ -57,6 +57,6 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
 
     public interface OnProductClickListener {
 
-        void onClick(Product product);
+        void onClick(UserProduct product);
     }
 }

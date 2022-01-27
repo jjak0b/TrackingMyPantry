@@ -16,9 +16,9 @@ import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductInstanceGroupInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PurchaseInfoWithPlace;
@@ -187,7 +187,7 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
 
     public LiveData<Resource<PurchaseInfo>> addProductPurchaseDetails(@NonNull LiveData<Resource<ProductWithTags>> mProduct) {
         return Transformations.forwardOnce(mProduct, mProductResource -> {
-            Product product = mProductResource.getData().product;
+            UserProduct product = mProductResource.getData().product;
 
             return Transformations.forwardOnce( mProductPurchaseDetails, mDetailsResource -> {
                 PurchaseInfoWithPlace details = mDetailsResource.getData();

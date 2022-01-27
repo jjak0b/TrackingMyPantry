@@ -10,8 +10,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.ItemSourceViewModel;
 
@@ -30,7 +30,7 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
 
     @MainThread
     public void setGroupsOf(
-            @NonNull LiveData<Resource<Product>> mProductSource,
+            @NonNull LiveData<Resource<UserProduct>> mProductSource,
             @NonNull LiveData<Resource<Pantry>> mPantrySource
     ) {
 

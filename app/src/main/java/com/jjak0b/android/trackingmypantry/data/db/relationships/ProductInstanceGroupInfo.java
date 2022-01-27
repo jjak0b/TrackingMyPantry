@@ -4,8 +4,8 @@ import androidx.room.Embedded;
 import androidx.room.Relation;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 
 public class ProductInstanceGroupInfo {
 
@@ -16,7 +16,7 @@ public class ProductInstanceGroupInfo {
             parentColumn = "product_id",
             entityColumn = "id"
     )
-    public Product product;
+    public UserProduct product;
 
     @Relation(
             parentColumn = "pantry_id",

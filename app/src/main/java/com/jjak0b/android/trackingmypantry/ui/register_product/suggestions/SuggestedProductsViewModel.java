@@ -7,7 +7,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 
 import java.util.List;
@@ -21,11 +21,11 @@ public class SuggestedProductsViewModel extends AndroidViewModel {
         repository = ProductsRepository.getInstance(application);
     }
 
-    public LiveData<Resource<List<Product>>> getProducts(String barcode) {
+    public LiveData<Resource<List<UserProduct>>> getProducts(String barcode) {
         return repository.search(barcode);
     }
 
-    public LiveData<Resource<Product>> vote(@NonNull Product product) {
+    public LiveData<Resource<UserProduct>> vote(@NonNull UserProduct product) {
         return repository.register(product);
     }
 }

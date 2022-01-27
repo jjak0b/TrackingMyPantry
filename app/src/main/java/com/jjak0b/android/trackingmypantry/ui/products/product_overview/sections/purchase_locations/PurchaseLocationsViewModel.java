@@ -8,7 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.data.repositories.PurchasesRepository;
 
@@ -18,7 +18,7 @@ import java.util.Objects;
 public class PurchaseLocationsViewModel extends AndroidViewModel {
 
     private PurchasesRepository purchasesRepository;
-    private MutableLiveData<Resource<Product>> product;
+    private MutableLiveData<Resource<UserProduct>> product;
     private LiveData<Resource<List<PlaceWithPurchases>>> purchaseInfoList;
 
     public PurchaseLocationsViewModel(Application application) {
@@ -27,13 +27,13 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
 
         product = new MutableLiveData<>(Resource.loading(null));
         purchaseInfoList = Transformations.forward(product, resource -> {
-            Product product = resource.getData();
+            UserProduct product = resource.getData();
             return purchasesRepository.getAllPurchasePlacesOf(product.getBarcode());
         });
     }
 
 
-    public void setProduct(Resource<Product> product) {
+    public void setProduct(Resource<UserProduct> product) {
         if(!Objects.equals(product, this.product.getValue()))
             this.product.setValue(product);
     }

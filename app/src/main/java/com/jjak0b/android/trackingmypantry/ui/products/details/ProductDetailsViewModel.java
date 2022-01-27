@@ -12,8 +12,8 @@ import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
@@ -100,7 +100,7 @@ public class ProductDetailsViewModel extends ProductInfoViewModel {
             }
             onSaved.removeSource(onSave);
 
-            LiveData<Resource<Product>> mProduct = super.onSaved();
+            LiveData<Resource<UserProduct>> mProduct = super.onSaved();
 
             onSaved.addSource(mProduct, resource -> {
                 if (resource.getStatus() != Status.LOADING ) {

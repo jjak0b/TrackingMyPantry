@@ -10,7 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
 
@@ -22,7 +22,7 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
 
     private PantriesRepository pantriesRepository;
 
-    private MutableLiveData<Resource<Product>> mProduct;
+    private MutableLiveData<Resource<UserProduct>> mProduct;
     private MutableLiveData<Resource<Pantry>> mPantry;
     private LiveData<Resource<Pantry>> mCurrentPantry;
     private LiveData<Resource<List<PantryDetails>>> list;
@@ -67,7 +67,7 @@ public class PantriesBrowserViewModel extends AndroidViewModel {
         }
     }
 
-    public void setProduct(Resource<Product> product ){
+    public void setProduct(Resource<UserProduct> product ){
         if( !Objects.equals(product, mProduct.getValue()) )
             mProduct.setValue( product );
     }

@@ -24,8 +24,8 @@ public abstract class ProductInstanceDao {
     public abstract LiveData<ProductInstanceGroup> getGroup(long group_id);
 
     @Query("SELECT G.product_id, G.pantry_id, G.expiryDate, PR.name AS product_name, P.name AS pantry_name, SUM(G.quantity) as quantity" +
-            " FROM pantries AS P INNER JOIN  productinstancegroup AS G INNER JOIN products AS PR" +
-            " ON P.pantry_id = G.pantry_id AND PR.id = G.product_id" +
+            " FROM pantries AS P INNER JOIN  productinstancegroup AS G INNER JOIN userproducts AS PR" +
+            " ON P.pantry_id = G.pantry_id AND PR.product_id = G.product_id" +
             " WHERE (" +
                 " ( :userOwnerID IS NULL OR P.owner_id = :userOwnerID )" +
                 " AND (:productID IS NULL OR G.product_id = :productID )" +
@@ -38,12 +38,14 @@ public abstract class ProductInstanceDao {
     /**
      * Get first entry that match with the same product ID and same pantry ID and others params
      */
-    @Query( "SELECT * FROM productinstancegroup WHERE product_id = :productID AND pantry_id = :pantryID AND currentAmountPercent = :currentAmountPercent AND expiryDate = :expiryDate")
-    public abstract ProductInstanceGroup getFirstMatchingGroup(String productID, long pantryID, int currentAmountPercent, Date expiryDate );
+    @Query( "SELECT * FROM productinstancegroup WHERE owner_id =:ownerID AND product_id = :productID AND pantry_id = :pantryID AND currentAmountPercent = :currentAmountPercent AND expiryDate = :expiryDate")
+    public abstract ProductInstanceGroup getFirstMatchingGroup( String ownerID, String productID, long pantryID, int currentAmountPercent, Date expiryDate );
 
     @Transaction
     public long mergeInsert(ProductInstanceGroup group) {
+
         ProductInstanceGroup match = getFirstMatchingGroup(
+                group.getUserId(),
                 group.getProductId(),
                 group.getPantryId(),
                 group.getCurrentAmountPercent(),
@@ -63,6 +65,7 @@ public abstract class ProductInstanceDao {
     @Transaction
     public int mergeUpdate(ProductInstanceGroup group) {
         ProductInstanceGroup match = getFirstMatchingGroup(
+                group.getUserId(),
                 group.getProductId(),
                 group.getPantryId(),
                 group.getCurrentAmountPercent(),

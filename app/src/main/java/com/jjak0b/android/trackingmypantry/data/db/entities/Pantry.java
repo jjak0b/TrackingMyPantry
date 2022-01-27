@@ -12,7 +12,8 @@ import java.util.Objects;
 @Entity(
         tableName = "pantries",
         indices = {
-                @Index(value = {"pantry_id", "owner_id"}, unique = true),
+                // @Index(value = {"pantry_id", "owner_id"}, unique = true),
+                // each owner can have only 1 Pantry with same name
                 @Index(value = {"owner_id", "name"}, unique = true)
         },
         foreignKeys = {
@@ -26,11 +27,11 @@ import java.util.Objects;
 )
 public class Pantry {
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "pantry_id")
+    @ColumnInfo(name = "pantry_id", index = true)
     long id;
 
     @NonNull
-    @ColumnInfo(name = "owner_id")
+    @ColumnInfo(name = "owner_id", index = true)
     String userId;
 
     @NonNull

@@ -15,8 +15,8 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
 
 
     public void bind(ProductWithTags productWithTags ){
-        Product product = productWithTags.product;
+        UserProduct product = productWithTags.product;
         List<ProductTag> tagList = productWithTags.tags;
         title.setText( product.getName());
         description.setText(product.getDescription());

@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 
 import java.util.Objects;
@@ -47,6 +47,6 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     }
 
     public interface OnProductClick {
-        void onAction(Product p);
+        void onAction(UserProduct p);
     }
 }

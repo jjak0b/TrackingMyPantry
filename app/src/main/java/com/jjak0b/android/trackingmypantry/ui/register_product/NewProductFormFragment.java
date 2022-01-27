@@ -22,7 +22,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInfoFragment;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
@@ -113,17 +113,17 @@ public class NewProductFormFragment extends ProductInfoFragment {
     }
 
 
-    private void notifyResult(Resource<Product> result) {
+    private void notifyResult(Resource<UserProduct> result) {
 
         Log.d(TAG, "submitting: " + result);
 
-        MediatorLiveData<Resource<Product>> mProduct = new MediatorLiveData<>();
+        MediatorLiveData<Resource<UserProduct>> mProduct = new MediatorLiveData<>();
         sharedViewModel.setItemSource(mProduct);
 
-        LiveData<Resource<Product>> operation = getViewModel().submit(result.getData());
-        operation.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
+        LiveData<Resource<UserProduct>> operation = getViewModel().submit(result.getData());
+        operation.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
             @Override
-            public void onChanged(Resource<Product> resource) {
+            public void onChanged(Resource<UserProduct> resource) {
                 boolean shouldReturnProduct = false;
                 enableSave(resource.getStatus() != Status.LOADING );
                 switch (resource.getStatus()) {

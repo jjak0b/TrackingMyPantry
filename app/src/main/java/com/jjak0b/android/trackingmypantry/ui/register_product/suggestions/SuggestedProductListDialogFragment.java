@@ -25,7 +25,7 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 
 import java.io.IOException;
@@ -126,7 +126,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         });
     }
 
-    private void onVoteProduct(Product product) {
+    private void onVoteProduct(UserProduct product) {
         Log.d(TAG, "User voting for" + product );
         notifyResult(mViewModel.vote(product));
     }
@@ -136,12 +136,12 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
                 .createNewProduct(mParamBarcode));
     }
 
-    private void notifyResult(@NonNull LiveData<Resource<Product>> mResult) {
+    private void notifyResult(@NonNull LiveData<Resource<UserProduct>> mResult) {
         final NavController navController = NavHostFragment.findNavController(this);
         mSharedViewModel.setItemSource(mResult);
-        mResult.observe(getViewLifecycleOwner(), new Observer<Resource<Product>>() {
+        mResult.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
             @Override
-            public void onChanged(Resource<Product> resource) {
+            public void onChanged(Resource<UserProduct> resource) {
                 switch (resource.getStatus()) {
                     case LOADING:
                         break;
