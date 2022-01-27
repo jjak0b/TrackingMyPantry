@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.products;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,9 +55,10 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
             .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
             .into(image);
 
+        tags.removeAllViews();
         if( !tagList.isEmpty() ){
-            tags.removeAllViews();
             for (ProductTag t : tagList ) {
+                if( t == null || TextUtils.isEmpty(t.toString())) continue;
                 Chip chip = new Chip( itemView.getContext() );
                 chip.setText( t.toString() );
                 chip.setId(ViewCompat.generateViewId());
