@@ -23,10 +23,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.hootsuite.nachos.NachoTextView;
 import com.hootsuite.nachos.terminator.ChipTerminatorHandler;
@@ -35,6 +38,7 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.products.ProductViewHolder;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductFragmentDirections;
@@ -182,28 +186,30 @@ public class SectionProductDetailsFragment extends Fragment {
                 case LOADING:
                     barcodeInputLayout.setError(null);
                     barcodeInputLayout.setStartIconOnClickListener(null);
+                    editBarcode.setOnEditorActionListener(null);
                     break;
                 case SUCCESS:
                     barcodeInputLayout.setError(null);
                     barcodeInputLayout.setStartIconOnClickListener(v -> {
                         search( resource.getData() );
                     });
+                    editBarcode.setOnEditorActionListener((v, actionId, event) -> {
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH ) {
+                            search(resource.getData());
+                            return true;
+                        }
+                        return false;
+                    });
                     break;
                 case ERROR:
                     barcodeInputLayout.setStartIconOnClickListener(null);
+                    editBarcode.setOnEditorActionListener(null);
+
                     if( resource.getError() instanceof FormException ) {
                         barcodeInputLayout.setError(resource.getError().getLocalizedMessage());
                     }
                     break;
             }
-        });
-
-        editBarcode.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                search(editBarcode.getText().toString());
-                return true;
-            }
-            return false;
         });
 
         if(hasFeatureCamera){
@@ -220,6 +226,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
         InputUtil.FieldTextWatcher[] barcodeWatcher = new InputUtil.FieldTextWatcher[1];
 
+        // Unset product if barcode change
         getViewModel().getProduct().observe(getViewLifecycleOwner(), productResource -> {
             // when a new product is set, reset the product if barcode change
             if( productResource.getStatus() == Status.SUCCESS ) {
@@ -356,7 +363,35 @@ public class SectionProductDetailsFragment extends Fragment {
 
     private void search(String barcode) {
         getViewModel().setBarcode( barcode );
-        openBottomSheetDialog(getView(), barcode);
+        LiveData<Resource<UserProduct>> mSearch = getViewModel().searchMyProducts( barcode );
+        boolean isAProductPicked = getViewModel().isProductSet();
+
+        mSearch.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
+            @Override
+            public void onChanged(Resource<UserProduct> resource) {
+                if( resource.getStatus() == Status.LOADING ) return;
+
+                mSearch.removeObserver(this);
+                boolean isProductRegistered = resource.getData() != null;
+
+                if( isAProductPicked) {
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
+                            .setMessage(R.string.register_product_warning_product_replace)
+                            .setPositiveButton(android.R.string.search_go, (dialogInterface, i) -> {
+                                openBottomSheetDialog(getView(), barcode);
+                            })
+                            .setNegativeButton(android.R.string.cancel, null )
+                            .show();
+                }
+                else if( isProductRegistered ) {
+                    mProductPickerViewModel.setItemSource(mSearch);
+                }
+                else {
+                    openBottomSheetDialog(getView(), barcode);
+                }
+            }
+        });
     }
 
     private void openBottomSheetDialog(View view, String barcode) {

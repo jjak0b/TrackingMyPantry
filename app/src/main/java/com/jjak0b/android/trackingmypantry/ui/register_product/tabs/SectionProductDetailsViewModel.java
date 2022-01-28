@@ -101,6 +101,10 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         setAssignedTags(new ArrayList<>(0));
     }
 
+    public boolean isProductSet() {
+        return Transformations.onValid(getProduct().getValue(), null);
+    }
+
     public LiveData<Resource<String>> getBarcode() {
         return mBarcode;
     }
@@ -182,6 +186,10 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
         savable.enableSave(isValid);
         return isValid;
+    }
+
+    public LiveData<Resource<UserProduct>> searchMyProducts(String barcode) {
+        return productsRepository.get(barcode);
     }
 
     @Override
