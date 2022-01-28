@@ -107,8 +107,8 @@ public class SectionProductDetailsFragment extends Fragment {
 
         setupSave(view, savedInstanceState);
         setupReset(view, savedInstanceState);
-        setupSearch(view, savedInstanceState);
         setupProduct(view, savedInstanceState);
+        setupSearch(view, savedInstanceState);
         setupTags(view, savedInstanceState);
     }
 
@@ -234,6 +234,12 @@ public class SectionProductDetailsFragment extends Fragment {
                 // remove old text listener this case
                 if( barcodeWatcher[0] != null ){
                     editBarcode.removeTextChangedListener(barcodeWatcher[0]);
+                }
+
+                // if product source has been changed ( for example by other components )
+                // update barcode here without unset the product
+                if( productResource.getData() != null ) {
+                    getViewModel().setBarcode(productResource.getData().getBarcode());
                 }
 
                 // create and add a new text listener to reset product on barcode change

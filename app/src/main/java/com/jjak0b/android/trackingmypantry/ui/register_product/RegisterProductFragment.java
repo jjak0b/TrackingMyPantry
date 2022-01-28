@@ -31,6 +31,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
  */
 public class RegisterProductFragment extends Fragment {
 
+    private SharedProductViewModel mProductPickerViewModel;
     private RegisterProductViewModel mSharedViewModel;
     private PageViewModel mPageViewModel;
     private static final String TAG = "RegisterProductFragment";
@@ -44,9 +45,17 @@ public class RegisterProductFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String barcode = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
+
+        mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
         mSharedViewModel.setupNew();
+
+        if( barcode != null ) {
+            mProductPickerViewModel.setItemSource(mSharedViewModel.getMyProduct(barcode));
+            mSharedViewModel.saveProductDetails();
+        }
     }
 
     @Override

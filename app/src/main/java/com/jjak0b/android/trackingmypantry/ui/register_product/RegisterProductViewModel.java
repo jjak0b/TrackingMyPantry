@@ -92,6 +92,10 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
         return onReset;
     }
 
+    public LiveData<Resource<UserProduct>> getMyProduct(String barcode) {
+        return productsRepo.get(barcode);
+    }
+
     public void saveProductDetails() {
         savableProductDetails.save();
     }

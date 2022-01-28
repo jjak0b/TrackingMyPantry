@@ -15,7 +15,12 @@
             app:destination="@id/productOverviewFragment" />
         <action
             android:id="@+id/openRegisterProduct"
-            app:destination="@id/registerProductFragment" />
+            app:destination="@id/registerProductFragment" >
+            <argument
+                android:name="productID"
+                app:nullable="true"
+            />
+        </action>
         <action
             android:id="@+id/action_filter"
             app:destination="@id/productsSearchFilterFragmentDialog" />
@@ -66,6 +71,10 @@
             android:id="@+id/onRegisterCompleted"
             app:popUpTo="@id/registerProductFragment"
             app:popUpToInclusive="true" />
+        <argument
+            android:name="productID"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <dialog
         android:id="@+id/suggestedProductListDialogFragment"
