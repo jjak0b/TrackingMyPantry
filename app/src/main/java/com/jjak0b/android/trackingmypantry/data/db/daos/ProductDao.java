@@ -1,7 +1,5 @@
 package com.jjak0b.android.trackingmypantry.data.db.daos;
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 import androidx.room.Dao;
@@ -200,8 +198,6 @@ public abstract class ProductDao {
                 // So Room map the product to a list with a single ProductTag, with all values to null/0
                 if( p.tags.size() == 1 && ProductTag.isDummy(p.tags.get(0)) )
                     p.tags.remove(0);
-
-                Log.e("Dao", "" + p.tags );
                 list.add(p);
             }
 
