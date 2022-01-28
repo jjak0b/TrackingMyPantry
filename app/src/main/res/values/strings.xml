@@ -73,6 +73,8 @@
     <string name="product_unconsumed_amount">Unconsumed amount</string>
     <string name="product_groups_quantity_lefts">Remaining: </string>
     <string name="action_register_product">Register product</string>
+    <string name="action_edit_product">Edit product details</string>
+    <string name="action_add_product">Add product articles</string>
     <string name="action_next_product_section">Continue</string>
     <string name="pantries_no_pantry_available">there is no pantry that contains this product</string>
     <string name="place_no_purchases_available">There isn\'t any registered place where you bought this product</string>

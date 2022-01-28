@@ -60,16 +60,14 @@ public class ProductOverviewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         final BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_nav);
-        final FloatingActionButton fab_edit = view.findViewById(R.id.fab_edit);
+        final FloatingActionButton fab_add = view.findViewById(R.id.fab_add);
         final ImageView appBarImage = view.findViewById(R.id.app_bar_image);
 
         NavHostFragment navHostFragment = (NavHostFragment) getChildFragmentManager()
                 .findFragmentById(R.id.product_navigation_host_fragment);
         NavigationUI.setupWithNavController(bottomNavigationView, navHostFragment.getNavController());
 
-        fab_edit.setOnClickListener( v -> Navigation.findNavController(view)
-                .navigate(ProductOverviewFragmentDirections.actionEditProductDetails())
-        );
+        fab_add.setOnClickListener( v -> onActionAdd() );
 
         mViewModel = new ViewModelProvider(this).get(ProductOverviewViewModel.class);
         mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(SharedProductViewModel.class);
@@ -115,6 +113,13 @@ public class ProductOverviewFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void onActionAdd() {
+        String productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
+                .getProductID();
+        Navigation.findNavController(requireView())
+                .navigate(ProductOverviewFragmentDirections.actionAddProduct(productID));
     }
 
     private void onActionRemove() {

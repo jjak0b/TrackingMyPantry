@@ -123,6 +123,9 @@
         <argument
             android:name="subtitle"
             app:argType="string" />
+        <action
+            android:id="@+id/action_add_product"
+            app:destination="@id/registerProductFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
