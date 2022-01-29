@@ -87,6 +87,7 @@ public class ProductsBrowserFragment extends Fragment {
                     if( errorMsg != null ) {
                         new AlertDialog.Builder(requireContext())
                                 .setMessage(errorMsg)
+                                .setTitle(android.R.string.dialog_alert_title)
                                 .setPositiveButton(android.R.string.ok, null )
                                 .setNeutralButton(R.string.action_retry, (dialog, which) -> {
                                     searchViewModel.search();

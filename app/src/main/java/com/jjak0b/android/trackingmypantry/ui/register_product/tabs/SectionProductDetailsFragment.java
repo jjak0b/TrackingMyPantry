@@ -140,6 +140,7 @@ public class SectionProductDetailsFragment extends Fragment {
             switch (resource.getStatus()) {
                 case ERROR:
                     new AlertDialog.Builder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
                             .setPositiveButton(android.R.string.ok, null)
                             .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG))
                             .show();
@@ -277,6 +278,7 @@ public class SectionProductDetailsFragment extends Fragment {
                     Log.e(TAG, "Error on product changed: " , resource.getError() );
                     productContainer.setVisibility(View.GONE);
                     new AlertDialog.Builder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
                             .setPositiveButton(android.R.string.ok, null)
                             .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
                             .show();

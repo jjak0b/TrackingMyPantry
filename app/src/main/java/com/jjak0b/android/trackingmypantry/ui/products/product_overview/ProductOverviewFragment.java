@@ -157,7 +157,10 @@ public class ProductOverviewFragment extends Fragment {
                     });
                 })
                 .setNegativeButton(android.R.string.no, null )
-                .setTitle(R.string.option_remove_entry)
+                .setTitle(getString(R.string.dialog_title,
+                        getString(android.R.string.dialog_alert_title),
+                        getString(R.string.product_action_remove)
+                ))
                 .setMessage(R.string.product_action_remove_description)
                 .show();
     }

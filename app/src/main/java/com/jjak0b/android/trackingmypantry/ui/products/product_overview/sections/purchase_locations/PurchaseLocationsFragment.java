@@ -113,6 +113,7 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                     break;
                 case ERROR:
                     new AlertDialog.Builder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
                             .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG))
                             .show();
                     break;

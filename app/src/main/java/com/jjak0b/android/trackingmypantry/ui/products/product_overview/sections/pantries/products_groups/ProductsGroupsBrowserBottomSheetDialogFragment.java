@@ -302,6 +302,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                             // notify error to user
                             if( resource.getStatus() == Status.ERROR) {
                                 new MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(android.R.string.dialog_alert_title)
                                         .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
                                         .setPositiveButton(android.R.string.ok, null)
                                         .show();
@@ -369,6 +370,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                             // notify error to user
                             if( resource.getStatus() == Status.ERROR) {
                                 new MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(android.R.string.dialog_alert_title)
                                         .setMessage(ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG) )
                                         .setPositiveButton(android.R.string.ok, null)
                                         .show();
@@ -377,7 +379,10 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                     });
                 })
                 .setNegativeButton(android.R.string.no, null )
-                .setTitle(R.string.option_remove_entry)
+                .setTitle(getString(R.string.dialog_title,
+                        getString(android.R.string.dialog_alert_title),
+                        getString(R.string.pantry_action_remove)
+                ))
                 .setMessage(R.string.pantry_action_remove_description)
                 .setOnDismissListener(dialogInterface -> {
                     // remove observers used for this dialog

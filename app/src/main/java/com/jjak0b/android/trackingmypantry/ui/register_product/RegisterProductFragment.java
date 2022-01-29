@@ -214,6 +214,7 @@ public class RegisterProductFragment extends Fragment {
                     String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), error, TAG);
 
                     new AlertDialog.Builder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
                             .setMessage(errorMsg)
                             .setPositiveButton(android.R.string.ok, null)
                             .setNeutralButton(R.string.action_retry, (dialog, which) -> {
