@@ -12,4 +12,7 @@
     <color name="cell_background_color">#ffffff</color>
     <color name="header_line_color">#0a0a0a</color>
     <color name="table_view_default_text_color">#0a0a0a</color>
+    <color name="loading_color_start">#007DD6</color>
+    <color name="loading_color_center">#007DD6</color>
+    <color name="loading_color_end">#007DD6</color>
 </resources>
