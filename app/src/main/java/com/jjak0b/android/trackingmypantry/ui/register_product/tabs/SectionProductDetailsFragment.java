@@ -216,7 +216,7 @@ public class SectionProductDetailsFragment extends Fragment {
         if(hasFeatureCamera){
             barcodeInputLayout.setEndIconOnClickListener( v -> {
                 boolean hasPermissions = new Permissions.FeatureRequestBuilder()
-                        .setRationaleMessage(R.string.menu_register_product_action_scan)
+                        .setRationaleMessage(R.string.rationale_msg_features_scan)
                         .setOnPositive(requestScanCameraPermissionsLauncher, new String[]{ Manifest.permission.CAMERA} )
                         .show(requireContext());
                 if( hasPermissions ){

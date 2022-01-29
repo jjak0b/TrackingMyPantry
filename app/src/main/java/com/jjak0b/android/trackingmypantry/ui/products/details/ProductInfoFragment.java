@@ -98,7 +98,7 @@ public class ProductInfoFragment extends Fragment {
         else {
             photoPreviewBtn.setOnClickListener(v -> {
                 boolean hasPermissions = new Permissions.FeatureRequestBuilder()
-                        .setRationaleMessage(R.string.register_product_take_photo)
+                        .setRationaleMessage(R.string.rationale_msg_features_take_photo)
                         .setOnPositive(requestCameraPermissionsLauncher, new String[]{Manifest.permission.CAMERA} )
                         .show(requireContext());
                 if( hasPermissions ){
