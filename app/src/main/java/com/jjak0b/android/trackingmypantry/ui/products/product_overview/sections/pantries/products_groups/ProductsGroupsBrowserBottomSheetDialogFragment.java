@@ -38,6 +38,7 @@ import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.LoadUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.QuantityPickerBuilder;
 import com.jjak0b.android.trackingmypantry.ui.util.SelectItemDialogBuilder;
 import com.jjak0b.android.trackingmypantry.util.Callback;
@@ -107,7 +108,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                     }
                     break;
                 default:
-                    toolbar.setLogo(R.drawable.loading_spinner);
+                    toolbar.setLogo(LoadUtil.getProgressLoader(requireContext()));
                     toolbar.setSubtitle(null);
                     break;
             }

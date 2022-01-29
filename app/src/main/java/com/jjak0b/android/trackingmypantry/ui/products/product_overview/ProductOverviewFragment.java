@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,12 +32,14 @@ import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
+import com.jjak0b.android.trackingmypantry.ui.util.LoadUtil;
 
 public class ProductOverviewFragment extends Fragment {
 
     private ProductOverviewViewModel mViewModel;
     private SharedProductViewModel mSharedViewModelForNav;
     private SharedProductViewModel mSharedViewModel;
+    private Drawable LOADING_PLACEHOLDER;
 
     private final static String TAG = "ProductOverview";
     public static ProductOverviewFragment newInstance() {
@@ -59,6 +62,7 @@ public class ProductOverviewFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        LOADING_PLACEHOLDER = LoadUtil.getProgressLoader(requireContext());
         final BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_nav);
         final FloatingActionButton fab_add = view.findViewById(R.id.fab_add);
         final ImageView appBarImage = view.findViewById(R.id.app_bar_image);
@@ -81,7 +85,7 @@ public class ProductOverviewFragment extends Fragment {
             Glide.with(view)
                     .load(imgURI)
                     .fitCenter()
-                    .placeholder(R.drawable.loading_spinner)
+                    .placeholder(LOADING_PLACEHOLDER)
                     .fallback(R.drawable.ic_baseline_product_placeholder)
                     .into(appBarImage);
 

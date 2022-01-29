@@ -3,6 +3,7 @@ package com.jjak0b.android.trackingmypantry.ui.products.details;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -26,6 +27,7 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.ui.util.ImageUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.LoadUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 public class ProductInfoFragment extends Fragment {
@@ -33,11 +35,10 @@ public class ProductInfoFragment extends Fragment {
     protected ProductInfoViewModel mViewModel;
     protected ActivityResultLauncher<Void> takePictureLauncher;
     protected ActivityResultLauncher<String[]> requestCameraPermissionsLauncher;
-    @DrawableRes
-    protected static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
+
     @DrawableRes
     protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
-
+    protected Drawable LOADING_PLACEHOLDER;
 
     public static ProductInfoFragment newInstance() {
         return new ProductInfoFragment();
@@ -50,6 +51,7 @@ public class ProductInfoFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mViewModel = initViewModel();
 
         takePictureLauncher = registerForActivityResult( new ImageUtil.ActivityResultContractTakePicture(), result -> {
@@ -75,6 +77,7 @@ public class ProductInfoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        LOADING_PLACEHOLDER = LoadUtil.getProgressLoader(requireContext());
         final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
         final EditText editBarcode = (EditText) view.findViewById(R.id.editTextBarcode);
         final TextInputLayout nameInputLayout = view.findViewById(R.id.productNameInputLayout);
@@ -163,7 +166,7 @@ public class ProductInfoFragment extends Fragment {
             Glide.with(view)
                     .load(resource.getData())
                     .fitCenter()
-                    .placeholder(RESOURCE_LOADING_PRODUCT_IMG)
+                    .placeholder(LOADING_PLACEHOLDER)
                     .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
                     .into(photoPreview);
         });

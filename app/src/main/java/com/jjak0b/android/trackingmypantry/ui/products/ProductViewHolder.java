@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.products;
 
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,22 +20,23 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.ui.util.LoadUtil;
 
 import java.util.List;
 
 public class ProductViewHolder extends RecyclerView.ViewHolder  {
 
     @DrawableRes
-    protected static final int RESOURCE_LOADING_PRODUCT_IMG = R.drawable.loading_spinner;
-    @DrawableRes
     protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
     private TextView title;
     private TextView description;
     private ImageView image;
     private ChipGroup tags;
+    private Drawable LOADING_PLACEHOLDER;
 
     public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
+        LOADING_PLACEHOLDER = LoadUtil.getProgressLoader(itemView.getContext());
         title = itemView.findViewById(R.id.cardTitle);
         description = itemView.findViewById(R.id.cardDescription);
         image = itemView.findViewById(R.id.cardThumbnail);
@@ -51,7 +53,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder  {
             .with(itemView)
             .load(product.getImg())
             .fitCenter()
-            .placeholder(RESOURCE_LOADING_PRODUCT_IMG)
+            .placeholder(LOADING_PLACEHOLDER)
             .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
             .into(image);
 
