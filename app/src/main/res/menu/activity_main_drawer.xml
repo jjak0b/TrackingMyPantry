@@ -12,6 +12,10 @@
             android:id="@+id/nav_products"
             android:icon="@drawable/ic_baseline_product_placeholder"
             android:title="@string/menu_products" />
-
+        <item
+            android:id="@+id/nav_settings"
+            android:title="@string/action_settings"
+            android:icon="@drawable/ic_baseline_settings"
+        />
     </group>
 </menu>
