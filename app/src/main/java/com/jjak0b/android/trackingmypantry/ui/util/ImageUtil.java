@@ -16,18 +16,10 @@ import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.android.gms.common.api.Api;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
-import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
-import com.jjak0b.android.trackingmypantry.data.api.NetworkBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
-import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
-import retrofit2.Response;
 
 public class ImageUtil
 {
@@ -44,10 +36,10 @@ public class ImageUtil
     }
 
     @WorkerThread
-    public static String convert(Bitmap bitmap)
+    public static String convert(Bitmap bitmap, int quality)
     {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, outputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
 
 
         return "data:image/jpeg;base64," + Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
@@ -70,11 +62,15 @@ public class ImageUtil
 
 
     public static LiveData<Resource<String>> getURI(Bitmap bitmap) {
+        return getURI(bitmap, 100);
+    }
+
+    public static LiveData<Resource<String>> getURI(Bitmap bitmap, int quality) {
         AppExecutors appExecutors = AppExecutors.getInstance();
         MutableLiveData<Resource<String>> mURI = new MutableLiveData<>(Resource.loading(null));
         appExecutors.networkIO().execute(() -> {
             try {
-                mURI.postValue(Resource.success(convert(bitmap)));
+                mURI.postValue(Resource.success(convert(bitmap, quality)));
             }
             catch (Throwable e) {
                 mURI.postValue(Resource.error(e, null));
