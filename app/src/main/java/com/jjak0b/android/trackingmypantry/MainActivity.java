@@ -17,21 +17,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.navigation.NavigationView;
-import com.jjak0b.android.trackingmypantry.data.api.AuthException;
-import com.jjak0b.android.trackingmypantry.data.api.Resource;
-import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
-import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
-import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
-import com.jjak0b.android.trackingmypantry.services.Authenticator;
-import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
-import com.jjak0b.android.trackingmypantry.ui.products.product_overview.ProductOverviewFragmentArgs;
-import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -39,10 +31,17 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
+
+import com.google.android.material.navigation.NavigationView;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.NotLoggedInException;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
+import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
+import com.jjak0b.android.trackingmypantry.services.Authenticator;
+import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
 import java.io.IOException;
 
@@ -245,14 +244,19 @@ public class MainActivity extends AppCompatActivity  {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+        // update toolbar data when requested by any destination through arguments
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            switch (destination.getId()){
-                case R.id.productOverviewFragment:
-                    getSupportActionBar().setSubtitle(ProductOverviewFragmentArgs.fromBundle(arguments).getSubtitle());
-                    break;
-                default:
-                    getSupportActionBar().setSubtitle(null);
-                    break;
+
+            String subtitle = null;
+            if( arguments != null ) {
+                subtitle = arguments.getString("subtitle");
+            }
+
+            if( subtitle != null ) {
+                getSupportActionBar().setSubtitle(subtitle);
+            }
+            else {
+                getSupportActionBar().setSubtitle(null);
             }
         });
     }
