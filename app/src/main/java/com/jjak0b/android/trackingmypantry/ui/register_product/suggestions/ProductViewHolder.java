@@ -45,7 +45,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
 
         Glide
             .with(itemView)
-            .load("https://i.picsum.photos/id/688/5000/5000.jpg")
+            .load(product.getImg())
             .fitCenter()
             .placeholder(LOADING_PLACEHOLDER)
             .fallback(RESOURCE_DEFAULT_PRODUCT_IMG)
