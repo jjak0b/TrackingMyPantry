@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="account_type" translatable="false">lam21.modron.network</string>
     <!-- Preferences defaults -->
-    <string name="enabled_feature_expiration_reminders_default">true</string>
-    <string name="feature_expiration_reminders_days_before_default">2</string>
-    <string name="feature_expiration_reminders_time_default">12:00</string>
+    <string name="enabled_feature_expiration_reminders_default" translatable="false">true</string>
+    <string name="feature_expiration_reminders_days_before_default" translatable="false">2</string>
+    <string name="feature_expiration_reminders_time_default" translatable="false">12:00</string>
 </resources>

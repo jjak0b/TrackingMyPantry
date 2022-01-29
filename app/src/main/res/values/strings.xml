@@ -1,10 +1,8 @@
 <resources>
+    <!-- tecnical strings -->
     <string name="app_name">Tracking My Pantry</string>
-    <string name="account_type">lam21.modron.network</string>
-    <string name="title_activity_browse_products_list_type">BrowseProductsListTypeActivity</string>
+
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="loading">Loading ...</string>
@@ -26,11 +24,11 @@
     <string name="signIn_failed">"Login failed using the provided credentials"</string>
     <string name="signUp_failed">"Unable to sign up using the provided credentials, change username or email"</string>
     <string name="auth_failed_network">"Unable to authenticate due to a network error"</string>
-    <string name="auth_failed_unknown">"Unable to authenticate due to an expected error"</string>
+    <string name="auth_failed_unknown">"Unable to authenticate due to an unexpected error"</string>
     <string name="error_generic_failed_auth">"Unable %1$s due to a failed authentication"</string>
     <string name="error_generic_failed_network">"Unable %1$s due to the inability to communicate with the server caused by a network error"</string>
-    <string name="error_generic_failed_unknown">"Unable %1$s due to an expected error"</string>
-    <string name="error_msg_type_cause">"%1$s: %2$s"</string>
+    <string name="error_generic_failed_unknown">"Unable %1$s due to an unexpected error"</string>
+    <string name="error_msg_type_cause" translatable="false">"%1$s: %2$s"</string>
     <string name="error_type_network">Network error</string>
     <string name="error_type_remote">Server error</string>
     <string name="error_type_authentication">Authentication Error</string>
@@ -45,11 +43,10 @@
     <string name="to_get_data">"to get data"</string>
     <string name="error_unable_to_take_picture">Error: Unable to take a picture</string>
 
-    <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_title" translatable="false">Account Name</string>
+    <string name="nav_header_subtitle" translatable="false">user.mail@domain</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
@@ -89,9 +86,6 @@
     <string name="register_product_tags">Assign custom tags</string>
     <string name="register_product_warning_product_replace">If you search for and then select another product of this type, you will replace the already registered information of this product.\nDo you want to continue ?</string>
     <string name="barcode">Barcode</string>
-    <string name="title_productinpantries_list">ProductsInPantries</string>
-    <string name="title_productinpantries_detail">ProductInPantries Detail</string>
-    <string name="title_activity_product_details">ProductDetailsActivity</string>
     <string name="tab_product_details">Product details</string>
     <string name="tab_product_instance_details">Articles details</string>
     <string name="tab_product_purchase_details">Purchase details</string>
@@ -108,7 +102,6 @@
     <string name="pantry_action_remove_description">This operation will delete all articles of each product contained in this pantry.\nAre you sure you want to continue ?</string>
     <string name="product_action_remove">Delete product</string>
     <string name="product_action_remove_description">This operation will delete all the information of this product and all its articles contained in each pantry.\nAre you sure you want to continue ?</string>
-    <string name="product_entry_removed_from_pantry">Product entry removed from the pantry</string>
     <string name="action_undo">Undo</string>
     <string name="action_retry">Retry</string>
     <string name="product_expiration">Product expiration</string>
@@ -138,7 +131,7 @@
     <string name="product_section_pantries">@string/pantries</string>
     <string name="product_section_pantry_overview">Pantry content</string>
     <string name="product_section_product_overview">Product overview</string>
-    <string name="product_section_edit_product_details">Edit product details</string>
+    <string name="product_section_edit_product_details">@string/action_edit_product</string>
     <string name="product_section_purchase_places">Purchase places</string>
     <string name="product_section_purchase_places_overview">Purchases history overview</string>
 
@@ -148,5 +141,5 @@
     <string name="field_error_empty">Field can\'t be empty</string>
     <string name="form_error_invalid">A field is not valid</string>
 
-    <string name="dialog_title">%1$s: %2$s</string>
+    <string name="dialog_title" translatable="false">%1$s: %2$s</string>
 </resources>
