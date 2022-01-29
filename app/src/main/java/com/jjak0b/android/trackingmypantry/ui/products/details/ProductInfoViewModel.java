@@ -24,12 +24,13 @@ import java.util.Objects;
 
 public class ProductInfoViewModel extends AndroidViewModel implements ISavable<UserProduct> {
     private final static int BITMAP_SIZE = 256;
+    private final static int BITMAP_COMPRESSION_QUALITY = 50;
     protected AppExecutors appExecutors;
 
     private MediatorLiveData<Resource<String>> barcode;
     private MediatorLiveData<Resource<String>> name;
     private MediatorLiveData<Resource<String>> description;
-    private MediatorLiveData<Resource<Bitmap>> image;
+    private MediatorLiveData<Resource<String>> image;
 
     private MutableLiveData<UserProduct> originalProduct;
 
@@ -73,20 +74,8 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
         this.image = new MediatorLiveData<>();
         this.image.setValue(Resource.success(null)); // optional
         this.image.addSource(originalProduct, input -> {
-            if( input != null && input.getImg() != null ) {
-                LiveData<Resource<Bitmap>> mBitmap = ImageUtil.getBitmap(input.getImg());
-                image.addSource(mBitmap, bitmapResource -> {
-                    switch (bitmapResource.getStatus()) {
-                        case ERROR:
-                            setImage(null);
-                            image.removeSource(mBitmap);
-                            break;
-                        case SUCCESS:
-                            image.removeSource(mBitmap);
-                            setImage(bitmapResource.getData());
-                            break;
-                    }
-                });
+            if( input != null ) {
+                setImage(input.getImg());
             }
         });
     }
@@ -145,16 +134,25 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
                 builder.setName(getName().getValue().getData());
                 builder.setDescription(getDescription().getValue().getData());
 
-                Bitmap bitmap = getImage().getValue().getData();
-                // scale current bitmap and encode as URI
-                LiveData<Resource<String>> resourceURI = bitmap != null ? Transformations.forward(
-                        Transformations.simulateApi(
-                                appExecutors.diskIO(),
-                                appExecutors.mainThread(),
-                                () -> Bitmap.createScaledBitmap(bitmap, BITMAP_SIZE, BITMAP_SIZE, true)
-                        ),
-                        resourceScaled -> ImageUtil.getURI(resourceScaled.getData())
-                ) : new MutableLiveData<>(Resource.success(null));
+                LiveData<Resource<String>> resourceURI = Transformations.forward(getImage(), resourceImageURI -> {
+                   // forward result if not changed
+                   if( Objects.equals(old.getImg(), resourceImageURI.getData() ) ) {
+                       return androidx.lifecycle.Transformations.map(getImage(), input -> input );
+                   }
+                   // scale current bitmap and encode as URI
+                   else {
+                       return Transformations.forward(ImageUtil.getBitmap(resourceImageURI.getData()), resourceBitmap -> {
+                           return Transformations.forward(
+                               Transformations.simulateApi(
+                                       appExecutors.diskIO(),
+                                       appExecutors.mainThread(),
+                                       () -> Bitmap.createScaledBitmap(resourceBitmap.getData(), BITMAP_SIZE, BITMAP_SIZE, true)
+                               ),
+                               resourceScaled -> ImageUtil.getURI(resourceScaled.getData(), BITMAP_COMPRESSION_QUALITY )
+                           );
+                       });
+                   }
+                });
 
                 onSaved.addSource(resourceURI, resource -> {
                     if (resource.getStatus() != Status.LOADING) {
@@ -244,14 +242,27 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
         }
     }
 
-    public LiveData<Resource<Bitmap>> getImage() {
+    public LiveData<Resource<String>> getImage() {
         return image;
     }
 
-    public void setImage(Bitmap image) {
-        if( !Objects.equals(this.image.getValue().getData(), image) ) {
-            this.image.setValue(Resource.success(image));
+    public void setImage(String imageUri ){
+        if( !Objects.equals(this.image.getValue().getData(), imageUri) ) {
+            this.image.setValue(Resource.success(imageUri));
             updateValidity();
         }
+    }
+    public void setImage(Bitmap image) {
+        LiveData<Resource<String>> mURI = ImageUtil.getURI(image);
+        this.image.addSource(mURI, resource -> {
+            if( resource.getStatus() == Status.LOADING ) {
+                this.image.setValue(resource);
+            }
+            else {
+                this.image.removeSource(mURI);
+                this.image.setValue(resource);
+                updateValidity();
+            }
+        });
     }
 }
