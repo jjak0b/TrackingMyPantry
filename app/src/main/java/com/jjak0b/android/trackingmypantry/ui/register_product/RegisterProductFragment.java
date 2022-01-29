@@ -45,17 +45,11 @@ public class RegisterProductFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String barcode = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
 
         mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
         mSharedViewModel.setupNew();
-
-        if( barcode != null ) {
-            mProductPickerViewModel.setItemSource(mSharedViewModel.getMyProduct(barcode));
-            mSharedViewModel.saveProductDetails();
-        }
     }
 
     @Override
@@ -68,6 +62,11 @@ public class RegisterProductFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        String barcode = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
+        if( barcode != null ) {
+            mProductPickerViewModel.setItemSource(mSharedViewModel.getMyProduct(barcode));
+        }
 
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);
         Button nextBtn = view.findViewById( R.id.continueBtn );

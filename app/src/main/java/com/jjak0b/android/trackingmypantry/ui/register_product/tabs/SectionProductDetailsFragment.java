@@ -304,9 +304,8 @@ public class SectionProductDetailsFragment extends Fragment {
                     break;
             }
 
-            if( resource.getData() == null ) {
-                mSharedViewModel.setProductDetails(Resource.loading(null));
-            }
+            // This will notify The change to the mSharedViewModel
+            mViewModel.save();
         });
 
         // on product picked
