@@ -107,12 +107,18 @@ public class ProductOverviewFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_remove:
-                onActionRemove();
+            case R.id.action_remove: onActionRemove();
+                return true;
+            case R.id.action_edit: onActionEdit();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void onActionEdit() {
+        Navigation.findNavController(requireView())
+                .navigate(ProductOverviewFragmentDirections.actionEditProductDetails());
     }
 
     private void onActionAdd() {
