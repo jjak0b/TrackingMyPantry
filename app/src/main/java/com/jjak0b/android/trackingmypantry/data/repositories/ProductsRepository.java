@@ -413,27 +413,39 @@ public class ProductsRepository {
                         break;
                 }
 
-                if( shouldAddLocally ) {
-                    // insert to local
-                    mAppExecutors.diskIO().execute(() -> {
-                        productDao.updateOrInsert(resourceFetched.getData());
-                    });
-
+                if( !shouldAddLocally ) {
+                    // just forward the result
+                    mResult.setValue(resourceFetched);
+                }
+                else {
                     // attach local live data source as live data response
                     LiveData<Resource<UserProduct>> mLocalSource = new IOBoundResource<UserProduct>(mAppExecutors) {
+                        // insert to local
+                        @Override
+                        protected void saveCallResult(UserProduct item) {
+                            productDao.updateOrInsert(item);
+                        }
+
+                        @Override
+                        protected boolean shouldFetch(@Nullable UserProduct data) {
+                            return true;
+                        }
+
                         @Override
                         protected LiveData<UserProduct> loadFromDb() {
                             return productDao.get(product.getBarcode(), product.getUserOwnerId());
                         }
+
+                        @Override
+                        protected LiveData<ApiResponse<UserProduct>> createCall() {
+                            return Transformations.adapt(new MutableLiveData<>(resourceFetched));
+                        }
                     }.asLiveData();
+
                     // detach this source
                     mResult.removeSource(mFetchedSource);
                     // attach local source
                     mResult.addSource(mLocalSource, mResult::setValue );
-                }
-                else {
-                    // just forward the result
-                    mResult.setValue(resourceFetched);
                 }
             });
 
