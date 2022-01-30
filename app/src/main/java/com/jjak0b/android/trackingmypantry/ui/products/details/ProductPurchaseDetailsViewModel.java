@@ -46,14 +46,15 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
         setPurchasePlace(null);
     }
 
-    private boolean updateValidity() {
+    private boolean updateValidity(boolean updateSavable) {
         boolean isValid = true;
 
         isValid = isValid && Transformations.onValid(getCost().getValue(), null);
         isValid = isValid && Transformations.onValid(getPurchasePlace().getValue(), null);
         isValid = isValid && Transformations.onValid(getPurchaseDate().getValue(), null);
 
-        savable.enableSave(isValid);
+        if( updateSavable )
+            savable.enableSave(isValid);
         return isValid;
     }
 
@@ -64,7 +65,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     public void setCost(float cost) {
         if(!Objects.equals(cost, this.mCost.getValue().getData())) {
             this.mCost.setValue(Resource.success(cost));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -91,7 +92,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
 
         if(!Objects.equals(purchaseDate, this.mPurchaseDate.getValue().getData())) {
             this.mPurchaseDate.setValue(Resource.success(purchaseDate));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -102,7 +103,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     public void setPurchasePlace(Place purchasePlace) {
         if(!Objects.equals(purchasePlace, this.mPurchasePlace.getValue().getData())) {
             this.mPurchasePlace.setValue(Resource.success(purchasePlace));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -118,7 +119,6 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
 
     @Override
     public void save() {
-        savable.save();
 
         savable.onSaved().removeSource(savable.onSave());
         savable.onSaved().addSource(savable.onSave(), aBoolean -> {
@@ -128,7 +128,7 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
             }
             savable.onSaved().removeSource(savable.onSave());
             savable.setSavedResult(Resource.loading(null));
-            if( updateValidity() ) {
+            if( updateValidity(false) ) {
                 PurchaseInfoWithPlace purchaseInfoWPlace = new PurchaseInfoWithPlace();
                 purchaseInfoWPlace.place = getPurchasePlace().getValue().getData();
                 purchaseInfoWPlace.info = new PurchaseInfo(
@@ -145,6 +145,8 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
                 ));
             }
         });
+
+        savable.save();
     }
 
     @Override

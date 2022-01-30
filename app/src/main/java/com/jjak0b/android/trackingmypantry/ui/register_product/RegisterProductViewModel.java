@@ -227,7 +227,6 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
 
     @Override
     public void save() {
-        savable.save();
 
         savable.onSaved().removeSource(savable.onSave());
         savable.onSaved().addSource(savable.onSave(), aBoolean -> {
@@ -276,6 +275,8 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
                 );
             }
         });
+
+        savable.save();
     }
 
     @Override

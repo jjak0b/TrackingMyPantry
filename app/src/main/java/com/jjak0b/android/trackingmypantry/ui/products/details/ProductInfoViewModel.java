@@ -92,7 +92,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
         savable.enableSave(enable);
     }
 
-    public boolean updateValidity() {
+    public boolean updateValidity(boolean updateSavable) {
         boolean isValid = true;
 
         isValid = isValid && Transformations.onValid(getBarcode().getValue(), null);
@@ -100,7 +100,8 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
         isValid = isValid && Transformations.onValid(getDescription().getValue(), null);
         isValid = isValid && Transformations.onValid(getImage().getValue(), null);
 
-        savable.enableSave(isValid);
+        if( updateSavable )
+            savable.enableSave(isValid);
         return isValid;
     }
 
@@ -116,8 +117,6 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
         LiveData<Boolean> onSave = this.onSave();
         MediatorLiveData<Resource<UserProduct>> onSaved = savable.onSaved();
 
-        savable.save();
-
         onSaved.addSource(onSave, isSaving -> {
             if( isSaving ){
                 savable.setSavedResult(Resource.loading(null));
@@ -125,10 +124,19 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
             }
             onSaved.removeSource(onSave);
 
+            if( !updateValidity(false) ) {
+                savable.setSavedResult(Resource.error(
+                        new FormException(
+                                getApplication().getString(R.string.form_error_invalid)
+                        ),
+                        null
+                ));
+                return;
+            }
             onSaved.addSource(getProduct(), old -> {
                 onSaved.removeSource(getProduct());
 
-                UserProduct builder = new UserProduct(old);
+                UserProduct builder = old != null ? new UserProduct(old) : new UserProduct();
 
                 builder.setBarcode(getBarcode().getValue().getData());
                 builder.setName(getName().getValue().getData());
@@ -136,7 +144,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
 
                 LiveData<Resource<String>> resourceURI = Transformations.forward(getImage(), resourceImageURI -> {
                    // forward result if not changed
-                   if( Objects.equals(old.getImg(), resourceImageURI.getData() ) ) {
+                   if( resourceImageURI.getData() == null || (old != null && Objects.equals(old.getImg(), resourceImageURI.getData() )) ) {
                        return androidx.lifecycle.Transformations.map(getImage(), input -> input );
                    }
                    // scale current bitmap and encode as URI
@@ -163,6 +171,8 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
                 });
             });
         });
+
+        savable.save();
     }
 
     public MediatorLiveData<Boolean> onSave() {
@@ -200,7 +210,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
             else {
                 this.barcode.setValue(Resource.success(barcode));
             }
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -225,7 +235,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
             else {
                 this.name.setValue(Resource.success(name));
             }
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -238,7 +248,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
             this.description.setValue(Resource.loading(description));
             // String checkDescription = description != null ? description.trim() : null;
             this.description.setValue(Resource.success(description));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -249,7 +259,7 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
     public void setImage(String imageUri ){
         if( !Objects.equals(this.image.getValue().getData(), imageUri) ) {
             this.image.setValue(Resource.success(imageUri));
-            updateValidity();
+            updateValidity(true);
         }
     }
     public void setImage(Bitmap image) {
@@ -261,8 +271,8 @@ public class ProductInfoViewModel extends AndroidViewModel implements ISavable<U
             else {
                 this.image.removeSource(mURI);
                 this.image.setValue(resource);
-                updateValidity();
             }
+            updateValidity(true);
         });
     }
 }

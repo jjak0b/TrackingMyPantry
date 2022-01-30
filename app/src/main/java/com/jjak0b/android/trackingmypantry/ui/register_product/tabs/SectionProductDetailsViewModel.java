@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.api.IOBoundResource;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
@@ -36,7 +35,6 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
     private AppExecutors appExecutors;
     private ProductsRepository productsRepository;
     private Savable<ProductWithTags> savable;
-    private LiveData<Resource<List<ProductTag>>> mProductTagsSource;
     private LiveData<Resource<List<ProductTag>>> mProductTagsDefaultSource;
     public SectionProductDetailsViewModel(Application application) {
         super(application);
@@ -51,42 +49,22 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         mSuggestionsTags = productsRepository.getTags();
 
         // override assigned tags on barcode change, with the ones assigned to existing product
-        final MutableLiveData<List<ProductTag>> mTags  = new MutableLiveData<>(new ArrayList<>(0));
-        LiveData<Resource<List<ProductTag>>> mAssignedTagsOnBarcode =
-                Transformations.forward(getBarcode(), resource -> {
-                    String barcode = resource.getData();
-                    return Transformations.forwardOnce(productsRepository.getDetails(barcode), detailsResource -> {
-                        ProductWithTags details = detailsResource.getData();
-                        if( details != null ) {
-                            mTags.setValue(details.tags);
-                            return IOBoundResource.adapt(appExecutors, mTags );
-                        }
-                        else {
-                            return mProductTagsDefaultSource;
-                        }
-                    });
-                });
-
-        setProductTagsSource(mAssignedTagsOnBarcode);
+        LiveData<Resource<ProductWithTags>> mDetails = Transformations.forward(getBarcode(), resource -> {
+            String barcode = resource.getData();
+            return productsRepository.getDetails(barcode);
+        });
+        mAssignedTags.addSource(mDetails, resource -> {
+            if( resource.getStatus() == Status.SUCCESS ) {
+                if( resource.getData() != null)
+                    setAssignedTags(resource.getData().tags);
+                else
+                    setAssignedTags(mProductTagsDefaultSource.getValue().getData());
+            }
+        });
 
         savable.enableSave(false);
         reset();
     }
-
-    private void setProductTagsSource(LiveData<Resource<List<ProductTag>>> source ) {
-        if( mProductTagsSource != null ) {
-            mAssignedTags.removeSource(mProductTagsSource);
-        }
-        if( source == null ) source = mProductTagsDefaultSource;
-
-        mProductTagsSource = source;
-
-        mAssignedTags.addSource(source, resource -> {
-            mAssignedTags.setValue(resource);
-        });
-    }
-
-
 
     @Override
     protected void onCleared() {
@@ -125,7 +103,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
             else {
                 mBarcode.setValue(Resource.success(barcode));
             }
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -143,7 +121,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
                 mProduct.setValue(Resource.success(product));
             }
         }
-        updateValidity();
+        updateValidity(true);
     }
 
     public void setProduct(ProductWithTags productWithTags) {
@@ -165,7 +143,7 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         if(!Objects.equals(tags, mAssignedTags.getValue().getData())) {
             mAssignedTags.setValue(Resource.loading(tags));
             mAssignedTags.setValue(Resource.success(tags));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -177,14 +155,15 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         setProduct((ProductWithTags) null);
     }
 
-    private boolean updateValidity() {
+    private boolean updateValidity(boolean updateSavable) {
         boolean isValid = true;
 
         isValid = isValid && Transformations.onValid(getBarcode().getValue(), null);
         isValid = isValid && Transformations.onValid(getProduct().getValue(), null);
         isValid = isValid && Transformations.onValid(getAssignedTags().getValue(), null);
 
-        savable.enableSave(isValid);
+        if( updateSavable )
+            savable.enableSave(isValid);
         return isValid;
     }
 
@@ -204,7 +183,6 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
 
     @Override
     public void save() {
-        savable.save();
 
         savable.onSaved().removeSource(savable.onSave());
         savable.onSaved().addSource(savable.onSave(), isSaving -> {
@@ -225,7 +203,8 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
                     savable.onSaved().removeSource(mPair);
 
                     boolean isValid = resourceResourcePair.first.getStatus() == Status.SUCCESS
-                            && resourceResourcePair.second.getStatus() == Status.SUCCESS;
+                            && resourceResourcePair.second.getStatus() == Status.SUCCESS
+                            && updateValidity(false);
 
                     if( isValid ) {
                         ProductWithTags result = new ProductWithTags();
@@ -244,6 +223,8 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
                 }
             });
         });
+
+        savable.save();
     }
 
     @Override

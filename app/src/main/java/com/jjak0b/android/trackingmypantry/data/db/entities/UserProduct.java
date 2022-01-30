@@ -122,6 +122,11 @@ public class UserProduct {
         this(p.remote_id, p.barcode, p.name, p.description, p.img, p.userCreatorId, p.createdAt, p.updatedAt, p.userOwnerId);
     }
 
+    @Ignore
+    public UserProduct() {
+        this(null, null, null);
+    }
+
     public String getRemote_id() {
         return remote_id;
     }
@@ -201,7 +206,7 @@ public class UserProduct {
                 ", userOwnerId='" + userOwnerId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", img='" + img + '\'' +
+                ", img='" + (String.valueOf(img).length() < 20 ? img : String.valueOf(img).substring(0, 20)  ) + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';

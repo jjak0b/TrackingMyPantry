@@ -114,22 +114,23 @@ public class SectionProductDetailsFragment extends Fragment {
 
     public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
-            // Log.d(TAG, "canSave=" +canSave);
-            if( canSave ) getViewModel().save();
+            Log.d(TAG, "trigger autosave");
+            getViewModel().save();
         });
 
         mSharedViewModel.onSaveProductDetails().observe(getViewLifecycleOwner(), isSaving -> {
             if( !isSaving ) return;
             Log.d(TAG, "force saving");
-            getViewModel().save();
+
+            // close any open keyboard
+            InputUtil.hideKeyboard(requireActivity());
+
+            // getViewModel().save();
         });
 
         getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
             Log.d(TAG, "isSaving=" +shouldSave);
             if( !shouldSave ) return;
-
-            // close any open keyboard
-            InputUtil.hideKeyboard(requireActivity());
 
             getViewModel().saveComplete();
         });
@@ -304,8 +305,6 @@ public class SectionProductDetailsFragment extends Fragment {
                     break;
             }
 
-            // This will notify The change to the mSharedViewModel
-            mViewModel.save();
         });
 
         // on product picked

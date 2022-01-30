@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
 public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetailsFragment {
 
@@ -44,13 +45,22 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
 
     @Override
     public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         mSharedViewModel.onSavePurchaseDetails().observe(getViewLifecycleOwner(), isSaving -> {
             if( !isSaving  ) return;
             Log.d(TAG, "force saving");
+
+            // close any open keyboard
+            InputUtil.hideKeyboard(requireActivity());
+
+            // getViewModel().save();
+        });
+
+        getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
+            Log.d(TAG, "trigger autosave");
             getViewModel().save();
         });
 
-        super.setupSave(view, savedInstanceState );
         getViewModel().onSave().observe( getViewLifecycleOwner(), isSaving -> {
             Log.d(TAG, "isSaving=" +isSaving);
             if( !isSaving ) return;

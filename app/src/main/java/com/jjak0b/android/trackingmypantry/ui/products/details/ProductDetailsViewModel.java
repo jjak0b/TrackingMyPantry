@@ -176,9 +176,10 @@ public class ProductDetailsViewModel extends ProductInfoViewModel {
     }
 
     @Override
-    public boolean updateValidity() {
-        boolean isValid = super.updateValidity() && Transformations.onValid(getAssignedTags().getValue(), null );
-        savable.enableSave(isValid);
+    public boolean updateValidity(boolean updateSavable) {
+        boolean isValid = super.updateValidity(updateSavable) && Transformations.onValid(getAssignedTags().getValue(), null );
+        if( updateSavable )
+            savable.enableSave(isValid);
         return isValid;
     }
 
@@ -197,7 +198,7 @@ public class ProductDetailsViewModel extends ProductInfoViewModel {
         if(!Objects.equals(tags, mAssignedTags.getValue().getData())) {
             mAssignedTags.setValue(Resource.loading(tags));
             mAssignedTags.setValue(Resource.success(tags));
-            updateValidity();
+            updateValidity(true);
         }
     }
 

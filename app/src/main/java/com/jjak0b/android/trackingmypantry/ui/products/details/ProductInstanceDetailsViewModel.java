@@ -51,14 +51,16 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
         reset();
     }
 
-    boolean updateValidity() {
+    boolean updateValidity(boolean updateSavable) {
         boolean isValid = true;
 
         isValid = isValid && Transformations.onValid(getPantry().getValue(), null);
         isValid = isValid && Transformations.onValid(getQuantity().getValue(), null);
         isValid = isValid && Transformations.onValid(getExpireDate().getValue(), null);
 
-        savable.enableSave(isValid);
+        if( updateSavable )
+            savable.enableSave(isValid);
+
         return isValid;
     }
 
@@ -83,7 +85,6 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
 
     @Override
     public void save() {
-        savable.save();
 
         savable.onSaved().removeSource(savable.onSave());
         savable.onSaved().addSource(savable.onSave(), aBoolean -> {
@@ -93,7 +94,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
             }
             savable.onSaved().removeSource(savable.onSave());
             savable.setSavedResult(Resource.loading(null));
-            if( updateValidity() ) {
+            if( updateValidity(false) ) {
                 ProductInstanceGroupInfo info = new ProductInstanceGroupInfo();
                 info.pantry = getPantry().getValue().getData();
 
@@ -110,6 +111,8 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
                 ));
             }
         });
+
+        savable.save();
     }
 
     public void reset() {
@@ -138,7 +141,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
             else {
                 this.mPantry.setValue(Resource.success(pantry));
             }
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -151,7 +154,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
 
         if(!Objects.equals(quantity, this.mQuantity.getValue().getData())) {
             this.mQuantity.setValue(Resource.success(quantity));
-            updateValidity();
+            updateValidity(true);
         }
     }
 
@@ -171,7 +174,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
 
         if(!Objects.equals(expireDate, this.mExpireDate.getValue().getData())) {
             this.mExpireDate.setValue(Resource.success(expireDate));
-            updateValidity();
+            updateValidity(true);
         }
     }
 }
