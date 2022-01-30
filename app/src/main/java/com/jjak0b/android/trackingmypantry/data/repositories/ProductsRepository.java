@@ -334,6 +334,8 @@ public class ProductsRepository {
      */
    private LiveData<Resource<UserProduct>> add(@NonNull UserProduct product) {
 
+       String barcode = product.getBarcode();
+       String ownerID = product.getUserOwnerId();
         return Transformations.forward(isProductInSearchList(product), isInListResource -> {
             boolean isInList = isInListResource.getData();
 
@@ -356,7 +358,7 @@ public class ProductsRepository {
                 protected void saveCallResult(CreateProduct item) {
                     // consume token
                     // mAppExecutors.mainThread().execute(() -> { unsetSearchResult(); });
-
+                    item.setUserOwnerId(ownerID);
                     mProduct.postValue(item);
                 }
 
@@ -407,7 +409,7 @@ public class ProductsRepository {
                         break;
                     case SUCCESS:
                         // add locally either when it's in the list or not
-                        shouldAddLocally = true;
+                        shouldAddLocally = resourceFetched.getData() != null;
                         break;
                     default:
                         break;
@@ -433,12 +435,16 @@ public class ProductsRepository {
 
                         @Override
                         protected LiveData<UserProduct> loadFromDb() {
-                            return productDao.get(product.getBarcode(), product.getUserOwnerId());
+                            return productDao.get(barcode, ownerID);
                         }
 
                         @Override
                         protected LiveData<ApiResponse<UserProduct>> createCall() {
-                            return Transformations.adapt(new MutableLiveData<>(resourceFetched));
+                            return Transformations.adapt(Transformations.simulateApi(
+                                mAppExecutors.diskIO(),
+                                mAppExecutors.mainThread(),
+                                resourceFetched::getData
+                            ));
                         }
                     }.asLiveData();
 
