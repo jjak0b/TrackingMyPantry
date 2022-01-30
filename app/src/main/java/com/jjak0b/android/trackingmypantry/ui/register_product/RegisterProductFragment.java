@@ -49,7 +49,6 @@ public class RegisterProductFragment extends Fragment {
         mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
-        mSharedViewModel.setupNew();
     }
 
     @Override

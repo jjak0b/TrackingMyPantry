@@ -64,7 +64,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
     @NonNull
     public SectionProductDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
+        return new ViewModelProvider(requireActivity()).get(SectionProductDetailsViewModel.class);
     }
 
     @NonNull

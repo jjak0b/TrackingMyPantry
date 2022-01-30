@@ -21,7 +21,7 @@ public class SectionProductInstanceDetailsFragment extends ProductInstanceDetail
     @Override
     @NonNull
     public ProductInstanceDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(SectionProductInstanceDetailsViewModel.class);
+        return new ViewModelProvider(requireActivity()).get(SectionProductInstanceDetailsViewModel.class);
     }
 
     @NonNull

@@ -161,7 +161,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
                     });
 
                     Navigation.findNavController(requireView())
-                            .navigate( NewProductFormFragmentDirections.onProductCreated() );
+                            .navigate( NewProductFormFragmentDirections.onProductCreated(null) );
                 }
                 else {
                     Log.w(TAG, "Should not return product to caller", resource.getError() );

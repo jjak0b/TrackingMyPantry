@@ -152,7 +152,8 @@
             app:argType="string" />
         <action
             android:id="@+id/onProductCreated"
-            app:popUpTo="@id/newProductFormFragment"
+            app:destination="@id/registerProductFragment"
+            app:popUpTo="@id/registerProductFragment"
             app:popUpToInclusive="true" />
     </fragment>
 

@@ -20,7 +20,7 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
 
     @Override
     public ProductPurchaseDetailsViewModel initViewModel() {
-        return new ViewModelProvider(this).get(SectionProductPurchaseDetailsViewModel.class);
+        return new ViewModelProvider(requireActivity()).get(SectionProductPurchaseDetailsViewModel.class);
     }
 
     @NonNull
