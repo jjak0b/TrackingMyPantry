@@ -497,6 +497,8 @@ public class ProductsRepository {
     public LiveData<Resource<ProductWithTags>> addDetails(@NonNull ProductWithTags data ) {
        return Transformations.forwardOnce(authRepository.getLoggedAccount(), rUser-> {
            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+           LiveData<ProductWithTags> dbSource = productDao.getDetails(data.product.getBarcode(), ownerID);
+
            return new NetworkBoundResource<ProductWithTags, ProductWithTags>(mAppExecutors) {
                 @Override
                 protected void saveCallResult(ProductWithTags item) {
@@ -517,7 +519,7 @@ public class ProductsRepository {
 
                 @Override
                 protected LiveData<ProductWithTags> loadFromDb() {
-                    return productDao.getDetails(data.product.getBarcode(), ownerID);
+                    return dbSource;
                 }
 
                 @Override
@@ -531,7 +533,9 @@ public class ProductsRepository {
     public LiveData<Resource<UserProduct>> remove(@NonNull UserProduct product) {
         return Transformations.forwardOnce(authRepository.getLoggedAccount(), rUser -> {
             String userId = rUser.getData() != null ? rUser.getData().getId() : null;
-            return Transformations.forwardOnce(IOBoundResource.adapt(mAppExecutors, productDao.get(product.getBarcode(), userId) ), rProduct -> {
+            String barcode = product.getBarcode();
+            LiveData<Resource<UserProduct>> mProductSource = get(barcode);
+            return Transformations.forwardOnce(mProductSource, rProduct -> {
                 UserProduct data = rProduct.getData();
                 final MutableLiveData<UserProduct> mResult = new MutableLiveData<>(data);
 
@@ -539,26 +543,20 @@ public class ProductsRepository {
                         && data.getRemote_id() != null
                         && Objects.equals( data.getUserCreatorId(), userId );
 
-                if( !shouldFetch ) {
-                    Log.d(TAG, "Removing product only from local because user is not the creator");
-                    return Transformations.simulateApi(mAppExecutors.diskIO(), mAppExecutors.mainThread(), () -> {
-                       productDao.remove(data);
-                       return data;
-                    });
-                }
                 Log.d(TAG, "Removing product from local and remote");
                 // else remove also on remote
                 return new NetworkBoundResource<UserProduct, UserProduct>(mAppExecutors) {
 
                     @Override
                     protected void saveCallResult(UserProduct item) {
+                        item.setUserOwnerId(userId);
                         mResult.postValue(item);
                         productDao.remove(item);
                     }
 
                     @Override
                     protected boolean shouldFetch(@Nullable UserProduct data) {
-                        return true;
+                        return data != null;
                     }
 
                     @Override
@@ -574,7 +572,10 @@ public class ProductsRepository {
 
                     @Override
                     protected LiveData<ApiResponse<UserProduct>> createCall() {
-                        return dataSource.delete(data.getRemote_id());
+                        if( shouldFetch )
+                            return dataSource.delete(data.getRemote_id());
+                        else
+                            return Transformations.adapt(mProductSource);
                     }
                 }.asLiveData();
             });
