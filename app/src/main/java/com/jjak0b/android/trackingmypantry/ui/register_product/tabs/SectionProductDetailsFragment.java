@@ -89,7 +89,7 @@ public class SectionProductDetailsFragment extends Fragment {
             if( result.getResultCode() == Activity.RESULT_OK ) {
                 if( result.getData() != null ){
                     String barcode = result.getData().getStringExtra(BarcodeScannerActivity.BARCODE);
-                    mViewModel.setBarcode( barcode );
+                    search(barcode);
                 }
             }
         });
