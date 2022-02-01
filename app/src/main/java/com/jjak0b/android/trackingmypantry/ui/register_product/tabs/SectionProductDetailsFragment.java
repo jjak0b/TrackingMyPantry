@@ -181,8 +181,7 @@ public class SectionProductDetailsFragment extends Fragment {
         });
 
         getViewModel().getBarcode().observe(getViewLifecycleOwner(), resource -> {
-            editBarcode.setText(resource.getData());
-            editBarcode.setSelection(editBarcode.length());
+            InputUtil.setText(editBarcode, resource.getData());
 
             switch (resource.getStatus()) {
                 case LOADING:
@@ -331,8 +330,9 @@ public class SectionProductDetailsFragment extends Fragment {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     tagsInputLayout.setError(null);
+                    int selection = chipsInput.getSelectionEnd();
                     chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( resource.getData() ) );
-                    chipsInput.setSelection(chipsInput.getText().length());
+                    chipsInput.setSelection(Math.min(selection, chipsInput.getText().length()));
                     break;
                 case ERROR:
                     if( resource.getError() instanceof FormException){

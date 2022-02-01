@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.products.details;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,25 +75,13 @@ public class ProductInstanceDetailsFragment extends Fragment {
         TextInputLayout pantryInputLayout = view.findViewById( R.id.productPantryInputLayout);
         Calendar expireDateCalendar = Calendar.getInstance();
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
-        ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), android.R.layout.simple_spinner_dropdown_item);
-        pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
+        ArrayAdapter<Pantry> pantriesAdapter = new ArrayAdapter<>( requireContext(), android.R.layout.simple_spinner_dropdown_item);
+        pantryAutoCompleteSelector.setAdapter( pantriesAdapter );
 
-        quantityInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if( !hasFocus ){
-                int c;
-                try {
-                    c = Integer.parseInt(quantityInput.getText().toString());
-                }
-                catch (NumberFormatException e ){
-                    c = -1;
-                }
-
-
-                if( c <= 0 ){
-                    c = 1;
-                }
-                getViewModel().setQuantity(c);
-                quantityInput.setText( String.valueOf( c ) );
+        quantityInput.addTextChangedListener(new InputUtil.FieldTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                getViewModel().setQuantity(s.toString());
             }
         });
 
@@ -194,9 +183,7 @@ public class ProductInstanceDetailsFragment extends Fragment {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     quantityInputLayout.setError(null);
-                    String strValue = String.valueOf(resource.getData());
-                    quantityInput.setText(strValue);
-                    quantityInput.setSelection(strValue.length());
+                    InputUtil.setText(quantityInput, String.valueOf(resource.getData()));
                     break;
                 case ERROR:
                     quantityInputLayout.setError(resource.getError().getLocalizedMessage());

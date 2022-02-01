@@ -57,8 +57,9 @@ public class ProductDetailsFragment extends ProductInfoFragment {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     tagsInputLayout.setError(null);
+                    int selection = chipsInput.getSelectionEnd();
                     chipsInput.setTextWithChips( ChipTagUtil.newChipsInstanceFromTags( resource.getData() ) );
-                    chipsInput.setSelection(chipsInput.getText().length());
+                    chipsInput.setSelection(Math.min(selection, chipsInput.getText().length()));
                     break;
                 case ERROR:
                     if( resource.getError() instanceof FormException){

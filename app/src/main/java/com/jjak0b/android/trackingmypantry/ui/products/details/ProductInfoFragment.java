@@ -127,8 +127,7 @@ public class ProductInfoFragment extends Fragment {
         });
 
         mViewModel.getBarcode().observe(getViewLifecycleOwner(), resource -> {
-            editBarcode.setText(resource.getData());
-            editBarcode.setSelection(editBarcode.length());
+            InputUtil.setText(editBarcode, resource.getData());
             switch (resource.getStatus()) {
                 case ERROR:
                     barcodeInputLayout.setError(resource.getError().getLocalizedMessage());
@@ -139,8 +138,7 @@ public class ProductInfoFragment extends Fragment {
         });
 
         mViewModel.getName().observe(getViewLifecycleOwner(), resource -> {
-            editName.setText(resource.getData());
-            editName.setSelection(editName.length());
+            InputUtil.setText(editName, resource.getData());
             switch (resource.getStatus()) {
                 case ERROR:
                     nameInputLayout.setError(resource.getError().getLocalizedMessage());
@@ -151,8 +149,7 @@ public class ProductInfoFragment extends Fragment {
         });
 
         mViewModel.getDescription().observe(getViewLifecycleOwner(), resource -> {
-            editDescription.setText(resource.getData());
-            editDescription.setSelection(editDescription.length());
+            InputUtil.setText(editDescription, resource.getData());
             switch (resource.getStatus()) {
                 case ERROR:
                     descriptionInputLayout.setError(resource.getError().getLocalizedMessage());

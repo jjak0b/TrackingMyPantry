@@ -334,8 +334,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         viewModel.getName().observe(getViewLifecycleOwner(), resource -> {
             okBtn.setEnabled(resource.getStatus() == Status.SUCCESS );
 
-            editText.setText(resource.getData());
-            editText.setSelection(editText.length());
+            InputUtil.setText(editText, resource.getData());
 
             switch (resource.getStatus()) {
                 case LOADING:

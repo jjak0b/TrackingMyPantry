@@ -137,20 +137,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         editPurchaseCost.addTextChangedListener(new InputUtil.FieldTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
-                float cost;
-                if( s.toString() == null ){
-                    cost = 0f;
-                }
-                else {
-                    try {
-                        cost = Float.parseFloat( s.toString() );
-                    }
-                    catch (NumberFormatException e ) {
-                        cost = 0f;
-                    }
-                }
-
-                getViewModel().setCost( cost );
+                getViewModel().setCost( s.toString() );
             }
         });
 
@@ -167,8 +154,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                     Place place = resource.getData();
                     if( place != null && place.getName() != null ) {
                         String placeName = place.getName();
-                        editPurchaseLocation.setText(placeName);
-                        editPurchaseLocation.setSelection(placeName.length());
+                        InputUtil.setText(editPurchaseLocation, placeName);
                     }
                     else {
                         editPurchaseLocation.setText(null);
@@ -190,7 +176,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                 case SUCCESS:
                     purchaseDateLayout.setError(null);
                     Date date = resource.getData();
-                    editPurchaseDate.setText( dateFormat.format( date ) );
+                    InputUtil.setText(editPurchaseDate, dateFormat.format( date ));
                     calendar.setTime(date);
                     break;
                 default:
@@ -208,7 +194,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
                     break;
                 case SUCCESS:
                     purchaseCostLayout.setError(null);
-                    editPurchaseCost.setText( String.valueOf( resource.getData() ) );
+                    InputUtil.setText(editPurchaseCost, String.valueOf( resource.getData() ) );
                     break;
             }
         });
