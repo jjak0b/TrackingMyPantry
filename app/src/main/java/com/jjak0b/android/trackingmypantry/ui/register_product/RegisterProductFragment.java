@@ -72,7 +72,7 @@ public class RegisterProductFragment extends Fragment {
         TabLayout tabs = view.findViewById( R.id.tabs );
 
         ProductInfoSectionsPagerAdapter productInfoSectionsPagerAdapter =
-            new ProductInfoSectionsPagerAdapter(requireActivity()) {
+            new ProductInfoSectionsPagerAdapter(this) {
                 @NonNull
                 @Override
                 public Fragment createFragment(int position) {
@@ -105,7 +105,7 @@ public class RegisterProductFragment extends Fragment {
                 saveOnChangePage(prevIndex);
             }
 
-            tabs.selectTab( tabs.getTabAt( index ) );
+            viewPager.setCurrentItem(index, true );
 
             boolean shouldEnableBtn = mPageViewModel.canSelectNextTab();
 
@@ -122,6 +122,11 @@ public class RegisterProductFragment extends Fragment {
 
         mPageViewModel.getMaxNavigableTabCount().observe( getViewLifecycleOwner(), count -> {
             nextBtn.setEnabled( mPageViewModel.canSelectNextTab() );
+
+            // This observer must be triggered due to a post otherwise
+            // the adapter will throw the "FragmentManager is already executing transactions" exception
+            // if doing a transaction and changing the page count at same time.
+            // example: https://stackoverflow.com/a/44116728
             productInfoSectionsPagerAdapter.setMaxEnabledTabs( count );
         });
 
@@ -129,10 +134,10 @@ public class RegisterProductFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if( mPageViewModel.canSelectNextTab() ){
-                    int nextIndex = tabs.getSelectedTabPosition() + 1;
+                    int nextIndex = viewPager.getCurrentItem() + 1;
                     mPageViewModel.setPageIndex( nextIndex );
                 }
-                else if( tabs.getSelectedTabPosition() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
+                else if( viewPager.getCurrentItem() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
                     mSharedViewModel.save();
                 }
             }
@@ -158,6 +163,8 @@ public class RegisterProductFragment extends Fragment {
         viewPager.setAdapter(productInfoSectionsPagerAdapter);
 
         // tabs.setupWithViewPager(viewPager);
+        viewPager.setOffscreenPageLimit(productInfoSectionsPagerAdapter.getAbsolutePageCount());
+
         new TabLayoutMediator(tabs, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {

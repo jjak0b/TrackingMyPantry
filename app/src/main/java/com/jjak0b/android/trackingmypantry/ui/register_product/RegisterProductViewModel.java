@@ -138,26 +138,27 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
 
     public void setProductDetails(Resource<ProductWithTags> resource) {
         mProductDetails.setValue(resource);
-        updateValidity();
+        updateValidity(true);
     }
 
     public void setInfoDetails(Resource<ProductInstanceGroupInfo> resource) {
         mProductGroupDetails.setValue(resource);
-        updateValidity();
+        updateValidity(true);
     }
 
     public void setPurchaseDetails(Resource<PurchaseInfoWithPlace> resource) {
         mProductPurchaseDetails.setValue(resource);
-        updateValidity();
+        updateValidity(true);
     }
 
-    private boolean updateValidity() {
+    private boolean updateValidity(boolean updateSavable) {
         boolean isValid = true;
         isValid = isValid && Transformations.onValid(mProductDetails.getValue(), null);
         isValid = isValid && Transformations.onValid(mProductGroupDetails.getValue(), null);
         isValid = isValid && Transformations.onValid(mProductPurchaseDetails.getValue(), null);
 
-        savable.enableSave(isValid);
+        if( updateSavable )
+            savable.enableSave(isValid);
         return isValid;
     }
 
@@ -238,7 +239,7 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
             Log.e(TAG, "end saving" );
             savable.onSaved().removeSource(savable.onSave());
 
-            if( updateValidity() ) {
+            if( updateValidity(false) ) {
                 LiveData<Resource<ProductWithTags>> add1 = addProductDetails();
                 LiveData<Resource<ProductInstanceGroup>> add2 = addProductGroupDetails(add1);
                 LiveData<Resource<PurchaseInfo>> add3 = addProductPurchaseDetails(add1);

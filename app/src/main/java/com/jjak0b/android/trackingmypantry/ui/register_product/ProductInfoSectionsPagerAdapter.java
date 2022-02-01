@@ -2,8 +2,12 @@ package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.annotation.SuppressLint;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.jjak0b.android.trackingmypantry.R;
@@ -22,11 +26,21 @@ public abstract class ProductInfoSectionsPagerAdapter extends FragmentStateAdapt
     };
     private int pageCount;
 
-    public ProductInfoSectionsPagerAdapter(FragmentActivity fragmentActivity) {
-        super(fragmentActivity);
-        this.pageCount = 1;
+
+    public ProductInfoSectionsPagerAdapter(@NonNull Fragment fragment) {
+        super(fragment);
+        setMaxEnabledTabs(1);
     }
 
+    public ProductInfoSectionsPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
+        super(fragmentActivity);
+        setMaxEnabledTabs(1);
+    }
+
+    public ProductInfoSectionsPagerAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
+        super(fragmentManager, lifecycle);
+        setMaxEnabledTabs(1);
+    }
 
     @StringRes
     public int getTabTitle(int index) {
