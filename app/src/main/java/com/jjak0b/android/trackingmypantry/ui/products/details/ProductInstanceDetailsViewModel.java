@@ -150,10 +150,30 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
     }
 
     public void setQuantity(int quantity) {
-        if( quantity <= 0 ) quantity = 1;
 
         if(!Objects.equals(quantity, this.mQuantity.getValue().getData())) {
-            this.mQuantity.setValue(Resource.success(quantity));
+            if( quantity <= 0 ) {
+                this.mQuantity.setValue(Resource.error(
+                        new FormException(getApplication().getString(R.string.field_error_invalid)),
+                        null
+                ));
+            }
+            else {
+                this.mQuantity.setValue(Resource.success(quantity));
+            }
+            updateValidity(true);
+        }
+    }
+
+    public void setQuantity(String value) {
+        try {
+            setQuantity(Integer.parseInt( value ));
+        }
+        catch (NumberFormatException e) {
+            this.mQuantity.setValue(Resource.error(
+                    new FormException(getApplication().getString(R.string.field_error_invalid)),
+                    null
+            ));
             updateValidity(true);
         }
     }

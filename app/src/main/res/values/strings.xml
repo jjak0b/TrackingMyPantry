@@ -139,7 +139,7 @@
 
     <string name="register_product_pick_product">Pick a product</string>
     <string name="field_error_empty">Field can\'t be empty</string>
+    <string name="field_error_invalid">Invalid field value</string>
     <string name="form_error_invalid">A field is not valid</string>
-
     <string name="dialog_title" translatable="false">%1$s: %2$s</string>
 </resources>

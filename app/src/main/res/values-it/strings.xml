@@ -139,6 +139,7 @@
 
     <string name="register_product_pick_product">Seleziona un prodotto</string>
     <string name="field_error_empty">"Il campo non può essere vuoto"</string>
+    <string name="field_error_invalid">"Il valore del campo non è valido"</string>
     <string name="form_error_invalid">"Un campo non è valido"</string>
 
 </resources>

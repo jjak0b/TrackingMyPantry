@@ -64,7 +64,29 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
 
     public void setCost(float cost) {
         if(!Objects.equals(cost, this.mCost.getValue().getData())) {
-            this.mCost.setValue(Resource.success(cost));
+            if( cost <= 0) {
+                this.mCost.setValue(Resource.error(
+                        new FormException(getApplication().getString(R.string.field_error_invalid)),
+                        null
+                ));
+            }
+            else {
+                this.mCost.setValue(Resource.success(cost));
+            }
+
+            updateValidity(true);
+        }
+    }
+
+    public void setCost(String value) {
+        try {
+            setCost(Float.parseFloat( value ));
+        }
+        catch (NumberFormatException e ) {
+            this.mCost.setValue(Resource.error(
+                    new FormException(getApplication().getString(R.string.field_error_invalid)),
+                    null
+            ));
             updateValidity(true);
         }
     }
