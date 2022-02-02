@@ -8,6 +8,8 @@ import com.mapbox.geojson.BoundingBox;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.GeoJson;
 
+import java.util.Objects;
+
 @Entity(
         tableName = "places"
 )
@@ -63,5 +65,20 @@ public class Place implements GeoJson {
                 ", name='" + name + '\'' +
                 ", feature=" + feature +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Place place = (Place) o;
+        return Objects.equals(id, place.id)
+            && Objects.equals(name, place.name)
+            && Objects.equals(feature, place.feature);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, feature);
     }
 }

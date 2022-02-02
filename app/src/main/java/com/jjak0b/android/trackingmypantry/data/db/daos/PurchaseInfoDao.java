@@ -6,13 +6,12 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.RewriteQueriesToDropUnusedColumns;
-import androidx.room.Transaction;
 
+import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
 
 import java.util.List;
+import java.util.Map;
 
 @Dao
 public interface PurchaseInfoDao {
@@ -25,9 +24,12 @@ public interface PurchaseInfoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insertPurchaseInfo(PurchaseInfo purchaseInfo);
 
-    @Transaction
-    @RewriteQueriesToDropUnusedColumns
-    @Query("SELECT * FROM purchaseInfo as I INNER JOIN places AS P ON I.place_id = P.id WHERE I.product_id = :product_id" )
-    LiveData<List<PlaceWithPurchases>> getAllPurchaseInfo(@NonNull String product_id);
+
+    @Query("SELECT I.*, P.*" +
+            " FROM (SELECT * FROM purchaseInfo WHERE place_id IS NOT NULL AND product_id = :product_id AND user_id = :user_id) as I " +
+            " INNER JOIN places AS P " +
+            " ON I.place_id = P.id "
+    )
+    LiveData<Map<Place, List<PurchaseInfo>>> getAllPurchaseInfo(@NonNull String product_id, @NonNull String user_id);
 }
 

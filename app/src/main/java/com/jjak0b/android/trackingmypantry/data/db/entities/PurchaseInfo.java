@@ -128,14 +128,18 @@ public class PurchaseInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PurchaseInfo that = (PurchaseInfo) o;
-        return Objects.equals(id, id) &&
+        return Objects.equals(id, that.id) &&
                 Objects.equals(productId, that.productId) &&
                 Objects.equals(placeId, that.placeId) &&
                 Objects.equals(userId, that.userId) &&
                 Objects.equals(purchaseDate, that.purchaseDate) &&
-                Float.compare(that.cost, cost) == 0;
+                Float.compare(cost, that.cost) == 0;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, purchaseDate, cost, productId, placeId, userId);
+    }
 
     @Override
     public String toString() {

@@ -8,18 +8,20 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
+import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
 import com.jjak0b.android.trackingmypantry.data.repositories.PurchasesRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class PurchaseLocationsViewModel extends AndroidViewModel {
 
     private PurchasesRepository purchasesRepository;
     private MutableLiveData<Resource<UserProduct>> product;
-    private LiveData<Resource<List<PlaceWithPurchases>>> purchaseInfoList;
+    private LiveData<Resource<Map<Place, List<PurchaseInfo>>>> purchaseInfoList;
 
     public PurchaseLocationsViewModel(Application application) {
         super(application);
@@ -38,7 +40,7 @@ public class PurchaseLocationsViewModel extends AndroidViewModel {
             this.product.setValue(product);
     }
 
-    public LiveData<Resource<List<PlaceWithPurchases>>> getPurchaseInfoList() {
+    public LiveData<Resource<Map<Place, List<PurchaseInfo>>>> getPurchaseInfoList() {
         return purchaseInfoList;
     }
 }

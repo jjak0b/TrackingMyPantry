@@ -18,7 +18,7 @@ import androidx.navigation.Navigation;
 
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
+import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 import com.jjak0b.android.trackingmypantry.ui.util.GeoUtils;
@@ -36,6 +36,9 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotation;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager;
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions;
 import com.mapbox.maps.plugin.delegates.listeners.OnMapLoadedListener;
+
+import java.util.List;
+import java.util.Map;
 
 
 public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedListener {
@@ -129,8 +132,8 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                         double west = 180.0;
                         double east = -180.0;
 
-                        for ( PlaceWithPurchases placeWithPurchases : resource.getData() ) {
-                            Place place = placeWithPurchases.place;
+                        for (Map.Entry<Place, List<PurchaseInfo>> entry : resource.getData().entrySet() ) {
+                            Place place = entry.getKey();
                             if( place == null) continue;
 
                             Point placeCenter = GeoUtils.getCenter(place.getFeature());
@@ -139,7 +142,8 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                             west = Math.min(west, placeCenter.longitude());
                             east = Math.max(east, placeCenter.longitude());
 
-                            Log.e("Place", place.toJson() );
+                            Log.e("Place", ""+place );
+                            Log.e("purchases", ""+entry.getValue() );
                             Feature feature = place.getFeature();
 
                             // create waypoint on view
@@ -149,16 +153,16 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                                     .withTextField(place.getName());
 
                             PointAnnotation pointAnnotation = pointAnnotationManager.create(pointAnnotationOptions);
-                            pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), placeWithPurchases){
+                            pointAnnotationManager.addClickListener(new OnPointAnnotationClickListener(pointAnnotation.getId(), entry){
                                 @Override
                                 public boolean onAnnotationClick(@NonNull PointAnnotation pointAnnotation) {
                                     if( pointAnnotation.getId() == getAnnotationID()) {
                                         mapView.getMapboxMap()
                                                 .setCamera( new CameraOptions.Builder()
-                                                        .center(GeoUtils.getCenter(getPlaceWithPurchases().place.getFeature()))
+                                                        .center(GeoUtils.getCenter(getPlaceWithPurchases().getKey()))
                                                         .build()
                                                 );
-                                        mPurchasesInPlaceViewModel.setPurchases(getPlaceWithPurchases().purchases);
+                                        mPurchasesInPlaceViewModel.setPurchases(getPlaceWithPurchases().getValue());
                                         Navigation.findNavController(requireView())
                                                 .navigate(PurchaseLocationsFragmentDirections.actionShowPurchasesInPlace());
                                         return true;
@@ -186,14 +190,14 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
     }
 
     private abstract class OnPointAnnotationClickListener implements com.mapbox.maps.plugin.annotation.generated.OnPointAnnotationClickListener {
-        private PlaceWithPurchases placeWithPurchases;
+        private Map.Entry<Place, List<PurchaseInfo>> placeWithPurchases;
         private long annotationID;
-        public OnPointAnnotationClickListener(long annotationID, @NonNull PlaceWithPurchases placeWithPurchases) {
+        public OnPointAnnotationClickListener(long annotationID, @NonNull Map.Entry<Place, List<PurchaseInfo>> placeWithPurchases) {
             this.placeWithPurchases = placeWithPurchases;
             this.annotationID = annotationID;
         }
 
-        public PlaceWithPurchases getPlaceWithPurchases() {
+        public Map.Entry<Place, List<PurchaseInfo>> getPlaceWithPurchases() {
             return placeWithPurchases;
         }
 

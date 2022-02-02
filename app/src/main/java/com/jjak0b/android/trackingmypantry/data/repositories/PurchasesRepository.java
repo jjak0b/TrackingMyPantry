@@ -11,10 +11,11 @@ import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.daos.PurchaseInfoDao;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
-import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
 
 import java.util.List;
+import java.util.Map;
 
 public class PurchasesRepository {
     private static PurchasesRepository instance;
@@ -65,7 +66,10 @@ public class PurchasesRepository {
         return IOBoundResource.adapt(mAppExecutors, dao.getPurchaseInfo(purchase_id));
     }
 
-    public LiveData<Resource<List<PlaceWithPurchases>>> getAllPurchasePlacesOf(@NonNull String productID) {
-        return IOBoundResource.adapt(mAppExecutors, dao.getAllPurchaseInfo(productID));
+    public LiveData<Resource<Map<Place, List<PurchaseInfo>>>> getAllPurchasePlacesOf(@NonNull String productID) {
+        return Transformations.forwardOnce(authRepository.getLoggedAccount(), rUser -> {
+            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+            return IOBoundResource.adapt(mAppExecutors, dao.getAllPurchaseInfo(productID, ownerID));
+        });
     }
 }
