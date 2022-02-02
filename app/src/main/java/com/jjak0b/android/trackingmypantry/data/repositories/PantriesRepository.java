@@ -64,22 +64,34 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<Pantry>> add(@NonNull Pantry pantry ) {
-        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
-            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
-            pantry.setUserId(ownerID);
-            return Transformations.forwardOnce(
-                    Transformations.simulateApi(
-                            mAppExecutors.diskIO(),
-                            mAppExecutors.mainThread(),
-                            () -> {
-                                if( Pantry.isDummy(pantry))
-                                    return pantryDao.insert(pantry);
-                                else
-                                    return pantry.getId();
-                            }
-                    ),
-                    resourceID -> getPantry(resourceID.getData())
-            );
+
+        LiveData<Resource<Pantry>> mPantrySearchSource = Pantry.isDummy(pantry)
+                 ? searchPantry(pantry.getName()) // search for existing matching
+                 : getPantry(pantry.getId()); // search for
+
+        return Transformations.forwardOnce(mPantrySearchSource, resource -> {
+
+            if( resource.getData() != null && !Pantry.isDummy(resource.getData())) {
+                // get direct pantry live data
+                return getPantry(resource.getData().getId());
+            }
+            else {
+                // add pantry and get its live data
+                return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+                    String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+                    pantry.setUserId(ownerID);
+                    return Transformations.forwardOnce(
+                            Transformations.simulateApi(
+                                    mAppExecutors.diskIO(),
+                                    mAppExecutors.mainThread(),
+                                    () -> {
+                                        return pantryDao.insert(pantry);
+                                    }
+                            ),
+                            resourceID -> getPantry(resourceID.getData())
+                    );
+                });
+            }
         });
     }
 
