@@ -18,8 +18,9 @@ import java.util.Objects;
         tableName = "userProducts",
         primaryKeys = { "product_id", "owner_id" },
         indices = {
-                // each owner, can only have 1 unique product info
-                @Index(value = { "product_id", "owner_id", "remote_id" }, unique = true )
+                @Index(value = { "product_id", "owner_id" }, unique = true ),
+                // each owner, can only have 1 unique remote product
+                @Index(value = { "owner_id", "remote_id" }, unique = true )
         },
         foreignKeys = {
                 @ForeignKey(

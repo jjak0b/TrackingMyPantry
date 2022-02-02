@@ -36,6 +36,7 @@ import java.util.Objects;
         }
 )
 public class PurchaseInfo {
+    @ColumnInfo(name = "id" )
     @PrimaryKey(autoGenerate = true)
     long id;
 
@@ -46,15 +47,15 @@ public class PurchaseInfo {
     float cost;
 
     @NonNull
-    @ColumnInfo( name = "product_id")
+    @ColumnInfo( name = "product_id", index = true)
     String productId;
 
-    @ColumnInfo( name = "place_id", defaultValue = "NULL")
+    @ColumnInfo( name = "place_id", index = true, defaultValue = "NULL")
     @Nullable
     String placeId;
 
     @NonNull
-    @ColumnInfo( name = "user_id" )
+    @ColumnInfo( name = "user_id", index = true)
     String userId;
 
     public PurchaseInfo(@NonNull String productId, float cost, Date purchaseDate, @Nullable String placeId, @NonNull String userId ) {

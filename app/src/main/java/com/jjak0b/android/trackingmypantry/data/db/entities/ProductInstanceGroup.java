@@ -13,15 +13,16 @@ import java.util.Objects;
 
 @Entity(
     indices = {
+            @Index(value = {"product_id", "owner_id"} ),
             @Index(value = {"id","product_id"}, unique = true ),
             @Index(value = {"id","pantry_id"}, unique = true ),
             @Index(value = {"pantry_id", "product_id", "expiryDate", "currentAmountPercent", "quantity"}, unique = true )
     },
     foreignKeys = {
             @ForeignKey(
-                    entity = ProductShared.class,
-                    parentColumns = "id",
-                    childColumns = "product_id",
+                    entity = UserProduct.class,
+                    parentColumns = { "product_id", "owner_id" },
+                    childColumns = {"product_id", "owner_id" },
                     onDelete = ForeignKey.CASCADE,
                     onUpdate = ForeignKey.CASCADE
             ),

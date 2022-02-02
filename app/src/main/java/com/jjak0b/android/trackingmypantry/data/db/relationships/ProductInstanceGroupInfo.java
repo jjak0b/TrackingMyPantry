@@ -23,4 +23,14 @@ public class ProductInstanceGroupInfo {
             entityColumn = "pantry_id"
     )
     public Pantry pantry;
+
+
+    @Override
+    public String toString() {
+        return "ProductInstanceGroupInfo{" +
+                "group=" + group + "\n" +
+                ", pantry=" + pantry + "\n"+
+                " product=" + product + "\n" +
+                '}';
+    }
 }

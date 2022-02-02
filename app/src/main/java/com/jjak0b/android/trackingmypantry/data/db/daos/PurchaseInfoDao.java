@@ -6,6 +6,8 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.RewriteQueriesToDropUnusedColumns;
+import androidx.room.Transaction;
 
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PlaceWithPurchases;
@@ -23,6 +25,8 @@ public interface PurchaseInfoDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insertPurchaseInfo(PurchaseInfo purchaseInfo);
 
+    @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query("SELECT * FROM purchaseInfo as I INNER JOIN places AS P ON I.place_id = P.id WHERE I.product_id = :product_id" )
     LiveData<List<PlaceWithPurchases>> getAllPurchaseInfo(@NonNull String product_id);
 }
