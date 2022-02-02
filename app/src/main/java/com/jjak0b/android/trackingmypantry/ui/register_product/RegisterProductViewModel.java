@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.app.Application;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -81,6 +82,7 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
     }
 
     public void setupNew() {
+        Log.d(TAG, "Reset request for new product");
         setProductDetails(Resource.loading(null));
         setInfoDetails(Resource.loading(null));
         setPurchaseDetails(Resource.loading(null));
@@ -170,48 +172,69 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
     }
 
     private LiveData<Resource<ProductInstanceGroup>> addProductGroupDetails(@NonNull LiveData<Resource<ProductWithTags>> mProduct) {
-        return Transformations.forwardOnce(mProduct, mProductResource -> {
-            ProductWithTags productWithTags = mProductResource.getData();
 
-            return Transformations.forwardOnce( mProductGroupDetails, mProductGroupResource -> {
-                ProductInstanceGroupInfo groupInfo = mProductGroupResource.getData();
-                groupInfo.product = productWithTags.product;
-                groupInfo.group.setProductId(groupInfo.product.getBarcode());
-                Log.d(TAG, "Adding pantry " +  groupInfo.pantry != null ? groupInfo.pantry.getId() + " " + groupInfo.pantry.getName() : null );
-                return Transformations.forwardOnce(pantryRepo.add(groupInfo.pantry), mPantryResource -> {
-                    Pantry pantry = mPantryResource.getData();
-                    Log.d(TAG, "Added Pantry " +  pantry != null ? pantry.getId() + " " + pantry.getName() : null );
-                    if( pantry != null )
-                        groupInfo.group.setPantryId(pantry.getId());
-                    Log.d(TAG, "Adding group " + groupInfo.group );
-                    return pantryRepo.add(groupInfo.group);
-                });
+        LiveData<Resource<Pair<ProductWithTags, ProductInstanceGroupInfo>>> mPair =
+                ResourceUtils.ResourcePairLiveData
+                        .create(mProduct, mProductGroupDetails)
+                        .asCombinedLiveData();
+
+        // Note:
+        // while saving, other tabs may override/make null their respective details because the repository sources are updating.
+        // so forwarding this pair only once allow to ignore that overrides, and to consider only first valid value
+        return Transformations.forwardOnce(mPair, rPair -> {
+            ProductWithTags productWithTags = rPair.getData().first;
+            ProductInstanceGroupInfo groupInfo = rPair.getData().second;
+
+            groupInfo.product = productWithTags.product;
+            groupInfo.group.setProductId(groupInfo.product.getBarcode());
+
+            Log.d(TAG, "Adding pantry " +  groupInfo.pantry != null ? groupInfo.pantry.getId() + " " + groupInfo.pantry.getName() : null );
+            return Transformations.forwardOnce(pantryRepo.add(groupInfo.pantry), mPantryResource -> {
+                Pantry pantry = mPantryResource.getData();
+                Log.d(TAG, "Added Pantry " +  pantry != null ? pantry.getId() + " " + pantry.getName() : null );
+                if( pantry != null )
+                    groupInfo.group.setPantryId(pantry.getId());
+                Log.d(TAG, "Adding group " + groupInfo.group );
+                return pantryRepo.add(groupInfo.group);
             });
         });
     }
 
     public LiveData<Resource<PurchaseInfo>> addProductPurchaseDetails(@NonNull LiveData<Resource<ProductWithTags>> mProduct) {
-        return Transformations.forwardOnce(mProduct, mProductResource -> {
-            UserProduct product = mProductResource.getData().product;
 
-            return Transformations.forwardOnce( mProductPurchaseDetails, mDetailsResource -> {
-                PurchaseInfoWithPlace details = mDetailsResource.getData();
-                details.info.setProductId(product.getBarcode());
+        LiveData<Resource<Pair<ProductWithTags, PurchaseInfoWithPlace>>> mPair =
+                ResourceUtils.ResourcePairLiveData
+                        .create(mProduct, mProductPurchaseDetails)
+                        .asCombinedLiveData();
 
-                Log.d(TAG, "Adding place " + details.place );
-                // place is optional
-                LiveData<Resource<Place>> mPlaceAdded = details.place == null
-                        ? new MutableLiveData<>(Resource.success(null))
-                        : placesRepo.add(details.place);
+        // Note:
+        // while saving, other tabs may override/make null their respective details because the repository sources are updating.
+        // so forwarding this pair only once allow to ignore that overrides, and to consider only first valid value
+        return Transformations.forwardOnce(mPair, rPair -> {
+            UserProduct product =  rPair.getData().first.product;
+            PurchaseInfoWithPlace details = rPair.getData().second;
+            details.info.setProductId(product.getBarcode());
 
-                return Transformations.forwardOnce(mPlaceAdded, mPlaceResource -> {
-                    Place place = mPlaceResource.getData();
-                    details.info.setPlaceId(place != null ? place.getId() : null );
-                    details.place = place;
-                    Log.d(TAG, "Adding group info " + details.info );
+            Log.d(TAG, "Adding place if set: " + details.place );
+            // place is optional
+            LiveData<Resource<Place>> mPlaceAdded = details.place == null
+                    ? new MutableLiveData<>(Resource.success(null))
+                    : placesRepo.add(details.place);
 
-                    return purchasesRepo.add(details.info);
-                });
+            return Transformations.forwardOnce(mPlaceAdded, mPlaceResource -> {
+                Place place = mPlaceResource.getData();
+                if( place != null ) {
+                    Log.d(TAG, "Added place " + details.place );
+                    details.info.setPlaceId(place.getId());
+                }
+                else {
+                    details.info.setPlaceId(null);
+                }
+
+                details.place = place;
+                Log.d(TAG, "Adding group info " + details.info );
+
+                return purchasesRepo.add(details.info);
             });
         });
     }
