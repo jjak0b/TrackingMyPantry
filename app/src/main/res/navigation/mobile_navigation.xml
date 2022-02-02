@@ -24,9 +24,6 @@
         <action
             android:id="@+id/action_filter"
             app:destination="@id/productsSearchFilterFragmentDialog" />
-        <action
-            android:id="@+id/nav_settings"
-            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -131,7 +128,7 @@
             app:destination="@id/registerProductFragment" />
     </fragment>
     <fragment
-        android:id="@+id/settingsFragment"
+        android:id="@+id/nav_settings"
         android:name="com.jjak0b.android.trackingmypantry.ui.settings.SettingsFragment"
         android:label="@string/action_settings" />
     <fragment
