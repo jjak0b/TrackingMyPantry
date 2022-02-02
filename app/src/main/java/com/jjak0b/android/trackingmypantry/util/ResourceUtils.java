@@ -32,6 +32,37 @@ public class ResourceUtils {
                     aResource -> aResource != null && aResource.getStatus() != Status.LOADING
             );
         }
+
+        public LiveData<Resource<Pair<A, B>>> asCombinedLiveData() {
+            final MediatorLiveData<Resource<Pair<A, B>>> mediator = new MediatorLiveData<>();
+
+            mediator.addSource(this, pair -> {
+                if( pair.first.getStatus() != Status.LOADING
+                && pair.second.getStatus() != Status.LOADING ) {
+                    mediator.removeSource(this);
+
+                    if( pair.first.getStatus() == Status.SUCCESS
+                        && pair.second.getStatus() == Status.SUCCESS ) {
+                        mediator.setValue(Resource.success(Pair.create(
+                                pair.first.getData(), pair.second.getData()
+                        )));
+                    }
+                    else {
+                        mediator.setValue(Resource.error(
+                                pair.first.getStatus() == Status.ERROR ? pair.first.getError() : pair.second.getError(),
+                                Pair.create(pair.first.getData(), pair.second.getData())
+                        ));
+                    }
+                }
+                else {
+                    mediator.setValue(Resource.loading(
+                            Pair.create(pair.first.getData(), pair.second.getData())
+                    ));
+                }
+            });
+
+            return mediator;
+        }
     }
 
     public static class PairLiveData<A, B> extends MediatorLiveData<Pair<A, B>> {
