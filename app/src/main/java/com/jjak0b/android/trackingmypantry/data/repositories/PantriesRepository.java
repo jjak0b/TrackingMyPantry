@@ -142,7 +142,7 @@ public class PantriesRepository {
                     Transformations.simulateApi(
                             mAppExecutors.diskIO(),
                             mAppExecutors.mainThread(),
-                            () -> groupDao.mergeInsert(group)
+                            () -> groupDao.merge(group)
                     ),
                     resourceID -> getGroup(resourceID.getData())
             );
@@ -178,7 +178,7 @@ public class PantriesRepository {
             return Transformations.simulateApi(
                     mAppExecutors.diskIO(),
                     mAppExecutors.mainThread(),
-                    () -> groupDao.mergeInsert(instanceGroup)
+                    () -> groupDao.merge(instanceGroup)
             );
         });
 
@@ -270,13 +270,13 @@ public class PantriesRepository {
         return result;
     }
 
-    public LiveData<Resource<Integer>> updateAndMergeGroups(ProductInstanceGroup entry ){
+    public LiveData<Resource<Long>> updateAndMergeGroups(ProductInstanceGroup entry ){
 
-        final MediatorLiveData<Resource<Integer>> result = new MediatorLiveData<>();
-        LiveData<Resource<Integer>> onUpdate = Transformations.simulateApi(
+        final MediatorLiveData<Resource<Long>> result = new MediatorLiveData<>();
+        LiveData<Resource<Long>> onUpdate = Transformations.simulateApi(
                 mAppExecutors.diskIO(),
                 mAppExecutors.mainThread(),
-                () -> groupDao.mergeUpdate(entry)
+                () -> groupDao.merge(entry)
         );
 
         result.addSource(onUpdate, resource -> {
@@ -305,18 +305,7 @@ public class PantriesRepository {
 
         if( quantity >= entry.getQuantity() ){
             entry.setPantryId(pantry.getId());
-            // convert output to a Long
-            return androidx.lifecycle.Transformations.map(updateAndMergeGroups(entry), input -> {
-                Long value = input.getData() != null ? Long.valueOf(input.getData()) : null;
-                switch (input.getStatus()) {
-                    case SUCCESS:
-                        return Resource.success(value);
-                    case ERROR:
-                        return Resource.error(input.getError(), value);
-                    default:
-                        return Resource.loading(value);
-                }
-            });
+            return updateAndMergeGroups(entry);
         }
         else {
             final MediatorLiveData<Resource<Long>> result = new MediatorLiveData<>();
@@ -330,8 +319,8 @@ public class PantriesRepository {
                     mAppExecutors.diskIO(),
                     mAppExecutors.mainThread(),
                     () -> pantryDB.runInTransaction( () -> {
-                        groupDao.mergeUpdate(entry);
-                        return groupDao.mergeInsert(newGroup);
+                        groupDao.merge(entry);
+                        return groupDao.merge(newGroup);
                     })
             );
 

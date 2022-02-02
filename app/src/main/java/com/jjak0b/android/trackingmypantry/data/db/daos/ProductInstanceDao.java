@@ -41,9 +41,13 @@ public abstract class ProductInstanceDao {
     @Query( "SELECT * FROM productinstancegroup WHERE owner_id =:ownerID AND product_id = :productID AND pantry_id = :pantryID AND currentAmountPercent = :currentAmountPercent AND expiryDate = :expiryDate")
     public abstract ProductInstanceGroup getFirstMatchingGroup( String ownerID, String productID, long pantryID, int currentAmountPercent, Date expiryDate );
 
+    /**
+     * Add the group but first detect if it has to be merged with another one, or update it self
+     * @param group
+     * @return
+     */
     @Transaction
-    public long mergeInsert(ProductInstanceGroup group) {
-
+    public long merge(ProductInstanceGroup group) {
         ProductInstanceGroup match = getFirstMatchingGroup(
                 group.getUserId(),
                 group.getProductId(),
@@ -52,39 +56,23 @@ public abstract class ProductInstanceDao {
                 group.getExpiryDate()
         );
 
-        if( match == null ){
-            return insert(group);
-        }
-        else {
-            match.setQuantity(match.getQuantity()+group.getQuantity());
-            update(match);
-            return match.getId();
-        }
-    }
-
-    @Transaction
-    public int mergeUpdate(ProductInstanceGroup group) {
-        ProductInstanceGroup match = getFirstMatchingGroup(
-                group.getUserId(),
-                group.getProductId(),
-                group.getPantryId(),
-                group.getCurrentAmountPercent(),
-                group.getExpiryDate()
-        );
-
-        if( match != null ) {
+        if( match != null && !Objects.equals(match.getId(), group.getId()) ) {
             // merge and update merged
             match.setQuantity(match.getQuantity()+group.getQuantity());
-            int count = update(match);
+            update(match);
             // delete entry because we just virtually merged it
-            if(!Objects.equals(match.getId(), group.getId())){
+            if( group.getId() > 0 )
                 delete(group);
-            }
-
-            return count;
+            return match.getId();
         }
+        // match and group are the same
+        else if( group.getId() > 0 ) {
+            update(group);
+            return group.getId();
+        }
+        // no matches, then add it
         else {
-            return update(group);
+            return insert(group);
         }
     }
 

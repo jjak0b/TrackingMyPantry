@@ -1,6 +1,7 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.function.Function;
 
 public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<ProductInstanceGroup>> {
+    private static final String TAG = "GroupsBrowserViewModel";
+
     private PantriesRepository pantriesRepository;
     private LiveData<Resource<List<ProductInstanceGroup>>> mDefaultList;
     public ProductsGroupsBrowserViewModel(Application application) {
@@ -66,11 +69,12 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
             return new MutableLiveData<>(Resource.error(null, null));
         }
 
+        Log.d(TAG, "Moving " + quantity + " of " + entry + " to " + destination);
         return pantriesRepository.moveGroupToPantry(entry, destination, quantity);
     }
 
     public LiveData<Resource<Void>> delete( ProductInstanceGroup entry, int quantity){
-
+        Log.d(TAG, "Deleting " + quantity + " of " + entry );
         // remove the item on adapter
         if( entry.getQuantity() <= quantity){
             return pantriesRepository.deleteGroup(entry);
@@ -87,6 +91,7 @@ public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<Pro
 
     public LiveData<Resource<Void>> consume(ProductInstanceGroup entry, int amountPercent){
 
+        Log.d(TAG, "Consuming by " + amountPercent + "% of " + entry );
         ProductInstanceGroup updatedEntry = ProductInstanceGroup.from(entry);
 
         if( amountPercent <= 0 ){
