@@ -92,7 +92,8 @@ public class Pantry {
         if (o == null || getClass() != o.getClass()) return false;
         Pantry pantry = (Pantry) o;
         return Objects.equals(id, pantry.id)
-                && Objects.equals(userId, pantry.userId);
+                && Objects.equals(userId, pantry.userId)
+                && Objects.equals(name, pantry.name);
     }
 
     @Override

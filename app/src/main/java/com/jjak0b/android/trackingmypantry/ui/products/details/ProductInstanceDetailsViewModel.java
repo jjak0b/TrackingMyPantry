@@ -31,7 +31,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
     protected PantriesRepository pantriesRepository;
     private MutableLiveData<Resource<Integer>> mQuantity;
     private MutableLiveData<Resource<Date>> mExpireDate;
-    private MutableLiveData<Resource<Pantry>> mPantry;
+    private MediatorLiveData<Resource<Pantry>> mPantry;
     private Savable<ProductInstanceGroupInfo> savable;
     private LiveData<Resource<List<Pantry>>> mAvailablePantries;
     private AppExecutors appExecutors;
@@ -42,7 +42,11 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
         pantriesRepository = PantriesRepository.getInstance(application);
         mAvailablePantries = pantriesRepository.getPantries();
 
-        mPantry = new MutableLiveData<>(Resource.loading(Pantry.creteDummy(null)));
+        mPantry = new MediatorLiveData<>();
+        mPantry.setValue(Resource.error(
+                new FormException(application.getString(R.string.field_error_empty)),
+                null
+        ));
         mQuantity = new MutableLiveData<>(Resource.success(1));
         mExpireDate = new MutableLiveData<>(Resource.success(new Date()));
 
@@ -117,7 +121,7 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
 
     public void reset() {
         setExpireDate(null);
-        setPantry(null);
+        setPantry((Pantry) null);
         setQuantity(1);
     }
 
@@ -129,9 +133,13 @@ public class ProductInstanceDetailsViewModel extends AndroidViewModel implements
         return mAvailablePantries;
     }
 
+    public void setPantry(String name) {
+        Pantry newItem = name != null && name.length() > 0 ? Pantry.creteDummy(name) : null;
+        setPantry(newItem);
+    }
+
     public void setPantry(Pantry pantry) {
         if(!Objects.equals(pantry, this.mPantry.getValue().getData())) {
-
             if( pantry == null || TextUtils.isEmpty(pantry.getName()) ) {
                 this.mPantry.setValue(Resource.error(new FormException(
                         getApplication().getString(R.string.field_error_empty)),

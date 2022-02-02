@@ -26,7 +26,6 @@ import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -111,6 +110,11 @@ public class ProductInstanceDetailsFragment extends Fragment {
         expireDateInputLayout.setStartIconOnClickListener(showDatePickerOnClick);
         expireDateInput.setOnClickListener(showDatePickerOnClick);
 
+        pantryAutoCompleteSelector.addTextChangedListener(new InputUtil.FieldTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) { getViewModel().setPantry(s.toString()); }
+        });
+
         pantryAutoCompleteSelector.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -137,43 +141,17 @@ public class ProductInstanceDetailsFragment extends Fragment {
 
         getViewModel().getPantry().observe( getViewLifecycleOwner(), resource -> {
             Pantry pantry = resource.getData();
-            pantryAutoCompleteSelector.setText( pantry != null ? pantry.toString() : null );
+            InputUtil.setText(pantryAutoCompleteSelector, pantry != null ? pantry.toString() : null );
+
             switch (resource.getStatus()) {
+                case LOADING:
+                    pantryInputLayout.setError(null);
+                    break;
                 case SUCCESS:
                     pantryInputLayout.setError(null);
                     // unset pantry and set as custom after edited the text
-                    pantryAutoCompleteSelector.setOnFocusChangeListener((v, hasFocus) -> {
-                        if (!hasFocus) {
-
-                            String fieldValue = pantryAutoCompleteSelector.getText().toString();
-                            boolean hasBeenChanged = true;
-                            if (pantry != null) {
-                                hasBeenChanged = !Objects.equals(pantry.toString(), fieldValue);
-                            }
-                            Log.d(TAG, "has been changed:" + hasBeenChanged);
-                            if (hasBeenChanged) {
-                                if (pantryAutoCompleteSelector.getText().length() > 0)
-                                    getViewModel().setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
-                                else
-                                    getViewModel().setPantry(null);
-                            }
-                        }
-                    });
                     break;
                 case ERROR:
-                    pantryAutoCompleteSelector.setOnFocusChangeListener((v, hasFocus) -> {
-                        if (!hasFocus) {
-
-                            String fieldValue = pantryAutoCompleteSelector.getText().toString();
-                            boolean hasBeenChanged =!Objects.equals(pantryAutoCompleteSelector.getText(), fieldValue);
-                            if (hasBeenChanged) {
-                                if (pantryAutoCompleteSelector.getText().length() > 0)
-                                    getViewModel().setPantry(Pantry.creteDummy(pantryAutoCompleteSelector.getText().toString()));
-                                else
-                                    getViewModel().setPantry(null);
-                            }
-                        }
-                    });
                     pantryInputLayout.setError(resource.getError().getLocalizedMessage());
                     break;
             }
