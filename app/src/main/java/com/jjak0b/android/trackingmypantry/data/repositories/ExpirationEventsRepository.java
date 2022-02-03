@@ -8,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
@@ -79,5 +80,21 @@ public class ExpirationEventsRepository {
 
     LiveData<Resource<Void>> removeExpiration(@Nullable ExpirationInfo.Dummy info) {
         return notify(info);
+    }
+
+    public LiveData<Resource<LoggedAccount>> enableFeatureExpirationReminders(boolean enable) {
+        final MediatorLiveData<Resource<LoggedAccount>> mediator = new MediatorLiveData<>();
+        final LiveData<Resource<LoggedAccount>> source = authRepo.getLoggedAccount();
+        mediator.addSource(source, resource -> {
+            LoggedAccount account = resource.getData();
+            if( account != null ) {
+                mediator.removeSource(source);
+                if( enable ) // switch off and on to trigger sync
+                    ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
+                ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, enable);
+            }
+            mediator.setValue(resource);
+        });
+        return mediator;
     }
 }

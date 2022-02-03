@@ -1,11 +1,7 @@
 package com.jjak0b.android.trackingmypantry;
 
-import android.Manifest;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,13 +9,12 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -28,20 +23,20 @@ import androidx.preference.PreferenceManager;
 
 import com.google.android.material.navigation.NavigationView;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.data.preferences.Preferences;
 import com.jjak0b.android.trackingmypantry.ui.auth.AuthViewModel;
-import com.jjak0b.android.trackingmypantry.ui.util.Permissions;
 
-public class MainActivity extends UserAuthActivity {
+public class MainActivity extends UserAuthActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private final static String TAG = "MainActivity";
     private AppBarConfiguration mAppBarConfiguration;
 
-    private ActivityResultLauncher<String[]> requestPermissionLauncher;
-    private SharedPreferences.OnSharedPreferenceChangeListener onEnableFeatureExpirationReminders;
+    private ActivityResultLauncher<String[]> requestExpirationReminderFeature;
 
     private LiveData<Resource<LoggedAccount>> mLoggedAccount;
+    private FeaturesViewModel featuresViewModel;
 
     @Override
     public AuthViewModel initAuthViewModel() {
@@ -53,6 +48,10 @@ public class MainActivity extends UserAuthActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        options.registerOnSharedPreferenceChangeListener(this);
+
+        featuresViewModel = new ViewModelProvider(this).get(FeaturesViewModel.class);
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -61,70 +60,6 @@ public class MainActivity extends UserAuthActivity {
         NavigationView navigationView = findViewById(R.id.nav_view);
         initNavController(navigationView);
         View headerView = navigationView.getHeaderView(0);
-
-        // Register the permissions callback, which handles the user's response to the
-        // system permissions dialog.
-
-        Context activityContext = this;
-        requestPermissionLauncher =
-                registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
-
-                    boolean areAllGranted = !isGranted.containsValue(false);
-                    SharedPreferences options = getSharedPreferences(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY, MODE_PRIVATE);
-
-                    if( areAllGranted ){
-                        options.edit()
-                                .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED)
-                                .apply();
-                    }
-                    else {
-                        options.edit()
-                                .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
-                                .apply();
-                    }
-
-                    mLoggedAccount.observe(this, new Observer<Resource<LoggedAccount>>() {
-                        @Override
-                        public void onChanged(Resource<LoggedAccount> resource) {
-                            switch (resource.getStatus()) {
-                                case SUCCESS:
-                                    mLoggedAccount.removeObserver(this);
-                                    LoggedAccount account = resource.getData();
-                                    if (areAllGranted) {
-                                        // Permission is granted.
-
-                                        // switch off and on to trigger sync
-                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
-                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, true);
-                                    }
-                                    else {
-                                        // Explain to the user that the feature is unavailable because the
-                                        // features requires a permission that the user has denied.
-                                        new AlertDialog.Builder(activityContext)
-                                                .setTitle(R.string.rationale_title_feature)
-                                                .setMessage(R.string.features_calendar_disabled_cause_permissions)
-                                                .setPositiveButton(android.R.string.ok, null)
-                                                .show();
-
-                                        // switch off sync
-                                        ContentResolver.setSyncAutomatically(account.getAccount(), CalendarContract.AUTHORITY, false);
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    });
-                });
-
-        onEnableFeatureExpirationReminders = (sharedPreferences, key) -> {
-            if( Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED.equals(key) ){
-                boolean isEnabled = sharedPreferences.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
-                if( isEnabled ){
-                    requestFeatureExpirationReminders( requestPermissionLauncher, sharedPreferences);
-                }
-            }
-        };
 
         initNavHeaderView(headerView);
 
@@ -138,7 +73,12 @@ public class MainActivity extends UserAuthActivity {
     @Override
     public void initOnSuccessAuth() {
         SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        options.registerOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
+
+        // Register the permissions callback, which handles the user's response to the
+        // system permissions dialog  required as feature prerequisites.
+        requestExpirationReminderFeature = Preferences.FEATURE_EXPIRATION_REMINDERS.registerFeatureLauncher(
+                this, this, options
+        );
 
         mLoggedAccount.observe(this, resource -> {
             switch (resource.getStatus()) {
@@ -147,12 +87,11 @@ public class MainActivity extends UserAuthActivity {
                     LoggedAccount mLoggedAccount = resource.getData();
                     Log.d(TAG, "Success auth for account " + mLoggedAccount);
 
-                    // setup reminders for account
-                    boolean featureFlag = options.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
-
-                    if( featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT || featureFlag == Preferences.FEATURE_EXPIRATION_REMINDERS.ENABLED ) {
-                        requestFeatureExpirationReminders( requestPermissionLauncher, options);
-                        ContentResolver.requestSync(mLoggedAccount.getAccount(), CalendarContract.AUTHORITY, new Bundle() );
+                    if( options.getBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED,
+                            Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT )) {
+                        Preferences.FEATURE_EXPIRATION_REMINDERS.requestFeature(
+                                requestExpirationReminderFeature, this, options
+                        );
                     }
                     break;
             }
@@ -215,21 +154,34 @@ public class MainActivity extends UserAuthActivity {
         });
     }
 
-    private void requestFeatureExpirationReminders( ActivityResultLauncher<String[]> requestPermissionLauncher, SharedPreferences options) {
-        new Permissions.FeatureRequestBuilder()
-                .setRationaleMessage(R.string.rationale_msg_features_calendar)
-                .setOnPositive(requestPermissionLauncher, new String[] {
-                        Manifest.permission.WRITE_CALENDAR,
-                        Manifest.permission.READ_CALENDAR
-                })
-                .setOnNegative(R.string.features_calendar_disabled, () -> {
-                    options.edit()
-                            .putBoolean(Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED, Preferences.FEATURE_EXPIRATION_REMINDERS.DISABLED)
-                            .apply();
-                })
-                .show(this);
-    }
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if( Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED.equals(key) ) {
+            boolean isEnabled = sharedPreferences.getBoolean(key, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
+            Log.d(TAG, "Changed " + isEnabled );
 
+            boolean gotPreRequisites = true;
+            if (isEnabled) {
+                // request permissions required by this feature if needed
+                gotPreRequisites = Preferences.FEATURE_EXPIRATION_REMINDERS.requestFeature(
+                        requestExpirationReminderFeature, this, sharedPreferences
+                );
+            }
+
+            if( gotPreRequisites ) {
+                LiveData<Resource<LoggedAccount>> onEnable = featuresViewModel.enableFeatureExpirationReminders(isEnabled);
+                onEnable.observe(this, new Observer<Resource<LoggedAccount>>() {
+
+                    @Override
+                    public void onChanged(Resource<LoggedAccount> resource) {
+                        if( resource.getStatus() != Status.LOADING ) {
+                            onEnable.removeObserver(this);
+                        }
+                    }
+                });
+            }
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -254,13 +206,11 @@ public class MainActivity extends UserAuthActivity {
 
     @Override
     protected void onDestroy() {
-        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if( onEnableFeatureExpirationReminders != null )
-            options.unregisterOnSharedPreferenceChangeListener(onEnableFeatureExpirationReminders);
+        SharedPreferences options = PreferenceManager.getDefaultSharedPreferences(this);
+        options.unregisterOnSharedPreferenceChangeListener(this);
 
         this.mAppBarConfiguration = null;
-        this.onEnableFeatureExpirationReminders = null;
-        this.requestPermissionLauncher = null;
+        this.requestExpirationReminderFeature = null;
         this.mLoggedAccount.removeObservers(this);
         this.mLoggedAccount = null;
 
