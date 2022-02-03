@@ -123,14 +123,18 @@ public class Transformations {
         final MutableLiveData<Pair<LiveData<Resource<O>>, LiveData<Resource<O>>>> mLDSource = new MutableLiveData<>(Pair.create(null, null));
 
         mediator.addSource(mLDSource, switchedLD -> {
+            // detach the previous forwarded source
             if( switchedLD.second != null )
                 mediator.removeSource(switchedLD.second);
+            // attach and forward a new source
             if( switchedLD.first != null )
                 mediator.addSource(switchedLD.first, mediator::setValue);
         });
 
         mediator.addSource(mSource, resource -> {
             // simulate an API behaviour
+
+            // main source updated, so request to detach the previous forwarded source
             mLDSource.setValue(Pair.create(
                     null,
                     mLDSource.getValue().first
@@ -139,6 +143,9 @@ public class Transformations {
                 case SUCCESS:
                     if( switchMapFunction != null ) {
                         // forward function result
+
+                        // request to attach the forwarded source
+                        // and detach previous forwarded source
                         mLDSource.setValue(Pair.create(
                                 switchMapFunction.apply(resource),
                                 mLDSource.getValue().first
