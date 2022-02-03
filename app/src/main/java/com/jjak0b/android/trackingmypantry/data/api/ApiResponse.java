@@ -9,17 +9,17 @@ import retrofit2.Response;
 </T> */
 public abstract class ApiResponse<T> {
     public static <T> ApiErrorResponse<T> create(Throwable error) {
-        return new ApiErrorResponse(error);
+        return new ApiErrorResponse<>(error);
     }
 
     public static <T> ApiResponse<T> create(Response<T> response) {
         if (response.isSuccessful()) {
             T body = response.body();
             if (body == null || response.code() == 204) { // no content
-                return new ApiEmptyResponse();
+                return new ApiEmptyResponse<>();
             }
             else {
-                return new ApiSuccessResponse(body);
+                return new ApiSuccessResponse<>(body);
             }
         }
         else {
