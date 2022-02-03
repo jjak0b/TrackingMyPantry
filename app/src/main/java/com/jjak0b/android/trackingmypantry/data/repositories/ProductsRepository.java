@@ -22,6 +22,7 @@ import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.dataSource.ProductsDataSource;
 import com.jjak0b.android.trackingmypantry.data.db.PantryDB;
 import com.jjak0b.android.trackingmypantry.data.db.daos.ProductDao;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
@@ -33,8 +34,12 @@ import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
 import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProductsRepository {
     private static final String TAG = "ProductsRepository";
@@ -82,7 +87,7 @@ public class ProductsRepository {
 
     /**
      * Fetch a products list of suggestions searching by barcode
-     * if a provided products is used, then a caller should call {@link #register(UserProduct)} on that
+     * if a provided products is used, then a caller should call {@link #register(Product)} on that
      * If response contains errors, then should be:
      * <ul>
      *     <li>{@link ProductsDataSource#search(String)}'s exceptions</li>
@@ -92,22 +97,19 @@ public class ProductsRepository {
      * @return
      */
     @MainThread
-    public LiveData<Resource<List<UserProduct>>> search(String barcode) {
+    public LiveData<Resource<List<? extends Product>>> search(String barcode) {
         Log.d(TAG, "Request product list by " + barcode );
-        // Api call
-        final LiveData<ApiResponse<ProductsList>> mApiResponse = dataSource.search(barcode);
         LiveData<List<UserProduct>> mDBSource = productDao.getProductsByBarcode(barcode);
 
-        // used to store request data for future vote or register checks
-        final MediatorLiveData<List<UserProduct>> searchResult = new MediatorLiveData<>();
-        searchResult.addSource(mDBSource, searchResult::setValue );
+        // final MediatorLiveData<List<? extends Product>> fallbackResult = new MediatorLiveData<>();
+        // fallbackResult.addSource(mDBSource, searchResult::setValue );
 
         final MutableLiveData<ProductsList> mResult = new MutableLiveData<>(null);
         LiveData<Resource<ProductsList>> mResultSource = new NetworkBoundResource<ProductsList, ProductsList>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductsList item) {
                 // Fix colleagues Implementation quirks
-                for (UserProduct product : item.getProducts() ) {
+                for (Product product : item.getProducts() ) {
                     String imgURI = product.getImg();
                     boolean isValid = URLUtil.isDataUrl(imgURI) || URLUtil.isValidUrl(imgURI);
                     if( imgURI != null && !isValid ) {
@@ -129,37 +131,139 @@ public class ProductsRepository {
 
             @Override
             protected LiveData<ApiResponse<ProductsList>> createCall() {
-                return mApiResponse;
+                return dataSource.search(barcode);
             }
         }.asLiveData();
         setSearchResult(mResultSource);
 
-        return new NetworkBoundResource<List<UserProduct>, ProductsList>(mAppExecutors) {
+        LiveData<Resource<ProductsList>> mSearchResult = getLastSearchResult();
+
+        // used to store request data for future vote or register checks
+        final MediatorLiveData<List<? extends Product>> fakeDBAdapter = new MediatorLiveData<>();
+        fakeDBAdapter.setValue(null);
+
+        LiveData<Resource<List<? extends Product>>> mItems = new NetworkBoundResource<List<? extends Product>, ProductsList>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductsList item) {
-                // detach fallback source
-                mAppExecutors.mainThread().execute(() -> {
-                    searchResult.removeSource(mDBSource);
-                });
-                searchResult.postValue(item.getProducts());
+                fakeDBAdapter.postValue(item.getProducts());
             }
 
             @Override
-            protected boolean shouldFetch(@Nullable List<UserProduct> data) {
+            protected void onFetchFailed(Throwable cause) {
+                // attach fallback source
+                mAppExecutors.mainThread().execute(() -> {
+                    fakeDBAdapter.addSource(mDBSource, fakeDBAdapter::setValue );
+                });
+            }
+
+            @Override
+            protected boolean shouldFetch(@Nullable List<? extends Product> data) {
                 return true;
             }
 
             @Override
-            protected LiveData<List<UserProduct>> loadFromDb() {
-                return searchResult;
+            protected LiveData<List<? extends Product>> loadFromDb() {
+                return fakeDBAdapter;
             }
 
             @Override
             protected LiveData<ApiResponse<ProductsList>> createCall() {
-                return Transformations.adapt(getLastSearchResult());
+                return Transformations.adapt(mSearchResult);
             }
 
         }.asLiveData();
+
+        // return mItems;
+        return manipulateOwnedProducts(barcode, mItems);
+    }
+
+    private LiveData<Resource<List<? extends Product>>> manipulateOwnedProducts(String barcode, LiveData<Resource<List<? extends Product>>> source) {
+
+        final LiveData<Resource<UserProduct>> mUser = get(barcode);
+
+        return Transformations.forwardOnce(mUser, rProduct -> {
+            UserProduct productOwnedByUser = rProduct.getData();
+
+            Log.d(TAG, "Product Owned by user: " + productOwnedByUser );
+            // Now there is a problem: can't use forward api because it make null any data provided with (and if any) error occurred.
+            // so using an IOBoundResource adapter to recover that error from original source
+
+            final MediatorLiveData<List<? extends Product>> fakeDBAdapter = new MediatorLiveData<>();
+            fakeDBAdapter.addSource(source, listResource -> {
+                // Log.d(TAG, "source default" + listResource );
+                if( listResource.getStatus() != Status.LOADING ) {
+                    fakeDBAdapter.setValue(listResource.getData());
+                }
+            });
+
+            return new IOBoundResource<List<? extends Product>>(mAppExecutors) {
+
+                @Override
+                protected void saveCallResult(List<? extends Product> items) {
+                    // User owns a product
+                    // So search the matching one with the (remote) provided list (if any) and move it to first position
+                    List<Product> empty = new ArrayList<>(0);
+                    List<Product> list = Stream.concat(empty.stream(), items.stream() )
+                            .collect(Collectors.toList());
+
+                    UserProduct itemToAdd = null;
+
+                    // search into result and replace the product with its upcast
+                    if( productOwnedByUser.getRemote_id() != null ) {
+                        for (ListIterator<Product> it = list.listIterator(); it.hasNext(); ) {
+                            Product item = it.next();
+                            if( Objects.equals(productOwnedByUser.getRemote_id(), item.getRemote_id())) {
+                                it.remove();
+                                itemToAdd = new UserProduct(item, productOwnedByUser.getUserOwnerId());
+                                break;
+                            }
+                        }
+                    }
+
+                    // if not found ( has been removed on remote or hasn't been added on remote yet )
+                    if( itemToAdd == null ){
+                        itemToAdd = productOwnedByUser;
+                    }
+
+                    // then add as first element
+                    list.add(0, itemToAdd);
+
+                    fakeDBAdapter.postValue(list);
+                }
+
+                @Override
+                protected void onFetchFailed(Throwable cause) {
+                    // attach fallback source
+                    mAppExecutors.mainThread().execute(() -> {
+                        fakeDBAdapter.addSource(source, r -> {
+                            // Log.d(TAG, "source fallback" + r );
+                            if( r.getStatus() != Status.LOADING ) fakeDBAdapter.setValue(r.getData());
+                        });
+                    });
+                }
+
+                @Override
+                protected boolean shouldFetch(@Nullable List<? extends Product> data) {
+                    boolean shouldFetch = productOwnedByUser != null;
+                    if( shouldFetch ) {
+                        // detach fallback source
+                        fakeDBAdapter.removeSource(source);
+                    }
+
+                    return shouldFetch;
+                }
+
+                @Override
+                protected LiveData<List<? extends Product>> loadFromDb() {
+                    return fakeDBAdapter;
+                }
+
+                @Override
+                protected LiveData<ApiResponse<List<? extends Product>>> createCall() {
+                    return Transformations.adapt(source);
+                }
+            }.asLiveData();
+        });
     }
 
     private LiveData<Resource<ProductsList>> getLastSearchResult() {
@@ -200,10 +304,10 @@ public class ProductsRepository {
         });
     }
 
-    private LiveData<Resource<Boolean>> isProductInSearchList(@NonNull UserProduct product) {
+    private LiveData<Resource<Boolean>> isProductInSearchList(@NonNull Product product) {
         return Transformations.forwardOnce(getLastSearchResult(), resourceResult -> {
             ProductsList result = resourceResult.getData();
-            List<UserProduct> products = result.getProducts();
+            List<Product> products = result.getProducts();
             // this list can be very long, so do check on async
             return Transformations.simulateApi(mAppExecutors.diskIO(), mAppExecutors.mainThread(), () -> {
                 return product.getRemote_id() != null && products.stream().anyMatch(item -> Objects.equals(item.getRemote_id(), product.getRemote_id()));
@@ -218,15 +322,15 @@ public class ProductsRepository {
      * Errors that could happens on Resource are:
      * <ul>
      *     <li>{@link #add(UserProduct)}'s exceptions </li>
-     *     <li>{@link #addPreference(UserProduct)}'s exceptions </li>
+     *     <li>{@link #addPreference(Product)}'s exceptions </li>
      * </ul>
      * @implNote  {@link #search(String)} must be called first, to fetch
      * @see #add(UserProduct)
-     * @see #addPreference(UserProduct)
+     * @see #addPreference(Product)
      * @param product
      * @return
      */
-    public LiveData<Resource<UserProduct>> register(@NonNull UserProduct product) {
+    public LiveData<Resource<UserProduct>> register(@NonNull Product product) {
         final MediatorLiveData<Resource<UserProduct>> mResult = new MediatorLiveData<>();
         // Only one of the following operations will fetch on remote due to their implementations
 
@@ -235,8 +339,7 @@ public class ProductsRepository {
         // so if use reuse this product, it could be fetched properly
         final LiveData<Resource<UserProduct>> mProductResult = Transformations.forwardOnce(authRepository.getLoggedAccount(), rUser -> {
             String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
-            product.setUserOwnerId(ownerID);
-            return add(product);
+            return add(new UserProduct(product, ownerID));
         });
         // add preference on remote if product is in the search list and add it locally
         final LiveData<Resource<VoteResponse>> mVoteResult = addPreference(product);
@@ -279,7 +382,7 @@ public class ProductsRepository {
      * @param product
      * @return
      */
-    private LiveData<Resource<VoteResponse>> addPreference(@NonNull UserProduct product ) {
+    private LiveData<Resource<VoteResponse>> addPreference(@NonNull Product product ) {
         return Transformations.forward(isProductInSearchList(product), input -> {
             boolean isInList = input.getData();
             final MutableLiveData<VoteResponse> data = new MutableLiveData<>(null);
@@ -363,8 +466,7 @@ public class ProductsRepository {
                 protected void saveCallResult(CreateProduct item) {
                     // consume token
                     // mAppExecutors.mainThread().execute(() -> { unsetSearchResult(); });
-                    item.setUserOwnerId(ownerID);
-                    mProduct.postValue(item);
+                    mProduct.postValue(new UserProduct(item, ownerID));
                 }
 
                 @Override
@@ -541,10 +643,12 @@ public class ProductsRepository {
         return Transformations.forwardOnce(authRepository.getLoggedAccount(), rUser -> {
             String userId = rUser.getData() != null ? rUser.getData().getId() : null;
             String barcode = product.getBarcode();
-            LiveData<Resource<UserProduct>> mProductSource = get(barcode);
-            return Transformations.forwardOnce(mProductSource, rProduct -> {
+            LiveData<Resource<UserProduct>> mUserProductSource = get(barcode);
+
+            return Transformations.forwardOnce(mUserProductSource, rProduct -> {
                 UserProduct data = rProduct.getData();
                 final MutableLiveData<UserProduct> mResult = new MutableLiveData<>(data);
+                final MutableLiveData<Resource<Product>> mProductSource = new MutableLiveData<>(Resource.success(data));
 
                 boolean shouldFetch = data != null
                         && data.getRemote_id() != null
@@ -552,13 +656,13 @@ public class ProductsRepository {
 
                 Log.d(TAG, "Removing product from local and remote");
                 // else remove also on remote
-                return new NetworkBoundResource<UserProduct, UserProduct>(mAppExecutors) {
+                return new NetworkBoundResource<UserProduct, Product>(mAppExecutors) {
 
                     @Override
-                    protected void saveCallResult(UserProduct item) {
-                        item.setUserOwnerId(userId);
-                        mResult.postValue(item);
-                        productDao.remove(item);
+                    protected void saveCallResult(Product item) {
+                        UserProduct p = new UserProduct(item, userId);
+                        mResult.postValue(p);
+                        productDao.remove(p);
                     }
 
                     @Override
@@ -578,7 +682,7 @@ public class ProductsRepository {
                     }
 
                     @Override
-                    protected LiveData<ApiResponse<UserProduct>> createCall() {
+                    protected LiveData<ApiResponse<Product>> createCall() {
                         if( shouldFetch )
                             return dataSource.delete(data.getRemote_id());
                         else

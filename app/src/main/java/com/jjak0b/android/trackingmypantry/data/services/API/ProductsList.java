@@ -1,18 +1,18 @@
 package com.jjak0b.android.trackingmypantry.data.services.API;
 
 import com.google.gson.annotations.Expose;
-import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
 import java.util.List;
 
 public class ProductsList extends TokenizedItem {
 
     @Expose
-    List<UserProduct> products;
+    List<Product> products;
 
     public ProductsList(String token) {
         super(token);
     }
 
-    public List<UserProduct> getProducts() { return products; }
+    public List<Product> getProducts() { return products; }
 }

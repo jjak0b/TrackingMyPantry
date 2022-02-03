@@ -25,10 +25,15 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>A fragment that shows a list of items as a modal bottom sheet.</p>
@@ -42,7 +47,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
     private final static String TAG = "SuggestedProductListDialogFragment";
     private SuggestedProductsViewModel mViewModel;
     private SharedProductViewModel mSharedViewModel;
-    private ProductListAdapter listAdapter;
+    private ProductListAdapter<Product> listAdapter;
     private String mParamBarcode;
 
     @Nullable
@@ -61,7 +66,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
         mViewModel = new ViewModelProvider(this).get(SuggestedProductsViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
 
-        listAdapter = new ProductListAdapter(new ProductListAdapter.ProductDiff(), this::onVoteProduct);
+        listAdapter = new ProductListAdapter<>(new ProductListAdapter.ProductDiff<>(), this::onVoteProduct);
 
         final ProgressBar loadingBar = (ProgressBar) view.findViewById(R.id.loadingBar);
         final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
@@ -89,6 +94,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
                 toolbar.setSubtitle(getString(R.string.loading));
             }
             else {
+                List<? extends Product> items = resource.getData();
                 if( resource.getStatus() == Status.ERROR) {
                     Log.e("Suggestions", "error gettings products", resource.getError());
                     if( resource.getError() instanceof AuthException) {
@@ -112,7 +118,7 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
                 }
 
                 loadingBar.setVisibility(View.GONE);
-                int size = resource.getData().size();
+                int size = items.size();
                 toolbar.setSubtitle(getResources()
                         .getQuantityString(R.plurals.matches_found, size, size));
 
@@ -121,12 +127,17 @@ public class SuggestedProductListDialogFragment extends BottomSheetDialogFragmen
                 else
                     suggestedResultsContainer.setVisibility(View.VISIBLE);
 
-                listAdapter.submitList(resource.getData());
+                List<Product> empty = new ArrayList<>(0);
+
+                listAdapter.submitList(Stream
+                        .concat(empty.stream(), items.stream())
+                        .collect(Collectors.toList())
+                );
             }
         });
     }
 
-    private void onVoteProduct(UserProduct product) {
+    private void onVoteProduct(Product product) {
         Log.d(TAG, "User voting for" + product );
         notifyResult(mViewModel.vote(product));
     }

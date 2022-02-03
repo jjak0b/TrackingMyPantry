@@ -3,7 +3,7 @@ package com.jjak0b.android.trackingmypantry.data.services;
 import androidx.lifecycle.LiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
-import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
 import com.jjak0b.android.trackingmypantry.data.services.API.Vote;
@@ -33,7 +33,7 @@ public interface RemoteProductsAPIService {
 
 
     @DELETE("products/{id}")
-    LiveData<ApiResponse<UserProduct>> removeProduct(
+    LiveData<ApiResponse<Product>> removeProduct(
             @Header("Authorization") String authorization,
             @Path("id") String productId
     );

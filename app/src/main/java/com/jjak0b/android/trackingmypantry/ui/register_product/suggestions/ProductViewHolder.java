@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.ui.util.LoadUtil;
 
-public class ProductViewHolder extends RecyclerView.ViewHolder {
+public class ProductViewHolder<T extends Product> extends RecyclerView.ViewHolder {
 
     @DrawableRes
     protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
@@ -34,8 +34,7 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
         image = (ImageView) itemView.findViewById(R.id.cardThumbnail);
     }
 
-    public void bind(@NonNull UserProduct product, OnProductClickListener onProductClickListener ){
-        title.setText( product.getName());
+    public void bind(@NonNull T product, OnProductClickListener<T> onProductClickListener ){
         description.setText(product.getDescription());
 
         this.itemView.setOnClickListener(v -> {
@@ -52,14 +51,14 @@ public class ProductViewHolder extends RecyclerView.ViewHolder {
             .into(image);
     }
 
-    static ProductViewHolder create(ViewGroup parent) {
+    static <T extends Product> ProductViewHolder<T> create(ViewGroup parent ) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_suggested_product_list_dialog_list_dialog_item, parent, false);
-        return new ProductViewHolder(view);
+        return new ProductViewHolder<>(view);
     }
 
-    public interface OnProductClickListener {
+    public interface OnProductClickListener<T> {
 
-        void onClick(UserProduct product);
+        void onClick(T product);
     }
 }

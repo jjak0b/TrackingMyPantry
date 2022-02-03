@@ -9,7 +9,7 @@ import androidx.lifecycle.LiveData;
 import com.jjak0b.android.trackingmypantry.data.HttpClient;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
 import com.jjak0b.android.trackingmypantry.data.services.API.CreateProduct;
 import com.jjak0b.android.trackingmypantry.data.services.API.ProductsList;
@@ -117,7 +117,7 @@ public class ProductsDataSource {
      * @param productID
      * @return
      */
-    public LiveData<ApiResponse<UserProduct>> delete(@NonNull String productID) {
+    public LiveData<ApiResponse<Product>> delete(@NonNull String productID) {
         return Transformations.switchMap(mAuthRepository.requireAuthorization(), authorization -> {
             return service.removeProduct(authorization.getData(), productID);
         });

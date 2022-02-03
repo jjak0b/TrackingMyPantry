@@ -3,9 +3,9 @@ package com.jjak0b.android.trackingmypantry.data.services.API;
 import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.Expose;
-import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
-public class CreateProduct extends UserProduct {
+public class CreateProduct extends Product {
 
     @Expose
     String token;
@@ -13,7 +13,7 @@ public class CreateProduct extends UserProduct {
     @Expose
     boolean test;
 
-    public CreateProduct(@NonNull UserProduct product, @NonNull String token) {
+    public CreateProduct(@NonNull Product product, @NonNull String token) {
         super( product );
 
         this.test = true; // TODO: remove on release
