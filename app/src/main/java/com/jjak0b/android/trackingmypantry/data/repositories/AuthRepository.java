@@ -208,19 +208,20 @@ public class AuthRepository {
      * @return
      */
     private LiveData<Resource<LoggedAccount>> getLoggedAccount(@NonNull Account account ) {
+        // User have to logged almost once to get a valid account, otherwise will fail even if offline
+        String userID = mAccountManager.getUserData(account, Authenticator.ACCOUNT_ID );
+        final LiveData<User> mUser = userDao.get(userID);
 
-        final MutableLiveData<User> mUser = new MutableLiveData<>(null);
         final MutableLiveData<Resource<LoggedAccount>> mLoggedAccount = new MutableLiveData<>(Resource.loading(null));
         final LiveData<Resource<User>> fetchedUser = new NetworkBoundResource<User, User>(appExecutors) {
             @Override
             protected void saveCallResult(User fetchedUser) {
                 userDao.updateOrInsert(fetchedUser);
-                mUser.postValue(fetchedUser);
             }
 
             @Override
             protected boolean shouldFetch(@Nullable User data) {
-                return true;
+                return data == null;
             }
 
             @Override

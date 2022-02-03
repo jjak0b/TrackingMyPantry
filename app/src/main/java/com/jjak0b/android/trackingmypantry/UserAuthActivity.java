@@ -116,7 +116,7 @@ public abstract class UserAuthActivity extends AppCompatActivity {
                         }
 
                         if( error != null ) {
-                            new AlertDialog.Builder(getBaseContext())
+                            new AlertDialog.Builder(UserAuthActivity.this)
                                     .setTitle(android.R.string.dialog_alert_title)
                                     .setMessage(error)
                                     .setPositiveButton(R.string.action_retry, (dialogInterface, i) -> {

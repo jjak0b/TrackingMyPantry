@@ -1,5 +1,4 @@
 package com.jjak0b.android.trackingmypantry.data.api;
-import com.jjak0b.android.trackingmypantry.data.services.API.AuthLoginResponse;
 
 import java.util.function.Function;
 
@@ -19,7 +18,7 @@ public class HttpErrorApiResponseHandler {
         if( function == null ) return false;
 
         if( response instanceof ApiErrorResponse) {
-            Throwable error = ((ApiErrorResponse<AuthLoginResponse>) response).getError();
+            Throwable error = ((ApiErrorResponse<T>) response).getError();
             if( error instanceof RemoteException){
                 RemoteException remoteError = (RemoteException) error;
                 if( remoteError.getCause() instanceof HttpException ) {
