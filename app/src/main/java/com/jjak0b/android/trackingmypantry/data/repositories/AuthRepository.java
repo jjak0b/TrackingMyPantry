@@ -5,7 +5,6 @@ import android.accounts.AccountManager;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.Context;
-import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -14,7 +13,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.hadilq.liveevent.LiveEvent;
 import com.jjak0b.android.trackingmypantry.AppExecutors;
 import com.jjak0b.android.trackingmypantry.data.api.ApiResponse;
 import com.jjak0b.android.trackingmypantry.data.api.AuthException;
@@ -35,8 +33,6 @@ import com.jjak0b.android.trackingmypantry.data.services.API.RegisterCredentials
 import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 import java.io.IOException;
-
-import retrofit2.Response;
 
 public class AuthRepository {
     private static final String TAG = "AuthRepository";
@@ -269,23 +265,57 @@ public class AuthRepository {
     }
 
     /**
-     * Provide a live data of an auth token for the provided account,
+     * Like {@link #getAuthTokenFromAccountManager(Account)} but it will silent test the auth validity first
      * @param account
      * @return a Resource containing the value of the auth token or an occurred error:
      * if an error occurs the resource contains:
      * <ul>
      * <li>{@link AuthException} if the authenticator failed to respond: failed authentication</li>
      * <li>{@link IOException } if the authenticator experienced an I/O problem creating a new auth token, usually because of network trouble</li>
-     * <li>{@link OperationCanceledException} if the operation is canceled for any reason, incluidng the user canceling a credential request</li>
+     * <li>{@link OperationCanceledException} if the operation is canceled for any reason, includidng the user canceling a credential request</li>
      * </ul>
      */
     private LiveData<Resource<String>> getAuthToken(@NonNull Account account) {
-        final MutableLiveData<String> mAuthToken = new MutableLiveData<>(null);
-        return new NetworkBoundResource<String, String>(appExecutors) {
+        // request a token, first attempt ( can be from cache or authenticator )
+        return Transformations.forward(getAuthTokenFromAccountManager(account), rTestToken -> {
+            final MediatorLiveData<Resource<String>> mAuthToken = new MediatorLiveData<>();
+
+            // do a request to test it's validity
+            LiveData<Resource<String>> mTestSource = testTokenValidity(rTestToken.getData());
+
+            mAuthToken.addSource(mTestSource, rValidToken -> {
+                switch (rValidToken.getStatus()) {
+                    case ERROR:
+                        // Unauthorized ...
+                        if( rValidToken.getError() instanceof AuthException ) {
+                            // Invalidate token
+                            Log.e(TAG, "Got Invalid token while testing auth token", rValidToken.getError() );
+                            mAccountManager.invalidateAuthToken(Authenticator.TOKEN_TYPE, rTestToken.getData() );
+                            // Detach Invalid token's source
+                            mAuthToken.removeSource(mTestSource);
+                            Log.d(TAG, "Renew auth token");
+                            // Attach new renewed token's source
+                            mAuthToken.addSource(getAuthTokenFromAccountManager(account), mAuthToken::setValue );
+                        }
+                        mAuthToken.setValue(rValidToken);
+                        break;
+                    default:
+                        mAuthToken.setValue(rValidToken);
+                        break;
+                }
+            });
+
+            return mAuthToken;
+        });
+    }
+
+    public LiveData<Resource<String>> testTokenValidity(String authToken) {
+        final MutableLiveData<String> mToken = new MutableLiveData<>(authToken);
+        return new NetworkBoundResource<String, User>(appExecutors) {
 
             @Override
-            protected void saveCallResult(String item) {
-                mAuthToken.postValue(item);
+            protected void saveCallResult(User item) {
+                mToken.postValue(authToken);
             }
 
             @Override
@@ -294,52 +324,43 @@ public class AuthRepository {
             }
 
             @Override
-            protected void onFetchFailed(Throwable cause) {
-                Log.e( TAG, "Unable authenticate account " + account.name, cause);
-            }
-
-            @Override
             protected LiveData<String> loadFromDb() {
-                return mAuthToken;
+                return mToken;
             }
 
             @Override
-            protected LiveData<ApiResponse<String>> createCall() {
-                LiveEvent<ApiResponse<String>> onResponse = new LiveEvent<>();
-
-                appExecutors.networkIO().execute(() -> {
-                    Bundle result = null;
-                    try {
-                        result = mAccountManager.getAuthToken(
-                                account,
-                                Authenticator.TOKEN_TYPE,
-                                null,
-                                true,
-                                null,
-                                null
-                        ).getResult();
-                        String authToken = result != null ? result.getString(AccountManager.KEY_AUTHTOKEN) : null;
-                        if( authToken != null ){
-                            onResponse.postValue(ApiResponse.create(Response.success(authToken)));
-                        }
-                        else {
-                            // warning: this should not never happen
-                            onResponse.postValue(ApiResponse.create(new IllegalArgumentException()));
-                        }
-                    }
-                    catch (IOException | OperationCanceledException e) {
-                        e.printStackTrace();
-                        onResponse.postValue(ApiResponse.create(e));
-                    }
-                    catch (AuthenticatorException e) {
-                        e.printStackTrace();
-                        onResponse.postValue(ApiResponse.create(new AuthException(AuthResultState.FAILED)));
-                    }
-                });
-
-                return onResponse;
+            protected LiveData<ApiResponse<User>> createCall() {
+                return dataSource.whoAmI(authToken);
             }
         }.asLiveData();
+    }
+
+    /**
+     * Provide a live data of an auth token for the provided account,
+     * @param account
+     * @return a Resource containing the value of the auth token or an occurred error:
+     * if an error occurs the resource contains:
+     * <ul>
+     * <li>{@link AuthException} if the authenticator failed to respond: failed authentication</li>
+     * <li>{@link IOException } if the authenticator experienced an I/O problem creating a new auth token, usually because of network trouble</li>
+     * <li>{@link OperationCanceledException} if the operation is canceled for any reason, includidng the user canceling a credential request</li>
+     * </ul>
+     */
+    private LiveData<Resource<String>> getAuthTokenFromAccountManager(@NonNull Account account) {
+
+        return Transformations.simulateApi(appExecutors.networkIO(), appExecutors.mainThread(), () -> {
+            try {
+                return mAccountManager.blockingGetAuthToken(account, Authenticator.TOKEN_TYPE, true );
+            }
+            catch (IOException | OperationCanceledException e) {
+                e.printStackTrace();
+                throw e;
+            }
+            catch (AuthenticatorException e) {
+                e.printStackTrace();
+                throw new AuthException(AuthResultState.UNAUTHORIZED);
+            }
+        });
     }
 
     /**
