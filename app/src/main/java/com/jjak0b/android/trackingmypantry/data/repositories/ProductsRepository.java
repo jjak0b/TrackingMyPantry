@@ -35,6 +35,7 @@ import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Objects;
@@ -99,11 +100,8 @@ public class ProductsRepository {
     @MainThread
     public LiveData<Resource<List<? extends Product>>> search(String barcode) {
         Log.d(TAG, "Request product list by " + barcode );
-        LiveData<List<UserProduct>> mDBSource = productDao.getProductsByBarcode(barcode);
 
-        // final MediatorLiveData<List<? extends Product>> fallbackResult = new MediatorLiveData<>();
-        // fallbackResult.addSource(mDBSource, searchResult::setValue );
-
+        // First we search and fetch results
         final MutableLiveData<ProductsList> mResult = new MutableLiveData<>(null);
         LiveData<Resource<ProductsList>> mResultSource = new NetworkBoundResource<ProductsList, ProductsList>(mAppExecutors) {
             @Override
@@ -138,22 +136,31 @@ public class ProductsRepository {
 
         LiveData<Resource<ProductsList>> mSearchResult = getLastSearchResult();
 
-        // used to store request data for future vote or register checks
+        // And then observe the search result, and forward results or fallback
+
+        // setup fallback source
+        final MediatorLiveData<List<UserProduct>> dbAdapter = new MediatorLiveData<>();
+        dbAdapter.addSource(get(barcode), resource -> {
+            if( resource.getStatus() != Status.LOADING ){
+                if( resource.getData() != null )
+                    dbAdapter.setValue(Collections.singletonList(resource.getData()));
+                else
+                    dbAdapter.setValue(Collections.emptyList());
+            }
+        });
+
+        // used to store search result data or a fallback list
         final MediatorLiveData<List<? extends Product>> fakeDBAdapter = new MediatorLiveData<>();
-        fakeDBAdapter.setValue(null);
+        fakeDBAdapter.addSource(dbAdapter, fakeDBAdapter::setValue );
 
         LiveData<Resource<List<? extends Product>>> mItems = new NetworkBoundResource<List<? extends Product>, ProductsList>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductsList item) {
-                fakeDBAdapter.postValue(item.getProducts());
-            }
-
-            @Override
-            protected void onFetchFailed(Throwable cause) {
-                // attach fallback source
+                // detach fallback source
                 mAppExecutors.mainThread().execute(() -> {
-                    fakeDBAdapter.addSource(mDBSource, fakeDBAdapter::setValue );
+                    fakeDBAdapter.removeSource(dbAdapter);
                 });
+                fakeDBAdapter.postValue(item.getProducts());
             }
 
             @Override
