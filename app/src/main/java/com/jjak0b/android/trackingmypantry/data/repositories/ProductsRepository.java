@@ -33,7 +33,6 @@ import com.jjak0b.android.trackingmypantry.data.services.API.VoteResponse;
 import com.jjak0b.android.trackingmypantry.util.ResourceUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -97,10 +96,11 @@ public class ProductsRepository {
         Log.d(TAG, "Request product list by " + barcode );
         // Api call
         final LiveData<ApiResponse<ProductsList>> mApiResponse = dataSource.search(barcode);
+        LiveData<List<UserProduct>> mDBSource = productDao.getProductsByBarcode(barcode);
 
         // used to store request data for future vote or register checks
         final MediatorLiveData<List<UserProduct>> searchResult = new MediatorLiveData<>();
-        searchResult.setValue(new ArrayList<>(0));
+        searchResult.addSource(mDBSource, searchResult::setValue );
 
         final MutableLiveData<ProductsList> mResult = new MutableLiveData<>(null);
         LiveData<Resource<ProductsList>> mResultSource = new NetworkBoundResource<ProductsList, ProductsList>(mAppExecutors) {
@@ -137,20 +137,16 @@ public class ProductsRepository {
         return new NetworkBoundResource<List<UserProduct>, ProductsList>(mAppExecutors) {
             @Override
             protected void saveCallResult(ProductsList item) {
+                // detach fallback source
+                mAppExecutors.mainThread().execute(() -> {
+                    searchResult.removeSource(mDBSource);
+                });
                 searchResult.postValue(item.getProducts());
             }
 
             @Override
             protected boolean shouldFetch(@Nullable List<UserProduct> data) {
                 return true;
-            }
-
-            @Override
-            protected void onFetchFailed(Throwable cause) {
-                LiveData<List<UserProduct>> mDBSource = productDao.getProductsByBarcode(barcode);
-                mAppExecutors.mainThread().execute(() -> {
-                    searchResult.addSource(mDBSource, searchResult::setValue);
-                });
             }
 
             @Override
@@ -336,8 +332,17 @@ public class ProductsRepository {
 
        String barcode = product.getBarcode();
        String ownerID = product.getUserOwnerId();
-        return Transformations.forward(isProductInSearchList(product), isInListResource -> {
-            boolean isInList = isInListResource.getData();
+       LiveData<Resource<Boolean>> mIsInList = androidx.lifecycle.Transformations.map(isProductInSearchList(product), isInListResource -> {
+           // force to return a dummy null value when last search result got an error for any reason, so we use local results
+           if (isInListResource.getStatus() == Status.ERROR) return Resource.success(null);
+           return isInListResource;
+       });
+        return Transformations.forward(mIsInList, isInListResource -> {
+            // this var is used when isProductInSearchList got an error, caused by last search result
+            // then the following mFetchedSource will provide that error, but with the product fallback
+            boolean shouldForceFetchToFail = isInListResource.getData() == null;
+
+            boolean isInList = isInListResource.getData() != null && isInListResource.getData();
 
             final MediatorLiveData<Resource<UserProduct>> mResult = new MediatorLiveData<>();
 
@@ -351,7 +356,7 @@ public class ProductsRepository {
             // product not in list - fetched error ->  add locally "cache" <=> we are offline - handled by mFetchedSource
             // product in list -> add locally "cache"
 
-            Log.d(TAG, "Adding product " + product + "\nis Product on remote list: " + isInList );
+            Log.d(TAG, "Adding product " + product + "\nis Product on remote list: " + (shouldForceFetchToFail || !isInList) );
             LiveData<Resource<UserProduct>> mFetchedSource = new NetworkBoundResource<UserProduct, CreateProduct>(mAppExecutors) {
 
                 @Override
@@ -364,7 +369,7 @@ public class ProductsRepository {
 
                 @Override
                 protected boolean shouldFetch(@Nullable UserProduct data) {
-                    return !isInList;
+                    return shouldForceFetchToFail || !isInList;
                 }
 
                 @Override
@@ -374,6 +379,7 @@ public class ProductsRepository {
 
                 @Override
                 protected LiveData<ApiResponse<CreateProduct>> createCall() {
+                    // if isProductInSearchList returned an error, then also getSearchToken() will
                     return Transformations.switchMap(getSearchToken(), tokenRes -> {
                         return dataSource.postProduct(new CreateProduct(
                                 product,
@@ -390,11 +396,12 @@ public class ProductsRepository {
                     case ERROR:
                         shouldAddLocally = false;
                         Throwable cause = resourceFetched.getError();
+                        Log.e(TAG, "Product remote registration failed ...", cause);
                         // if we are offline or due to I/O errors add it locally
                         if( cause instanceof IOException) {
                             // we keep use initial "cached" value
-                            Log.w(TAG, "Adding product only locally due to IOError", cause);
                             shouldAddLocally = resourceFetched.getData() != null;
+                            Log.w(TAG, "Adding product only locally due to IOError: " + shouldAddLocally );
                         }
                         else {
                             // it's not in the search list, so we added it previously locally in offline
@@ -402,7 +409,7 @@ public class ProductsRepository {
                             // we have no knowledge about the reason of the error
                             // In particular if it's an error code 500, api don't provide the cause
                             if( cause instanceof RemoteException) {
-                                Log.e(TAG, "Unable to add product to remote " + product, cause);
+                                Log.e(TAG, "Unable to add product to remote " + product);
                             }
                             shouldAddLocally = false;
                         }
