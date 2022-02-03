@@ -89,6 +89,7 @@
     <string name="tab_product_instance_details">Dettagli articoli</string>
     <string name="tab_product_purchase_details">Dettagli di acquisto</string>
     <string name="create_as_new">Aggiungi nuovo</string>
+    <string name="product_user_favorite">Il tuo preferito</string>
     <!-- menu options -->
     <string name="option_remove_entry">Rimuovi</string>
     <string name="option_move_to_pantry">Sposta in</string>

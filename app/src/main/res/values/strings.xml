@@ -90,6 +90,7 @@
     <string name="tab_product_instance_details">Articles details</string>
     <string name="tab_product_purchase_details">Purchase details</string>
     <string name="create_as_new">Add as new</string>
+    <string name="product_user_favorite">Your favorite</string>
     <!-- menu options -->
     <string name="option_remove_entry">Remove</string>
     <string name="option_move_to_pantry">Move to</string>

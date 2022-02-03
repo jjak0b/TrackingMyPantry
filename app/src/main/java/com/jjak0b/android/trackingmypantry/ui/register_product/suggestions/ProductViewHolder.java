@@ -22,9 +22,10 @@ public class ProductViewHolder<T extends Product> extends RecyclerView.ViewHolde
     protected static final int RESOURCE_DEFAULT_PRODUCT_IMG = R.drawable.ic_baseline_product_placeholder;
     private Drawable LOADING_PLACEHOLDER;
 
-    private TextView title;
-    private TextView description;
-    private ImageView image;
+    public TextView title;
+    public TextView description;
+    public ImageView image;
+    public ViewGroup favoriteContainer;
 
     public ProductViewHolder(@NonNull View itemView ) {
         super(itemView);
@@ -32,10 +33,13 @@ public class ProductViewHolder<T extends Product> extends RecyclerView.ViewHolde
         title = (TextView) itemView.findViewById(R.id.cardTitle);
         description = (TextView) itemView.findViewById(R.id.cardDescription);
         image = (ImageView) itemView.findViewById(R.id.cardThumbnail);
+        favoriteContainer = itemView.findViewById(R.id.cardSubtitleContainer);
     }
 
     public void bind(@NonNull T product, OnProductClickListener<T> onProductClickListener ){
+        title.setText(product.getName());
         description.setText(product.getDescription());
+        favoriteContainer.setVisibility(View.GONE);
 
         this.itemView.setOnClickListener(v -> {
             if( onProductClickListener != null )

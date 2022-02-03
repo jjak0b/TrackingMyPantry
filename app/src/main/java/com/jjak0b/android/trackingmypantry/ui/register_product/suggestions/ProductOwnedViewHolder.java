@@ -3,7 +3,6 @@ package com.jjak0b.android.trackingmypantry.ui.register_product.suggestions;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -12,17 +11,13 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.Product;
 
 public class ProductOwnedViewHolder<T extends Product> extends ProductViewHolder<T> {
 
-    private TextView title;
-
     public ProductOwnedViewHolder(@NonNull View itemView ) {
         super(itemView);
-        title = (TextView) itemView.findViewById(R.id.cardTitle);
     }
-
 
     public void bind(@NonNull T product, OnProductClickListener<T> onProductClickListener ){
         super.bind(product, onProductClickListener);
-        title.setText( "OWNED " + product.getName()); // TODO: fix
+        favoriteContainer.setVisibility(View.VISIBLE);
     }
 
     static <T extends Product> ProductOwnedViewHolder<T> create(ViewGroup parent) {
