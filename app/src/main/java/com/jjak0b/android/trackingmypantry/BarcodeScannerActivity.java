@@ -1,23 +1,5 @@
 package com.jjak0b.android.trackingmypantry;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
-import androidx.camera.core.CameraControl;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.FocusMeteringAction;
-import androidx.camera.core.FocusMeteringResult;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.MeteringPoint;
-import androidx.camera.core.Preview;
-import androidx.camera.core.UseCase;
-import androidx.camera.core.UseCaseGroup;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -29,15 +11,27 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraControl;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.FocusMeteringAction;
+import androidx.camera.core.FocusMeteringResult;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.MeteringPoint;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -131,7 +125,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
         Futures.addCallback(cameraFuture,
                 new FutureCallback<Camera>() {
                     @Override
-                    public void onSuccess(@NullableDecl Camera camera) {
+                    public void onSuccess(Camera camera) {
                         setUpTapToFocus( camera );
                     }
 
@@ -205,7 +199,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
                         cameraControl.startFocusAndMetering(action),
                         new FutureCallback<FocusMeteringResult>() {
                             @Override
-                            public void onSuccess(@NullableDecl FocusMeteringResult result) {
+                            public void onSuccess(FocusMeteringResult result) {
                                 if( result.isFocusSuccessful() ) {
                                     Log.d(TAG, "Focused successfully");
                                 }
