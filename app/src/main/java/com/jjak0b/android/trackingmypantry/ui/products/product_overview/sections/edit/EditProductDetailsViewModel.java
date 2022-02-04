@@ -7,6 +7,7 @@ import androidx.lifecycle.MediatorLiveData;
 
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
 
@@ -26,4 +27,7 @@ public class EditProductDetailsViewModel extends ProductDetailsViewModel {
         return mediator;
     }
 
+    protected LiveData<Resource<UserProduct>> get(String productID) {
+        return productsRepository.get(productID);
+    }
 }

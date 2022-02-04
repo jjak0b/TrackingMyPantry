@@ -134,7 +134,15 @@
     <fragment
         android:id="@+id/editProductDetailsFragment"
         android:name="com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.edit.EditProductDetailsFragment"
-        android:label="@string/product_section_edit_product_details" />
+        android:label="@string/product_section_edit_product_details" >
+        <argument
+            android:name="productID"
+            app:argType="string" />
+        <action
+            android:id="@+id/onProductSave"
+            app:popUpTo="@id/editProductDetailsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
     <dialog
         android:id="@+id/productsSearchFilterFragmentDialog"
         android:name="com.jjak0b.android.trackingmypantry.ui.products.ProductsSearchFilterFragmentDialog"

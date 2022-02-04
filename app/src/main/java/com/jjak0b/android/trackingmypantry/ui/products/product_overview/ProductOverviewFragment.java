@@ -38,8 +38,9 @@ public class ProductOverviewFragment extends Fragment {
 
     private ProductOverviewViewModel mViewModel;
     private SharedProductViewModel mSharedViewModelForNav;
-    private SharedProductViewModel mSharedViewModel;
     private Drawable LOADING_PLACEHOLDER;
+
+    private String productID;
 
     private final static String TAG = "ProductOverview";
     public static ProductOverviewFragment newInstance() {
@@ -61,6 +62,8 @@ public class ProductOverviewFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
+                .getProductID();
 
         LOADING_PLACEHOLDER = LoadUtil.getProgressLoader(requireContext());
         final BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_nav);
@@ -75,10 +78,9 @@ public class ProductOverviewFragment extends Fragment {
 
         mViewModel = new ViewModelProvider(this).get(ProductOverviewViewModel.class);
         mSharedViewModelForNav = new ViewModelProvider(navHostFragment).get(SharedProductViewModel.class);
-        // used for Edit product
-        mSharedViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
 
-        mSharedViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+        LiveData<Resource<UserProduct>> source = mViewModel.get(productID);
+        source.observe(getViewLifecycleOwner(), resource -> {
 
             String imgURI = resource.getData() != null ? resource.getData().getImg() : null;
 
@@ -91,13 +93,7 @@ public class ProductOverviewFragment extends Fragment {
 
         });
 
-        String productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
-                .getProductID();
-
         Log.e(TAG, "setting ProductID " + productID);
-
-        LiveData<Resource<UserProduct>> source = mViewModel.get(productID);
-        mSharedViewModel.setItemSource(source);
         mSharedViewModelForNav.setItemSource(source);
 
     }
@@ -122,18 +118,16 @@ public class ProductOverviewFragment extends Fragment {
 
     private void onActionEdit() {
         Navigation.findNavController(requireView())
-                .navigate(ProductOverviewFragmentDirections.actionEditProductDetails());
+                .navigate(ProductOverviewFragmentDirections.actionEditProductDetails(productID));
     }
 
     private void onActionAdd() {
-        String productID = ProductOverviewFragmentArgs.fromBundle(getArguments())
-                .getProductID();
         Navigation.findNavController(requireView())
                 .navigate(ProductOverviewFragmentDirections.actionAddProduct(productID));
     }
 
     private void onActionRemove() {
-        LiveData<Resource<UserProduct>> mCurrentProduct = mSharedViewModel.getItem();
+        LiveData<Resource<UserProduct>> mCurrentProduct = mViewModel.get(productID);
         NavController navController = Navigation.findNavController(requireView());
         new MaterialAlertDialogBuilder(requireContext())
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {

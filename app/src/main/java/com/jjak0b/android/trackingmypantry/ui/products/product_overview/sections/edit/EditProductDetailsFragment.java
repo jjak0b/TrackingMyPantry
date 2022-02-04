@@ -17,22 +17,19 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductDetailsViewModel;
-import com.jjak0b.android.trackingmypantry.ui.register_product.SharedProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 public class EditProductDetailsFragment extends ProductDetailsFragment {
 
     private static final String TAG = "EditProductInfoFragment";
-    private SharedProductViewModel mProductViewModel;
-
+    private String productID;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mProductViewModel = new ViewModelProvider(requireParentFragment()).get(SharedProductViewModel.class);
     }
 
     @Override
@@ -53,6 +50,7 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        productID = EditProductDetailsFragmentArgs.fromBundle(getArguments()).getProductID();
 
         final TextInputLayout barcodeInputLayout = view.findViewById(R.id.barcodeInputLayout);
 
@@ -60,7 +58,7 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
         barcodeInputLayout.setStartIconVisible(false);
         barcodeInputLayout.setEndIconVisible(false);
 
-        mProductViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+        getViewModel().get(productID).observe(getViewLifecycleOwner(), resource -> {
             switch (resource.getStatus()) {
                 case SUCCESS:
                     getViewModel().setProduct(resource.getData());
@@ -94,12 +92,14 @@ public class EditProductDetailsFragment extends ProductDetailsFragment {
             getViewModel().enableSave(resource.getStatus() != Status.LOADING );
             switch (resource.getStatus()) {
                 case LOADING:
-
                     break;
                 case SUCCESS:
-                    Log.d(TAG, "Saved successfully: " + resource.getData() );
-                    Navigation.findNavController(view)
-                            .popBackStack();
+                    ProductWithTags details = resource.getData();
+                    Log.d(TAG, "Saved successfully: " + details );
+
+                    Navigation.findNavController(requireView()).navigate(
+                            EditProductDetailsFragmentDirections.onProductSave()
+                    );
                     break;
                 case ERROR:
                     new AlertDialog.Builder(requireContext())
