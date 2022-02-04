@@ -213,27 +213,21 @@ public class ProductsRepository {
                     List<Product> list = Stream.concat(empty.stream(), items.stream() )
                             .collect(Collectors.toList());
 
-                    UserProduct itemToAdd = null;
-
                     // search into result and replace the product with its upcast
                     if( productOwnedByUser.getRemote_id() != null ) {
                         for (ListIterator<Product> it = list.listIterator(); it.hasNext(); ) {
                             Product item = it.next();
                             if( Objects.equals(productOwnedByUser.getRemote_id(), item.getRemote_id())) {
                                 it.remove();
-                                itemToAdd = new UserProduct(item, productOwnedByUser.getUserOwnerId());
                                 break;
                             }
                         }
+                        // if not found ( has been removed on remote or hasn't been added on remote yet )
                     }
 
-                    // if not found ( has been removed on remote or hasn't been added on remote yet )
-                    if( itemToAdd == null ){
-                        itemToAdd = productOwnedByUser;
-                    }
 
                     // then add as first element
-                    list.add(0, itemToAdd);
+                    list.add(0, productOwnedByUser);
 
                     fakeDBAdapter.postValue(list);
                 }
