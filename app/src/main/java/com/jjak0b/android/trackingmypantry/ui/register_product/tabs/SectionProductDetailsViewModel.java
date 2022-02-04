@@ -167,10 +167,6 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         return isValid;
     }
 
-    public LiveData<Resource<UserProduct>> searchMyProducts(String barcode) {
-        return productsRepository.get(barcode);
-    }
-
     @Override
     public LiveData<Boolean> canSave() {
         return savable.canSave();

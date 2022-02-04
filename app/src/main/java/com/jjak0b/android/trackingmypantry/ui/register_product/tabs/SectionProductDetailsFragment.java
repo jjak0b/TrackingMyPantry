@@ -61,6 +61,15 @@ public class SectionProductDetailsFragment extends Fragment {
     static final String TAG = "SectionProductDetailsProductFragment";
     private ActivityResultLauncher<Intent> scanLauncher;
     private ActivityResultLauncher<String[]> requestScanCameraPermissionsLauncher;
+    private static final String ARG_BARCODE = "barcode";
+
+    public static SectionProductDetailsFragment newInstance(String barcode) {
+        Bundle args = new Bundle();
+        args.putString(ARG_BARCODE, barcode);
+        SectionProductDetailsFragment fragment = new SectionProductDetailsFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @NonNull
     public SectionProductDetailsViewModel initViewModel() {
@@ -110,6 +119,11 @@ public class SectionProductDetailsFragment extends Fragment {
         setupProduct(view, savedInstanceState);
         setupSearch(view, savedInstanceState);
         setupTags(view, savedInstanceState);
+
+        if( getArguments() != null ) {
+            String barcode = getArguments().getString(ARG_BARCODE);
+            if( barcode != null ) search(barcode);
+        }
     }
 
     public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -155,7 +169,6 @@ public class SectionProductDetailsFragment extends Fragment {
             if( shouldReset ) {
                 Log.d(TAG, "Resetting");
                 getViewModel().reset();
-                // mProductPickerViewModel.setProductSource(null);
             }
         });
     }
@@ -369,16 +382,14 @@ public class SectionProductDetailsFragment extends Fragment {
 
     private void search(String barcode) {
         getViewModel().setBarcode( barcode );
-        LiveData<Resource<UserProduct>> mSearch = getViewModel().searchMyProducts( barcode );
-        boolean isAProductPicked = getViewModel().isProductSet();
 
-        mSearch.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
+        LiveData<Resource<UserProduct>> mProduct = getViewModel().getProduct();
+        mProduct.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
             @Override
             public void onChanged(Resource<UserProduct> resource) {
-                if( resource.getStatus() == Status.LOADING ) return;
+                mProduct.removeObserver(this);
 
-                mSearch.removeObserver(this);
-                boolean isProductRegistered = resource.getData() != null;
+                boolean isAProductPicked = resource.getData() != null;
 
                 if( isAProductPicked) {
                     new MaterialAlertDialogBuilder(requireContext())
@@ -389,9 +400,6 @@ public class SectionProductDetailsFragment extends Fragment {
                             })
                             .setNegativeButton(android.R.string.cancel, null )
                             .show();
-                }
-                else if( isProductRegistered ) {
-                    mProductPickerViewModel.setItemSource(mSearch);
                 }
                 else {
                     openBottomSheetDialog(getView(), barcode);
