@@ -2,7 +2,6 @@ package com.jjak0b.android.trackingmypantry.ui.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -64,28 +63,12 @@ public class SettingsFragment extends ChronoPreferenceFragment implements Shared
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "onCreated");
         getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
     public void onDestroyView() {
-        Log.d(TAG, "onDestroy");
         getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
         super.onDestroyView();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume");
-    }
-
-
-    @Override
-    public void onPause() {
-        Log.d(TAG, "onPause");
-
-        super.onPause();
     }
 }

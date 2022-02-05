@@ -42,7 +42,6 @@ public class AuthActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(TAG, "onCreate");
         // set UI
         setContentView(R.layout.activity_auth);
         Toolbar toolbar = findViewById(R.id.toolbar);

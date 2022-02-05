@@ -358,7 +358,7 @@ public class ProductsRepository {
                 mResult.removeSource(mPair);
                 mPair.removeSources(mProductResult, mVoteResult);
 
-                Log.d(TAG, "got result: " + resourceResourcePair );
+                Log.d(TAG, "Register product results: " + resourceResourcePair );
                 // set the result value
                 // mResult.setValue(resourceResourcePair.first);
                 // unsetting the token here and not in #add or #addPreference because of async-ness
@@ -460,7 +460,7 @@ public class ProductsRepository {
             // product not in list - fetched error ->  add locally "cache" <=> we are offline - handled by mFetchedSource
             // product in list -> add locally "cache"
 
-            Log.d(TAG, "Adding product " + product + "\nis Product on remote list: " + (shouldForceFetchToFail || !isInList) );
+            Log.d(TAG, "Adding product " + product + "\nis Product on remote list: " + isInList );
             LiveData<Resource<UserProduct>> mFetchedSource = new NetworkBoundResource<UserProduct, CreateProduct>(mAppExecutors) {
 
                 @Override
@@ -526,6 +526,9 @@ public class ProductsRepository {
                 }
 
                 if( !shouldAddLocally ) {
+                    if( resourceFetched.getStatus() == Status.ERROR )
+                        mResult.setValue(Resource.error(mFetchedSource.getValue().getError(),null ));
+                    else
                     // just forward the result
                     mResult.setValue(resourceFetched);
                 }

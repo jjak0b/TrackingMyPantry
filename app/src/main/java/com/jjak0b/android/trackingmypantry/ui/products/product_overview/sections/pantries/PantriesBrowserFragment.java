@@ -1,7 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +62,6 @@ public class PantriesBrowserFragment extends Fragment {
         mProductViewModel.getItem().observe(getViewLifecycleOwner(), mViewModel::setProduct);
 
         mViewModel.getList().observe( getViewLifecycleOwner(), resource -> {
-            Log.e(TAG, "newPantries:"+resource);
             switch (resource.getStatus()) {
                 case LOADING:
                     loadingBar.setVisibility( View.VISIBLE );
@@ -74,7 +72,6 @@ public class PantriesBrowserFragment extends Fragment {
                         listInfo.setVisibility( View.VISIBLE );
                     }
                     else {
-                        Log.e( TAG, "submitting new list of " + pantriesWGroups.size() + "elements from " +  this.toString() + " " );
                         listInfo.setVisibility( View.GONE );
                     }
                     listAdapter.submitList( pantriesWGroups );

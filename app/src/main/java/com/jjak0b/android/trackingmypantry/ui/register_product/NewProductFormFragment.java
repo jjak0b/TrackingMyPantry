@@ -79,7 +79,6 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
         getViewModel().onSave().observe(getViewLifecycleOwner(), isSaving-> {
             if( isSaving ){
-                Log.d(TAG, "Saving" );
                 getViewModel().saveComplete();
                 return;
             }
@@ -114,7 +113,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
     private void notifyResult(Resource<UserProduct> result) {
 
-        Log.d(TAG, "submitting: " + result);
+        Log.d(TAG, "Submitting new Product to register: " + result);
         // Commented unnecessary usage of SharedProductViewModel to share the added product
         // because can return its barcode through NavController as return value for success
         // MediatorLiveData<Resource<UserProduct>> mProduct = new MediatorLiveData<>();

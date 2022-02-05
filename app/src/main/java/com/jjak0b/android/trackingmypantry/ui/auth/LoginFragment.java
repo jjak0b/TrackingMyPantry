@@ -2,7 +2,6 @@ package com.jjak0b.android.trackingmypantry.ui.auth;
 
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -127,7 +126,6 @@ public class LoginFragment extends LoginFormFragment {
                 .observe(getViewLifecycleOwner(), new Observer<LoginResult>() {
                     @Override
                     public void onChanged(LoginResult loginResult) {
-                        Log.d("LoginFragment", "LoginResult changed");
 
                         if (loginResult.getSuccess() != null) {
                             updateUiWithUser(loginResult.getSuccess());

@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,6 @@ import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.ui.maps.PlacesPluginActivity;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 import com.jjak0b.android.trackingmypantry.ui.util.PlaceAdapter;
-import com.mapbox.geojson.Point;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -64,11 +62,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
             int resultCode = result.getResultCode();
             Intent data = result.getData();
             if (resultCode == Activity.RESULT_OK && data != null) {
-
-                Log.e("CFeature: ", PlacesPluginActivity.getPlace(data).toJson());
                 Place place = PlaceAdapter.from(PlacesPluginActivity.getPlace(data));
-
-                Log.e("Feature: ", Point.fromJson(place.getFeature().geometry().toJson()).toJson() );
 
                 getViewModel().setPurchasePlace(place);
             }

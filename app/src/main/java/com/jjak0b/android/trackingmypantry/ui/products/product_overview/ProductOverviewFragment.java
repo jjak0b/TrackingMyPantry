@@ -93,7 +93,7 @@ public class ProductOverviewFragment extends Fragment {
 
         });
 
-        Log.e(TAG, "setting ProductID " + productID);
+        Log.e(TAG, "setup with ProductID " + productID);
         mSharedViewModelForNav.setItemSource(source);
 
     }

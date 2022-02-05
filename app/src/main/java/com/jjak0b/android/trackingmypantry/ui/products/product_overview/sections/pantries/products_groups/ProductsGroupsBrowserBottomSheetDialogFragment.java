@@ -115,7 +115,6 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
         });
 
         mViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
-            Log.d(TAG, "Submitted new Pantry content items "  +resource );
             switch (resource.getStatus()) {
                 case LOADING:
                     groupsInfo.setVisibility(View.GONE);

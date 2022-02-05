@@ -3,7 +3,6 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,8 +141,6 @@ public class PurchaseLocationsFragment extends Fragment implements OnMapLoadedLi
                             west = Math.min(west, placeCenter.longitude());
                             east = Math.max(east, placeCenter.longitude());
 
-                            Log.e("Place", ""+place );
-                            Log.e("purchases", ""+entry.getValue() );
                             Feature feature = place.getFeature();
 
                             // create waypoint on view

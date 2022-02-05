@@ -76,9 +76,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     @Override
     public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
-        Log.d( TAG, "getAuthToken" );
+        Log.d( TAG, "Got request to provide an auth token of type " + authTokenType );
         final Bundle result = new Bundle();
-        Log.e( TAG, "AUTHTYPE: " + authTokenType );
 
         final AccountManager accountManager = AccountManager.get(mContext);
         String authToken = accountManager.peekAuthToken( account, authTokenType );

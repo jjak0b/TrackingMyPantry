@@ -255,11 +255,9 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
         savable.onSaved().removeSource(savable.onSave());
         savable.onSaved().addSource(savable.onSave(), aBoolean -> {
             if( aBoolean ){
-                Log.e(TAG, "saving" );
                 savable.setSavedResult(Resource.loading(null));
                 return;
             }
-            Log.e(TAG, "end saving" );
             savable.onSaved().removeSource(savable.onSave());
 
             if( updateValidity(false) ) {

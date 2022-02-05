@@ -1,18 +1,19 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-
 import android.app.Application;
 import android.util.Log;
 import android.util.Patterns;
 
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
-import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
-import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
+import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+
 import java.io.IOException;
 
 public class AuthFormViewModel extends AndroidViewModel {
@@ -32,7 +33,6 @@ public class AuthFormViewModel extends AndroidViewModel {
 
     public AuthFormViewModel(Application application) {
         super(application);
-        Log.d( TAG, "new login vm instance");
         this.loginFormState = new MutableLiveData<>( new LoginFormState(false) );
         this.mUIResult = new LiveEvent<>();
         this.onLoggedAccount = new LiveEvent<>();
