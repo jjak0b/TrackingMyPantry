@@ -19,4 +19,13 @@ public class CreateProduct extends Product {
         this.test = true; // TODO: remove on release
         this.token = token;
     }
+
+    @Override
+    public String toString() {
+        return "CreateProduct{" +
+                "token='" + token + '\'' +
+                ", test=" + test +
+                ", " + super.toString() +
+                '}';
+    }
 }

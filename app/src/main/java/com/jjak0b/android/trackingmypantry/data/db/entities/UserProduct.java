@@ -44,7 +44,7 @@ public class UserProduct extends Product {
     private String userOwnerId;
 
     public UserProduct(@Nullable String remote_id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable String userCreatorId, @Nullable Date createdAt, @Nullable Date updatedAt, @NonNull String userOwnerId) {
-        super(remote_id, barcode, userCreatorId, name, description, img, createdAt, updatedAt);
+        super(remote_id, barcode, name, description, img, userCreatorId, createdAt, updatedAt);
         this.userOwnerId = userOwnerId;
     }
 
@@ -73,16 +73,9 @@ public class UserProduct extends Product {
 
     @Override
     public String toString() {
-        return "Product{" +
-                "remote_id='" + remote_id + '\'' +
-                ", barcode='" + barcode + '\'' +
-                ", userCreatorId='" + userCreatorId + '\'' +
-                ", userOwnerId='" + userOwnerId + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", img='" + (String.valueOf(img).length() < 20 ? img : String.valueOf(img).substring(0, 20)  ) + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
+        return "UserProduct{" +
+                "userOwnerId='" + userOwnerId + '\'' +
+                ", " + super.toString() +
                 '}';
     }
 

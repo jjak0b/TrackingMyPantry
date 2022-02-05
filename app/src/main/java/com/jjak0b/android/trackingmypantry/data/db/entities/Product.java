@@ -31,7 +31,7 @@ public class Product {
      */
     @ColumnInfo(name = "creator_id")
     @SerializedName("userId")
-    @Expose
+    @Expose(serialize = false)
     @Nullable
     protected String userCreatorId;
 
@@ -58,7 +58,7 @@ public class Product {
     @Nullable
     protected Date updatedAt;
 
-    public Product(@Nullable String remote_id, @NonNull String barcode, @Nullable String userCreatorId, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable Date createdAt, @Nullable Date updatedAt) {
+    public Product(@Nullable String remote_id, @NonNull String barcode, @NonNull String name, @Nullable String description, @Nullable String img, @Nullable String userCreatorId, @Nullable Date createdAt, @Nullable Date updatedAt) {
         this.remote_id = remote_id;
         this.barcode = barcode;
         this.userCreatorId = userCreatorId;
@@ -146,7 +146,7 @@ public class Product {
                 ", userCreatorId='" + userCreatorId + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", img='" + (String.valueOf(img).length() < 20 ? img : String.valueOf(img).substring(0, 20)  ) + '\'' +
+                ", img='" + (String.valueOf(img).length() < 32 ? img : (String.valueOf(img).substring(0, 32) + "..." )) + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
