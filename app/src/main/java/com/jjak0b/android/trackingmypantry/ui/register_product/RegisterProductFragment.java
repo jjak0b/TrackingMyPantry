@@ -35,6 +35,7 @@ public class RegisterProductFragment extends Fragment {
     private RegisterProductViewModel mSharedViewModel;
     private PageViewModel mPageViewModel;
     private static final String TAG = "RegisterProductFragment";
+    private String productID;
 
     public RegisterProductFragment() {
         super();
@@ -49,9 +50,13 @@ public class RegisterProductFragment extends Fragment {
         mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
         mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
         mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
+        productID = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
 
-        mSharedViewModel.setupNew();
-        mProductPickerViewModel.setItemSource(null);
+        // clear the currently stuff set
+        if( productID != null )  {
+            mSharedViewModel.setupNew();
+            mProductPickerViewModel.setItemSource(null);
+        }
     }
 
     @Override
@@ -231,10 +236,9 @@ public class RegisterProductFragment extends Fragment {
 
     @NonNull
     public Fragment createPageFragment( int position ) {
-        String barcode = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
         switch ( position ){
             case 0:
-                return SectionProductDetailsFragment.newInstance(barcode);
+                return SectionProductDetailsFragment.newInstance(productID);
             case 1:
                 return new SectionProductInstanceDetailsFragment();
             case 2:

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsFragment;
 import com.jjak0b.android.trackingmypantry.ui.products.details.ProductPurchaseDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
@@ -20,7 +21,7 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
 
     @Override
     public ProductPurchaseDetailsViewModel initViewModel() {
-        return new ViewModelProvider(requireActivity()).get(SectionProductPurchaseDetailsViewModel.class);
+        return new ViewModelProvider(this).get(SectionProductPurchaseDetailsViewModel.class);
     }
 
     @NonNull
@@ -41,6 +42,12 @@ public class SectionProductPurchaseDetailsFragment extends ProductPurchaseDetail
 
         setupSave(view, savedInstanceState);
         setupReset(view, savedInstanceState);
+
+        mSharedViewModel.getProductPurchaseDetails().observe(getViewLifecycleOwner(), resource -> {
+            if( resource.getStatus() != Status.LOADING ) {
+                getViewModel().setDetails(resource.getData());
+            }
+        });
     }
 
     @Override

@@ -66,6 +66,13 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
         reset();
     }
 
+    public void setDetails(ProductWithTags details) {
+        if( details != null ) {
+            setBarcode(details.product.getBarcode());
+            setProduct(details);
+        }
+    }
+
     @Override
     protected void onCleared() {
         savable.onCleared();
@@ -120,8 +127,8 @@ public class SectionProductDetailsViewModel extends AndroidViewModel implements 
             else {
                 mProduct.setValue(Resource.success(product));
             }
+            updateValidity(true);
         }
-        updateValidity(true);
     }
 
     public void setProduct(ProductWithTags productWithTags) {

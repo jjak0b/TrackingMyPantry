@@ -157,7 +157,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
                     Log.d(TAG, "Providing product to caller");
 
                     mProduct.addSource(operation, resource1 -> {
-                        mProduct.setValue(Resource.success(resource1.getData()));
+                        mProduct.setValue(resource1);
                     });
 
                     Navigation.findNavController(requireView())

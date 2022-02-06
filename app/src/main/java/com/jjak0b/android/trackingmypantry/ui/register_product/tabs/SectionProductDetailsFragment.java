@@ -73,7 +73,7 @@ public class SectionProductDetailsFragment extends Fragment {
 
     @NonNull
     public SectionProductDetailsViewModel initViewModel() {
-        return new ViewModelProvider(requireActivity()).get(SectionProductDetailsViewModel.class);
+        return new ViewModelProvider(this).get(SectionProductDetailsViewModel.class);
     }
 
     @NonNull
@@ -124,6 +124,12 @@ public class SectionProductDetailsFragment extends Fragment {
             String barcode = getArguments().getString(ARG_BARCODE);
             if( barcode != null ) search(barcode);
         }
+
+        mSharedViewModel.getProductDetails().observe(getViewLifecycleOwner(), resource -> {
+            if( resource.getStatus() != Status.LOADING ) {
+                getViewModel().setDetails(resource.getData());
+            }
+        });
     }
 
     public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
