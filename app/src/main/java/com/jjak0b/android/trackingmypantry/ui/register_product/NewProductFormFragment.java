@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -32,7 +33,7 @@ import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
  */
 public class NewProductFormFragment extends ProductInfoFragment {
     private static final String TAG = "NewProductForm";
-    // private SharedProductViewModel sharedViewModel;
+    private SharedProductViewModel sharedViewModel;
     private String mParamBarcode;
     private FloatingActionButton fabSave;
 
@@ -43,7 +44,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
     @Override
     protected NewProductFormViewModel initViewModel() {
-        // sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
         return new ViewModelProvider(this).get(NewProductFormViewModel.class);
     }
 
@@ -79,6 +80,7 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
         getViewModel().onSave().observe(getViewLifecycleOwner(), isSaving-> {
             if( isSaving ){
+                Log.d(TAG, "Saving" );
                 getViewModel().saveComplete();
                 return;
             }
@@ -113,11 +115,10 @@ public class NewProductFormFragment extends ProductInfoFragment {
 
     private void notifyResult(Resource<UserProduct> result) {
 
-        Log.d(TAG, "Submitting new Product to register: " + result);
-        // Commented unnecessary usage of SharedProductViewModel to share the added product
-        // because can return its barcode through NavController as return value for success
-        // MediatorLiveData<Resource<UserProduct>> mProduct = new MediatorLiveData<>();
-        // sharedViewModel.setItemSource(mProduct);
+        Log.d(TAG, "submitting: " + result);
+
+        MediatorLiveData<Resource<UserProduct>> mProduct = new MediatorLiveData<>();
+        sharedViewModel.setItemSource(mProduct);
 
         LiveData<Resource<UserProduct>> operation = getViewModel().submit(result.getData());
         operation.observe(getViewLifecycleOwner(), new Observer<Resource<UserProduct>>() {
@@ -139,26 +140,28 @@ public class NewProductFormFragment extends ProductInfoFragment {
                                     .setMessage(errorMsg)
                                     .setPositiveButton(android.R.string.ok, null)
                                     .show();
-                            //  mProduct.setValue(resource);
+                            mProduct.setValue(resource);
                         }
+                        // Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_LONG ).show();
                         break;
                     case SUCCESS:
                         operation.removeObserver(this);
                         shouldReturnProduct = true;
                         break;
                     default:
-                        // mProduct.setValue(resource);
+                        mProduct.setValue(resource);
                         break;
                 }
 
                 if( shouldReturnProduct ) {
                     Log.d(TAG, "Providing product to caller");
 
-                    // mProduct.addSource(operation, resource1 -> {
-                    //     mProduct.setValue(Resource.success(resource1.getData()));
-                    // });
+                    mProduct.addSource(operation, resource1 -> {
+                        mProduct.setValue(Resource.success(resource1.getData()));
+                    });
+
                     Navigation.findNavController(requireView())
-                            .navigate( NewProductFormFragmentDirections.onProductCreated(resource.getData().getBarcode()) );
+                            .navigate( NewProductFormFragmentDirections.onProductCreated(null) );
                 }
                 else {
                     Log.w(TAG, "Should not return product to caller", resource.getError() );
