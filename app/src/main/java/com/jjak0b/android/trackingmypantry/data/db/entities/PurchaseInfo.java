@@ -58,6 +58,12 @@ public class PurchaseInfo {
     @ColumnInfo( name = "user_id", index = true)
     String userId;
 
+    public PurchaseInfo( long id, @NonNull String productId, @Nullable String placeId, @NonNull String userId, float cost, Date purchaseDate) {
+        this(productId, cost, purchaseDate, placeId, userId);
+        this.id = id;
+    }
+
+    @Ignore
     public PurchaseInfo(@NonNull String productId, float cost, Date purchaseDate, @Nullable String placeId, @NonNull String userId ) {
         this.id = 0;
         this.purchaseDate = purchaseDate;
