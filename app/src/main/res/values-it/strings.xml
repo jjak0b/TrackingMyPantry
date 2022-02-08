@@ -135,7 +135,7 @@
     <string name="product_section_product_overview">Panoramica del prodotto</string>
     <string name="product_section_edit_product_details">@string/action_edit_product</string>
     <string name="product_section_purchase_places">Luoghi di acquisto</string>
-    <string name="product_section_purchase_places_overview">Panoramica della cronologia degli acquisti</string>
+    <string name="product_section_purchase_places_overview">Panoramica degli acquisti</string>
 
     <string name="setup_filter_options">Imposta i parametri di filtro</string>
     <string name="filter_no_options_available">"Non c'è alcun tag disponibile"</string>
