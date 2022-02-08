@@ -232,6 +232,7 @@ public class ProductsGroupsBrowserBottomSheetDialogFragment extends BottomSheetD
                                 })
                                 .setCancelable(true)
                                 .setNegativeButton(android.R.string.cancel, null)
+                                .setTitle(R.string.option_move_to_pantry)
                                 .create()
                                 .show();
                         return true;
