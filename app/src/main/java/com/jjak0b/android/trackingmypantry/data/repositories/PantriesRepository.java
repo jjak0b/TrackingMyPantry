@@ -134,20 +134,6 @@ public class PantriesRepository {
             return IOBoundResource.adapt(mAppExecutors, pantryDao.getAll(ownerID));
         });
     }
-    public LiveData<Resource<ProductInstanceGroup>> add(@NonNull ProductInstanceGroup group) {
-        return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
-            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
-            group.setUserId(ownerID);
-            return Transformations.forward(
-                    Transformations.simulateApi(
-                            mAppExecutors.diskIO(),
-                            mAppExecutors.mainThread(),
-                            () -> groupDao.merge(group)
-                    ),
-                    resourceID -> getGroup(resourceID.getData())
-            );
-        });
-    }
 
     public LiveData<Resource<ProductInstanceGroup>> getGroup(long group_id) {
         return IOBoundResource.adapt(mAppExecutors, groupDao.getGroup(group_id));
@@ -165,21 +151,25 @@ public class PantriesRepository {
     }
 
     public LiveData<Resource<Long>> addGroup(@NonNull ProductInstanceGroup instanceGroup, @Nullable UserProduct product, @NonNull Pantry pantry ) {
-        instanceGroup.setPantryId(pantry.getId());
         if( product != null ) {
             instanceGroup.setProductId(product.getBarcode());
         }
 
         final MediatorLiveData<Resource<Long>> result = new MediatorLiveData<>();
 
-        final LiveData<Resource<Long>> onInsert = Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
-            String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
-            instanceGroup.setUserId(ownerID);
-            return Transformations.simulateApi(
-                    mAppExecutors.diskIO(),
-                    mAppExecutors.mainThread(),
-                    () -> groupDao.merge(instanceGroup)
-            );
+        // require pantry to exists
+        final LiveData<Resource<Long>> onInsert = Transformations.forwardOnce(add(pantry), rPantry -> {
+            Pantry mPantry = rPantry.getData();
+            instanceGroup.setPantryId(mPantry.getId());
+            return Transformations.forwardOnce(authRepo.getLoggedAccount(), rUser -> {
+                String ownerID = rUser.getData() != null ? rUser.getData().getId() : null;
+                instanceGroup.setUserId(ownerID);
+                return Transformations.simulateApi(
+                        mAppExecutors.diskIO(),
+                        mAppExecutors.mainThread(),
+                        () -> groupDao.merge(instanceGroup)
+                );
+            });
         });
 
         result.addSource(onInsert, resource -> {

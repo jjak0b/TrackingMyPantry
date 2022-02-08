@@ -15,7 +15,6 @@ import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
-import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
@@ -187,15 +186,11 @@ public class RegisterProductViewModel extends AndroidViewModel implements ISavab
 
             groupInfo.product = productWithTags.product;
             groupInfo.group.setProductId(groupInfo.product.getBarcode());
-
+            Log.d(TAG, "Adding group " + groupInfo.group );
             Log.d(TAG, "Adding pantry " +  groupInfo.pantry != null ? groupInfo.pantry.getId() + " " + groupInfo.pantry.getName() : null );
-            return Transformations.forwardOnce(pantryRepo.add(groupInfo.pantry), mPantryResource -> {
-                Pantry pantry = mPantryResource.getData();
-                Log.d(TAG, "Added Pantry " +  pantry != null ? pantry.getId() + " " + pantry.getName() : null );
-                if( pantry != null )
-                    groupInfo.group.setPantryId(pantry.getId());
-                Log.d(TAG, "Adding group " + groupInfo.group );
-                return pantryRepo.add(groupInfo.group);
+            return Transformations.forwardOnce(pantryRepo.addGroup(groupInfo.group, groupInfo.product, groupInfo.pantry), resourceGroupID -> {
+                Log.d(TAG, "Added group and pantry" );
+                return pantryRepo.getGroup(resourceGroupID.getData());
             });
         });
     }
