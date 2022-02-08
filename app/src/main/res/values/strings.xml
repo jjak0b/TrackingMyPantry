@@ -75,6 +75,7 @@
     <string name="action_next_product_section">Continue</string>
     <string name="pantries_no_pantry_available">there is no pantry that contains this product</string>
     <string name="place_no_purchases_available">There isn\'t any registered place where you bought this product</string>
+    <string name="place_picker_title">Search a place or a location</string>
     <string name="product_register_complete">Registered product successfully</string>
     Register product successfully
     <!-- product suggestions -->

@@ -1,12 +1,13 @@
 package com.jjak0b.android.trackingmypantry.data.db.entities;
 
 import androidx.annotation.NonNull;
+import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 import com.mapbox.geojson.BoundingBox;
-import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.GeoJson;
+import com.mapbox.geojson.Point;
 
 import java.util.Objects;
 
@@ -20,13 +21,16 @@ public class Place implements GeoJson {
 
     private String name;
 
-    @NonNull
-    private Feature feature;
+    @Embedded
+    private Address address;
 
-    public Place(@NonNull String id, @NonNull Feature feature, String name) {
+    private Point feature;
+
+    public Place(@NonNull String id, Point feature, String name, Address address) {
         this.id = id;
         this.feature = feature;
         this.name = name;
+        this.address = address;
     }
 
     @NonNull
@@ -39,7 +43,7 @@ public class Place implements GeoJson {
     }
 
     @NonNull
-    public Feature getFeature() {
+    public Point getFeature() {
         return feature;
     }
 
@@ -58,6 +62,10 @@ public class Place implements GeoJson {
         return feature.bbox();
     }
 
+    public Address getAddress() {
+        return address;
+    }
+
     @Override
     public String toString() {
         return "Place{" +
@@ -74,11 +82,12 @@ public class Place implements GeoJson {
         Place place = (Place) o;
         return Objects.equals(id, place.id)
             && Objects.equals(name, place.name)
-            && Objects.equals(feature, place.feature);
+            && Objects.equals(feature, place.feature)
+            && Objects.equals(address, place.address );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, feature);
+        return Objects.hash(id, name, feature, address);
     }
 }

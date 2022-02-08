@@ -74,6 +74,7 @@
     <string name="action_next_product_section">Prosegui</string>
     <string name="pantries_no_pantry_available">"non c'è alcuna dispensa che contiene questo prodotto"</string>
     <string name="place_no_purchases_available">"Non esiste un luogo registrato in cui hai acquistato questo prodotto"</string>
+    <string name="place_picker_title">Cerca un posto o un luogo</string>
     <string name="product_register_complete">Prodotto registrato correttamente</string>
 
     <!-- product suggestions -->

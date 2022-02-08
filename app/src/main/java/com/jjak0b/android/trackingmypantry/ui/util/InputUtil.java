@@ -11,6 +11,7 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 
 import java.util.Objects;
 
@@ -61,5 +62,12 @@ public class InputUtil {
 
         view.setText(text);
         view.setSelection(Math.min(selection, textLength));
+    }
+
+    public static void setQuery(@NonNull SearchView view, @Nullable String query, boolean submit) {
+
+        if( Objects.equals(view.getQuery().toString(), query) ) return;
+
+        view.setQuery(query, submit);
     }
 }

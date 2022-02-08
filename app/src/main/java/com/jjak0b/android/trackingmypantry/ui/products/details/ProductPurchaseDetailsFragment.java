@@ -1,8 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.products.details;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -11,19 +9,17 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 
 import com.google.android.material.textfield.TextInputLayout;
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
-import com.jjak0b.android.trackingmypantry.ui.maps.PlacesPluginActivity;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
-import com.jjak0b.android.trackingmypantry.ui.util.PlaceAdapter;
+import com.jjak0b.android.trackingmypantry.ui.util.PlacePicker.SharedPlaceViewModel;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -35,8 +31,7 @@ import java.util.Date;
 public class ProductPurchaseDetailsFragment extends Fragment {
 
     protected ProductPurchaseDetailsViewModel mViewModel;
-
-    private ActivityResultLauncher<Intent> locationPickerLauncher;
+    private SharedPlaceViewModel sharedPlaceViewModel;
 
     public ProductPurchaseDetailsFragment() {
         // Required empty public constructor
@@ -57,19 +52,7 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mViewModel = initViewModel();
-
-        locationPickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            int resultCode = result.getResultCode();
-            Intent data = result.getData();
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                Place place = PlaceAdapter.from(PlacesPluginActivity.getPlace(data));
-
-                getViewModel().setPurchasePlace(place);
-            }
-            if (resultCode == Activity.RESULT_CANCELED) {
-                getViewModel().setPurchasePlace(null);
-            }
-        });
+        sharedPlaceViewModel = new ViewModelProvider(requireActivity()).get(SharedPlaceViewModel.class);
     }
 
     @Override
@@ -95,11 +78,27 @@ public class ProductPurchaseDetailsFragment extends Fragment {
         EditText editPurchaseCost = view.findViewById( R.id.editTextCost );
 
         View.OnClickListener showLocationPickerOnClick = v -> {
-            locationPickerLauncher.launch(new Intent(requireContext(), PlacesPluginActivity.class));
+            Navigation.findNavController(requireView()).navigate(R.id.placePickerDialog);
         };
 
         editPurchaseLocation.setOnClickListener( showLocationPickerOnClick );
         purchaseLocationLayout.setStartIconOnClickListener( showLocationPickerOnClick );
+
+        purchaseLocationLayout.setEndIconOnClickListener(v -> {
+            mViewModel.setPurchasePlace(null);
+        });
+
+        sharedPlaceViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case LOADING:
+                    break;
+                default:
+                    getViewModel().setPurchasePlace(resource.getData());
+                    // consume the source
+                    sharedPlaceViewModel.setItemSource(null);
+                    break;
+            }
+        });
 
         View.OnClickListener showDatePickerOnClick = new View.OnClickListener() {
             @Override

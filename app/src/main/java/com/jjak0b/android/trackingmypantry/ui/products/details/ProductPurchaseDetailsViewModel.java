@@ -9,17 +9,21 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.PlaceSearchSuggestion;
 import com.jjak0b.android.trackingmypantry.data.api.Resource;
 import com.jjak0b.android.trackingmypantry.data.api.Transformations;
 import com.jjak0b.android.trackingmypantry.data.db.entities.Place;
 import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.PurchaseInfoWithPlace;
+import com.jjak0b.android.trackingmypantry.data.repositories.PlacesRepository;
 import com.jjak0b.android.trackingmypantry.ui.util.FormException;
 import com.jjak0b.android.trackingmypantry.ui.util.ISavable;
 import com.jjak0b.android.trackingmypantry.ui.util.Savable;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements ISavable<PurchaseInfoWithPlace> {
@@ -28,15 +32,19 @@ public class ProductPurchaseDetailsViewModel extends AndroidViewModel implements
     private MutableLiveData<Resource<Date>> mPurchaseDate;
     private MutableLiveData<Resource<Place>> mPurchasePlace;
     private Savable<PurchaseInfoWithPlace> savable;
-
+    private PlacesRepository placesRepository;
+    private MediatorLiveData<Resource<List<? extends PlaceSearchSuggestion>>> placeSuggestions;
+    private LiveData<Resource<List<? extends PlaceSearchSuggestion>>> placeSuggestionsSource;
 
     public ProductPurchaseDetailsViewModel(@NonNull Application application) {
         super(application);
+        placesRepository = PlacesRepository.getInstance(application);
         mCost = new MutableLiveData<>(Resource.success(0f));
         mPurchaseDate = new MutableLiveData<>(Resource.success(new Date()));
         mPurchasePlace = new MutableLiveData<>(Resource.success(null));
         savable = new Savable<>();
-
+        placeSuggestions = new MediatorLiveData<>();
+        placeSuggestionsSource = new MutableLiveData<>(Resource.loading(Collections.emptyList()));
         reset();
     }
 

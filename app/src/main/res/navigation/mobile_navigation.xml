@@ -161,5 +161,9 @@
             app:popUpTo="@id/registerProductFragment"
             app:popUpToInclusive="true" />
     </fragment>
+    <dialog
+        android:id="@+id/placePickerDialog"
+        android:name="com.jjak0b.android.trackingmypantry.ui.util.PlacePicker.PlacePickerDialog"
+        android:label="@string/place_picker_title" />
 
 </navigation>
