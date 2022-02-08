@@ -8,6 +8,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.PlaceSearchSuggestion;
 
 public class PlaceResultViewHolder extends RecyclerView.ViewHolder {
@@ -17,14 +18,14 @@ public class PlaceResultViewHolder extends RecyclerView.ViewHolder {
 
     public PlaceResultViewHolder(@NonNull View itemView) {
         super(itemView);
-        nameView = itemView.findViewById(android.R.id.text1);
-        descriptionView = itemView.findViewById(android.R.id.text2);
+        nameView = itemView.findViewById(R.id.placeTitle);
+        descriptionView = itemView.findViewById(R.id.placeDescription);
     }
 
 
     public static PlaceResultViewHolder create(@NonNull ViewGroup parent) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(android.R.layout.two_line_list_item, parent, false);
+                .inflate(R.layout.place_picker_item, parent, false);
         return new PlaceResultViewHolder(view);
     }
 

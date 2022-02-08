@@ -62,7 +62,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     tools:itemCount="10"
-                    tools:listitem="@android:layout/simple_expandable_list_item_2" />
+                    tools:listitem="@layout/place_picker_item" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 

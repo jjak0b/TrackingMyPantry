@@ -143,7 +143,8 @@ public class PlacePickerDialog extends DialogFragment implements PlaceResultsAda
                 List<PlaceSearchSuggestion> dummy = Collections.emptyList();
                 dummy = Stream.concat(dummy.stream(), list.stream())
                         .collect(Collectors.toList());
-
+                // always to avoid "parameter must be a descendant of this view" exception
+                searchView.requestFocus();
                 suggestionAdapter.submitList(dummy);
             }
         });
