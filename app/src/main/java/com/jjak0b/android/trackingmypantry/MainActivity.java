@@ -158,7 +158,7 @@ public class MainActivity extends UserAuthActivity implements SharedPreferences.
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if( Preferences.FEATURE_EXPIRATION_REMINDERS.KEY_ENABLED.equals(key) ) {
             boolean isEnabled = sharedPreferences.getBoolean(key, Preferences.FEATURE_EXPIRATION_REMINDERS.DEFAULT);
-            Log.d(TAG, "Changed " + isEnabled );
+            Log.d(TAG, "FEATURE_EXPIRATION_REMINDERS switched to " + isEnabled );
 
             boolean gotPreRequisites = true;
             if (isEnabled) {
