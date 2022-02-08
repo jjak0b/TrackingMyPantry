@@ -65,7 +65,7 @@ public class PantriesRepository {
 
     public LiveData<Resource<Pantry>> add(@NonNull Pantry pantry ) {
 
-        LiveData<Resource<Pantry>> mPantrySearchSource = Pantry.isDummy(pantry)
+        LiveData<Resource<Pantry>> mPantrySearchSource = Pantry.isDummy(pantry) && pantry.getName() != null
                  ? searchPantry(pantry.getName()) // search for existing matching
                  : getPantry(pantry.getId()); // search for
 
