@@ -3,12 +3,11 @@ package com.jjak0b.android.trackingmypantry.ui.products;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.Product;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 
 import java.util.Objects;
 
@@ -37,7 +36,7 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     static class ProductDiff extends DiffUtil.ItemCallback<ProductWithTags> {
         @Override
         public boolean areItemsTheSame(@NonNull ProductWithTags oldItem, @NonNull ProductWithTags newItem) {
-            return Objects.equals(  oldItem.product.getId(), newItem.product.getId() );
+            return Objects.equals(  oldItem.product.getBarcode(), newItem.product.getBarcode() );
         }
 
         @Override
@@ -48,6 +47,6 @@ public class ProductListAdapter extends ListAdapter<ProductWithTags, ProductView
     }
 
     public interface OnProductClick {
-        void onAction(Product p);
+        void onAction(UserProduct p);
     }
 }

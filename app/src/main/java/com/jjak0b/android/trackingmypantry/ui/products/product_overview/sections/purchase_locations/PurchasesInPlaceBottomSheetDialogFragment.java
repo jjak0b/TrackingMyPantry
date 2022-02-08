@@ -1,17 +1,15 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.purchase_locations;
 
-import androidx.lifecycle.ViewModelProvider;
-
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -24,7 +22,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.PurchaseInfo;
+import com.jjak0b.android.trackingmypantry.data.db.entities.PurchaseInfo;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -75,7 +73,7 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
         });
     }
 
-    void setupChart(List<PurchaseInfo> unsortedPurchases, LineChart viewChart) {
+    void setupChart(List<PurchaseInfo> purchases, LineChart viewChart) {
         final DateFormat dateFormat = android.text.format.DateFormat
                 .getDateFormat(requireContext());
 
@@ -84,7 +82,6 @@ public class PurchasesInPlaceBottomSheetDialogFragment extends BottomSheetDialog
                 .getDimensionPixelSize(R.dimen.graph_line_chart_axis_text_size);
         float textSizeDP = textSizePX / getResources().getDisplayMetrics().density;
 
-        ArrayList<PurchaseInfo> purchases = new ArrayList<>(unsortedPurchases);
         ArrayList<Entry> entries = new ArrayList<>(purchases.size());
 
         int i = 0;

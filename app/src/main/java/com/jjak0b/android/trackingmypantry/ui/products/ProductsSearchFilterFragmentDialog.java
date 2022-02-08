@@ -1,57 +1,67 @@
 package com.jjak0b.android.trackingmypantry.ui.products;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import android.util.SparseBooleanArray;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
+import com.jjak0b.android.trackingmypantry.ui.util.MultiSelectItemsFragmentDialog;
+import com.jjak0b.android.trackingmypantry.ui.util.MultiSelectItemsViewModel;
 
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.List;
 
-public class ProductsSearchFilterFragmentDialog extends DialogFragment {
+public class ProductsSearchFilterFragmentDialog extends MultiSelectItemsFragmentDialog<ProductTag> {
 
-    private ProductsSearchFilterViewModel mViewModel;
-    private ArrayAdapter<ProductTag> tagSuggestionsAdapter;
+    private ProductsSearchFilterViewModel mSearchViewModel;
+    private MultiSelectProductsTagsViewModel mViewModel;
+    private AlertDialog dialog;
+    private static final String HEADER_TAG = "header";
+
     public static ProductsSearchFilterFragmentDialog newInstance() {
         return new ProductsSearchFilterFragmentDialog();
     }
 
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        tagSuggestionsAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_multiple_choice);
-        mViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsSearchFilterViewModel.class);
+    public MultiSelectItemsViewModel<ProductTag> initViewModel() {
+        mViewModel = new ViewModelProvider(this).get(MultiSelectProductsTagsViewModel.class);
+        return mViewModel;
     }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        mSearchViewModel = new ViewModelProvider(requireParentFragment()).get(ProductsSearchFilterViewModel.class);
+        super.onCreate(savedInstanceState);
+    }
+
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        AlertDialog newDialog = new MaterialAlertDialogBuilder(requireContext())
-                .setAdapter(tagSuggestionsAdapter, null)
-                .setTitle(R.string.setup_filter_options)
-                .setPositiveButton(android.R.string.ok, onSubmit )
-                .setNegativeButton(android.R.string.cancel, null)
-                .create();
-        newDialog.getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-        return newDialog;
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.setTitle(R.string.setup_filter_options);
+        this.dialog = (AlertDialog) dialog;
+
+        TextView header = new TextView(requireContext());
+        header.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        );
+        header.setGravity(Gravity.CENTER);
+        header.setId(View.generateViewId());
+        header.setTag(HEADER_TAG);
+
+        this.dialog.getListView().addHeaderView(header, HEADER_TAG, false);
+        return dialog;
     }
 
     @Nullable
@@ -64,45 +74,50 @@ public class ProductsSearchFilterFragmentDialog extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final AlertDialog dialog = (AlertDialog) getDialog();
+        TextView header = getHeaderView();
 
-        mViewModel.getSearchTagsSuggestions().observe(getViewLifecycleOwner(), tags -> {
-            tagSuggestionsAdapter.clear();
-            if( tags != null )
-                tagSuggestionsAdapter.addAll(tags);
-            tagSuggestionsAdapter.notifyDataSetChanged();
-        });
+        mViewModel.getAllItems().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case LOADING:
+                    header.setText(R.string.loading);
+                    header.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    List<ProductTag> items = resource.getData();
 
-        mViewModel.getSearchTags().observe(getViewLifecycleOwner(), tags -> {
-            boolean checked;
-            for (int i = 0; i < tagSuggestionsAdapter.getCount(); i++) {
-                checked = false;
-                if( tags != null ) {
-                    for (ProductTag tag : tags) {
-                        if (Objects.equals(tag, tagSuggestionsAdapter.getItem(i))) {
-                            checked = true;
-                            break;
+                    if( header != null ) {
+                        if( items != null && items.isEmpty() ) {
+                            header.setText(R.string.filter_no_options_available);
+                            header.setVisibility(View.VISIBLE);
+                        }
+                        else {
+                            header.setText(null);
+                            header.setVisibility(View.GONE);
                         }
                     }
-                }
-                dialog.getListView().setItemChecked(i, checked);
+                    break;
+            }
+        });
+
+        mSearchViewModel.getSearchTags().observe(getViewLifecycleOwner(), tags -> {
+            mViewModel.setItems(tags);
+        });
+
+        mViewModel.getListItems().observe(getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case LOADING:
+                    break;
+                case SUCCESS:
+                    mSearchViewModel.setSearchTags(resource.getData());
+                    break;
+                case ERROR:
+                    break;
             }
         });
     }
 
-    DialogInterface.OnClickListener onSubmit = (dialog, which) -> {
-        int checkedItemCount = ((AlertDialog)dialog).getListView().getCheckedItemCount();
-        SparseBooleanArray checkedItems = ((AlertDialog)dialog).getListView().getCheckedItemPositions();
-        ArrayList<ProductTag> checkedTags = new ArrayList<>(checkedItemCount);
-        if( checkedItems != null ) {
-            for (int i = 0; i < checkedItems.size(); i++) {
-                int tagPosition = checkedItems.keyAt(i);
-                boolean isChecked = checkedItems.get(tagPosition);
-                if (isChecked) {
-                    checkedTags.add(tagSuggestionsAdapter.getItem(tagPosition));
-                }
-            }
-        }
-        mViewModel.setSearchTags(checkedTags);
-    };
+
+    private TextView getHeaderView() {
+        return this.dialog.getListView().findViewWithTag(HEADER_TAG);
+    }
 }

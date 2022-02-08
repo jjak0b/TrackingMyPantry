@@ -5,12 +5,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.hadilq.liveevent.LiveEvent;
+import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
 import com.jjak0b.android.trackingmypantry.ui.ItemViewModel;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
-public class PantryViewModel extends ViewModel implements ItemViewModel<PantryWithProductInstanceGroups> {
+public class PantryViewModel extends ViewModel implements ItemViewModel<PantryDetails> {
 
-    private PantryWithProductInstanceGroups item;
+    private PantryDetails item;
     private MutableLiveData<Boolean> isExpanded;
     private LiveEvent<Boolean> onExpand;
     private PantryInteractionsListener listener;
@@ -46,12 +46,12 @@ public class PantryViewModel extends ViewModel implements ItemViewModel<PantryWi
     }
 
     @Override
-    public PantryWithProductInstanceGroups getItem() {
+    public PantryDetails getItem() {
         return item;
     }
 
     @Override
-    public void setItem(PantryWithProductInstanceGroups item) {
+    public void setItem(PantryDetails item) {
         this.item = item;
     }
 

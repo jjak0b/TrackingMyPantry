@@ -5,37 +5,25 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
 
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.repositories.ProductsRepository;
 
 public class ProductOverviewViewModel extends AndroidViewModel {
 
-    private PantryRepository pantryRepository;
-    private MutableLiveData<String> productID;
-    private MutableLiveData<ProductWithTags> mProduct;
+    private ProductsRepository productsRepository;
 
     public ProductOverviewViewModel(@NonNull Application application) {
         super(application);
-        pantryRepository = PantryRepository.getInstance(application);
-        productID = new MutableLiveData<>();
-
-        mProduct = (MutableLiveData<ProductWithTags>)Transformations.switchMap(
-                productID,
-                id -> pantryRepository.getProductWithTags(id));
+        productsRepository = ProductsRepository.getInstance(application);
     }
 
-    public void setProductID( String id ){
-        productID.setValue( id );
+    public LiveData<Resource<UserProduct>> get(String barcode) {
+        return productsRepository.get(barcode);
     }
 
-    public LiveData<ProductWithTags> getProduct() {
-        return mProduct;
-    }
-
-    public void setProduct( ProductWithTags product ) {
-        mProduct.setValue(product);
+    public LiveData<Resource<UserProduct>> remove(UserProduct product) {
+        return productsRepository.remove(product);
     }
 }

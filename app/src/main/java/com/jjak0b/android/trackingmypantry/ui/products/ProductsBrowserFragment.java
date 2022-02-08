@@ -2,7 +2,6 @@ package com.jjak0b.android.trackingmypantry.ui.products;
 
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,9 +12,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
-
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -23,9 +22,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
+
+import java.util.List;
 
 public class ProductsBrowserFragment extends Fragment {
 
+    public static final String TAG = "ProductsBrowserFragment";
     private ProductsBrowserViewModel viewModel;
     private ProductsSearchFilterViewModel searchViewModel;
     private ProductListAdapter listAdapter;
@@ -61,20 +65,37 @@ public class ProductsBrowserFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter( listAdapter );
 
-        viewModel.getProductsWithTags().observe( getViewLifecycleOwner(), productsWTags -> {
-            Log.e( "MyProducts", "submitting new list from " + this.toString() );
-
-            if( productsWTags.isEmpty() ){
-                listInfo.setVisibility( View.VISIBLE );
+        viewModel.getProductsWithTags().observe( getViewLifecycleOwner(), resource -> {
+            switch (resource.getStatus()) {
+                case LOADING:
+                    loadingBar.setVisibility( View.VISIBLE );
+                    break;
+                case SUCCESS:
+                    List<ProductWithTags> items = resource.getData();
+                    if( items.isEmpty() ){
+                        listInfo.setVisibility( View.VISIBLE );
+                    }
+                    else {
+                        listInfo.setVisibility( View.GONE );
+                    }
+                    listAdapter.submitList( items );
+                    loadingBar.setVisibility( View.GONE );
+                    listAdapter.notifyDataSetChanged();
+                    break;
+                case ERROR:
+                    String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), resource.getError(), TAG );
+                    if( errorMsg != null ) {
+                        new AlertDialog.Builder(requireContext())
+                                .setMessage(errorMsg)
+                                .setTitle(android.R.string.dialog_alert_title)
+                                .setPositiveButton(android.R.string.ok, null )
+                                .setNeutralButton(R.string.action_retry, (dialog, which) -> {
+                                    searchViewModel.search();
+                                })
+                                .show();
+                    }
+                    break;
             }
-            else {
-                listInfo.setVisibility( View.GONE );
-
-            }
-            loadingBar.setVisibility( View.VISIBLE );
-            listAdapter.submitList( productsWTags );
-            loadingBar.setVisibility( View.GONE );
-            listAdapter.notifyDataSetChanged();
         });
 
         searchViewModel.onSearch().observe(getViewLifecycleOwner(), searchState -> {
@@ -88,12 +109,12 @@ public class ProductsBrowserFragment extends Fragment {
 
     private View.OnClickListener onFabClick = v -> {
         Navigation.findNavController(getView())
-                .navigate(ProductsBrowserFragmentDirections.openRegisterProduct());
+                .navigate(ProductsBrowserFragmentDirections.openRegisterProduct(null));
     };
 
     private ProductListAdapter.OnProductClick onProductClick = product -> {
         Navigation.findNavController(getView())
-                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getId(), product.getName() ));
+                .navigate(ProductsBrowserFragmentDirections.openProduct(product.getBarcode(), product.getName() ));
     };
 
     private final SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {

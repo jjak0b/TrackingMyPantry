@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- tecnical strings -->
+    <string name="app_name">Tracking My Pantry</string>
+
+    <!-- Strings used for fragments for navigation -->
+    <string name="next">Successivo</string>
+    <string name="previous">Precedente</string>
+    <string name="loading">Caricamento ...</string>
+    <string name="barcode_scanner_hint">Punta la fotocamera verso il tuo codice a barre</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_username">Nome utente</string>
+    <string name="action_sign_in_existing">Accedi utilizzando un account esistente</string>
+    <string name="action_sign_in">Accedi</string>
+    <string name="action_register">Registrati</string>
+    <string name="action_sign_in_short">Accedi</string>
+    <string name="welcome_login">Ora hai effettuato l\'accesso come "%1$s"</string>
+    <string name="welcome_register">Benvenuto %1$s</string>
+    <string name="invalid_email">Non è una email valida</string>
+    <string name="invalid_username">Non è un nome utente valido</string>
+    <string name="invalid_password">Password non valida</string>
+    <string name="signIn_failed">Accesso non riuscito utilizzando le credenziali fornite</string>
+    <string name="signUp_failed">Impossibile registrarsi utilizzando le credenziali fornite, modificare nome utente o email</string>
+    <string name="auth_failed_network">Impossibile autenticarsi a causa di un errore di rete</string>
+    <string name="auth_failed_unknown">Impossibile autenticarsi a causa di un errore imprevisto</string>
+    <string name="error_generic_failed_auth">"Impossibile %1$s a causa di un' autenticazione non riuscita"</string>
+    <string name="error_generic_failed_network">"Impossibile %1$s a causa dell'impossibilità di comunicare con il server a causa di un errore di rete"</string>
+    <string name="error_generic_failed_unknown">"Impossibile %1$s a causa di un errore imprevisto"</string>
+    <string name="error_type_network">Errore di rete</string>
+    <string name="error_type_remote">Errore del server</string>
+    <string name="error_type_authentication">Errore di autenticazione</string>
+    <string name="error_type_unhandled">Errore inaspettato</string>
+    <string name="error_cause_unable_communicate">Impossibile stabilire una connessione al server</string>
+    <string name="error_cause_bad_data">Dati forniti errati</string>
+    <string name="error_cause_not_logged">Devi prima accedere</string>
+    <string name="error_cause_unable_do_operation">"Impossibile completare l'operazione"</string>
+
+
+    <string name="to_authenticate">autenticarsi</string>
+    <string name="to_get_data">recuperare i dati</string>
+    <string name="error_unable_to_take_picture">Errore: impossibile scattare una foto</string>
+
+    <string name="navigation_drawer_open">Apri il menu di navigazione</string>
+    <string name="navigation_drawer_close">Chiudi il menu di navigazione</string>
+    <string name="nav_header_desc">Navigazione</string>
+    <string name="action_settings">Impostazioni</string>
+
+    <string name="menu_products">I miei prodotti</string>
+    <string name="menu_signin">Accedi</string>
+
+    <!-- pantries -->
+    <string name="pantries_no_product_available">Non ci sono prodotti</string>
+    <string name="pantries_no_stored_product">Non ci sono articoli</string>
+    <!-- register product -->
+
+    <string name="menu_register_product_action_scan">Scansiona codice a barre</string>
+    <string name="menu_register_product_action_digit">Digita il codice a barre</string>
+    <string name="register_product_title">Aggiungi nuovi prodotti</string>
+    <!-- product register form -->
+    <string name="product_expire_date">Data di scadenza</string>
+    <string name="product_pantry_name">Nome della dispensa</string>
+    <string name="product_cost">Costo unitario</string>
+    <string name="product_purchase_date">Data di acquisto</string>
+    <string name="product_purchase_location">Luogo di acquisto</string>
+    <string name="product_quantity">Quantità</string>
+    <string name="product_unconsumed_amount">Residuo rimanente</string>
+    <string name="product_groups_quantity_lefts">Rimasti:</string>
+    <string name="action_register_product">Registra prodotto</string>
+    <string name="action_edit_product">Modifica dettagli prodotto</string>
+    <string name="action_add_product">Aggiunti articoli di un prodotto</string>
+    <string name="action_next_product_section">Prosegui</string>
+    <string name="pantries_no_pantry_available">"non c'è alcuna dispensa che contiene questo prodotto"</string>
+    <string name="place_no_purchases_available">"Non esiste un luogo registrato in cui hai acquistato questo prodotto"</string>
+    <string name="place_picker_title">Cerca un posto o un luogo</string>
+    <string name="product_register_complete">Prodotto registrato correttamente</string>
+
+    <!-- product suggestions -->
+    <string name="suggested_products_toolbar_title">Prodotti suggeriti</string>
+    <string name="suggested_products_list_description">Seleziona il prodotto che ritieni corrisponda meglio al tuo prodotto.</string>
+    <string name="register_product_name">Nome del prodotto</string>
+    <string name="register_product_description">Descrizione del prodotto</string>
+    <string name="register_product_take_photo">Scatta una foto al prodotto</string>
+    <string name="register_product_tags">Assegna delle etichette</string>
+    <string name="register_product_warning_product_replace">Se cerchi e poi selezioni un altro prodotto di questo tipo, sostituirai le informazioni già registrate di questo prodotto.\nVuoi continuare ?</string>
+    <string name="barcode">Codice a barre</string>
+    <string name="tab_product_details">Dettagli prodotto</string>
+    <string name="tab_product_instance_details">Dettagli articoli</string>
+    <string name="tab_product_purchase_details">Dettagli di acquisto</string>
+    <string name="create_as_new">Aggiungi nuovo</string>
+    <string name="product_user_favorite">Il tuo preferito</string>
+    <!-- menu options -->
+    <string name="option_remove_entry">Rimuovi</string>
+    <string name="option_move_to_pantry">Sposta in</string>
+    <string name="option_consume">Consuma</string>
+    <string name="option_rename">Rinomina</string>
+
+    <string name="pantry_action_rename_description">Modifica il nome della dispensa</string>
+    <string name="pantry_name_already_exists">"Questo nome esiste già"</string>
+    <string name="pantry_action_remove">Elimina dispensa</string>
+    <string name="pantry_action_remove_description">"Questa operazione cancellerà tutti gli articoli di ogni prodotto contenuti in questa dispensa.\nSei sicuro di voler continuare ?"</string>
+    <string name="product_action_remove">Elimina prodotto</string>
+    <string name="product_action_remove_description">"Questa operazione cancellerà tutte le informazioni di questo prodotto e tutti i suoi articoli contenuti in ogni dispensa.\nSei sicuro di voler continuare ?"</string>
+    <string name="action_undo">Annulla</string>
+    <string name="action_retry">Riprova</string>
+    <string name="product_expiration">Scadenza prodotto</string>
+    <string name="location_inside_pantry">Nella dispensa \"%1$s\"</string>
+
+    <string name="title_activity_auth">AuthActivity</string>
+
+    <string name="description_account_required">"Per favore, scegli o crea un account con cui desideri utilizzare l'applicazione"</string>
+    <string name="error_account_required">"Per utilizzare l'applicazione è necessario un account"</string>
+
+    <string name="rationale_title_feature">"Funzionalità dell' applicazione"</string>
+    <string name="rationale_msg_features_calendar">"L'app può aggiungere promemoria al tuo calendario per farti sapere quando ogni prodotto sta per scadere.\nQuesta funzionalità richiede l'accesso al calendario: se desideri utilizzarlo, consenti all'app di accedere al calendario alla richiesta successiva"</string>
+    <string name="rationale_msg_features_scan">"L'app può scansionare un codice a barre direttamente con la fotocamera del tuo dispositivo.\nQuesta funzionalità richiede l'accesso alla fotocamera: se desideri abilitare la scansione, consenti all'app di accedere alla fotocamera alla richiesta successiva"</string>
+    <string name="rationale_msg_features_take_photo">"Questa funzionalità richiede l'accesso alla fotocamera: se desideri scattare una foto, consenti all'app di accedere alla fotocamera alla richiesta successiva</string>
+
+    <string name="features_expiration_reminders">Promemoria di scadenza dei prodotti</string>
+    <string name="features_calendar_disabled">I promemoria di scadenza del prodotto sono disabilitati</string>
+    <string name="features_calendar_disabled_cause_permissions">"I promemoria di scadenza dei prodtti sono disabilitati perché sono necessarie le autorizzazioni per accedere al calendario"</string>
+
+    <!-- Preference Titles -->
+    <string name="feature_reminders_header">@string/features_expiration_reminders</string>
+    <string name="feature_expiration_reminders_days_before">Ricordamelo prima di</string>
+    <string name="feature_expiration_reminders_days_before_unit">\tGiorni</string>
+    <string name="feature_expiration_reminders_time">Ora del promemoriaa</string>
+
+    <string name="pantries">Dispense</string>
+    <string name="pantries_default_pantry_name">Borsa della spesa</string>
+    <string name="product_section_pantries">@string/pantries</string>
+    <string name="product_section_pantry_overview">Contenuto della dispensa</string>
+    <string name="product_section_product_overview">Panoramica del prodotto</string>
+    <string name="product_section_edit_product_details">@string/action_edit_product</string>
+    <string name="product_section_purchase_places">Luoghi di acquisto</string>
+    <string name="product_section_purchase_places_overview">Panoramica degli acquisti</string>
+
+    <string name="setup_filter_options">Imposta i parametri di filtro</string>
+    <string name="filter_no_options_available">"Non c'è alcun tag disponibile"</string>
+
+    <string name="register_product_pick_product">Seleziona un prodotto</string>
+    <string name="field_error_empty">"Il campo non può essere vuoto"</string>
+    <string name="field_error_invalid">"Il valore del campo non è valido"</string>
+    <string name="form_error_invalid">"Un campo non è valido"</string>
+
+</resources>

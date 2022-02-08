@@ -49,15 +49,14 @@
         </com.google.android.material.appbar.AppBarLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_edit"
+            android:id="@+id/fab_add"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|end"
             android:layout_margin="@dimen/fab_margin"
-            android:contentDescription="@string/tab_product_details"
-            app:layout_anchor="@+id/appbar"
-            app:layout_anchorGravity="bottom|end"
-            app:srcCompat="@android:drawable/ic_menu_edit" />
+            android:contentDescription="@string/action_add_product"
+            app:layout_anchor="@+id/product_navigation_host_fragment"
+            app:layout_anchorGravity="top|end"
+            app:srcCompat="@android:drawable/ic_input_add" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -1,187 +1,90 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product.tabs;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.text.Editable;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
-
-import com.google.android.material.textfield.MaterialAutoCompleteTextView;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
-import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.products.details.ProductInstanceDetailsViewModel;
 import com.jjak0b.android.trackingmypantry.ui.register_product.RegisterProductViewModel;
 import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
 
-import androidx.annotation.NonNull;
+public class SectionProductInstanceDetailsFragment extends ProductInstanceDetailsFragment {
 
-import java.text.DateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Objects;
+    private final static String TAG = "SectionProductInstanceDetailsFragment";
+    private RegisterProductViewModel mSharedViewModel;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class SectionProductInstanceDetailsFragment extends Fragment {
+    @Override
+    @NonNull
+    public ProductInstanceDetailsViewModel initViewModel() {
+        return new ViewModelProvider(this).get(SectionProductInstanceDetailsViewModel.class);
+    }
 
-    final static String TAG = SectionProductInstanceDetailsFragment.class.getName();
-    private RegisterProductViewModel mViewModel;
-
-    public SectionProductInstanceDetailsFragment() {
-        // Required empty public constructor
+    @NonNull
+    private SectionProductInstanceDetailsViewModel getViewModel() {
+        return (SectionProductInstanceDetailsViewModel) mViewModel;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_section_product_instance_details, container, false);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel = new ViewModelProvider(requireActivity())
-                .get(RegisterProductViewModel.class);
+        setupSave(view, savedInstanceState);
+        setupReset(view, savedInstanceState);
 
-        TextInputLayout expireDateInputLayout = view.findViewById( R.id.product_expire_date );
-        TextInputEditText expireDateInput = view.findViewById(R.id.editTextDate_register_product_expire_date);
-        TextInputEditText quantityInput = view.findViewById(R.id.input_product_quantity);
-        MaterialAutoCompleteTextView pantryAutoCompleteSelector = view.findViewById( R.id.product_pantry_selector);
-        TextInputLayout pantryInputLayout = view.findViewById( R.id.product_pantry );
-        DateFormat dateFormat = android.text.format.DateFormat.getDateFormat( getContext() );
-        ArrayAdapter<Pantry> pantriesAdapter =  new ArrayAdapter<>( requireContext(), android.R.layout.simple_spinner_dropdown_item);
-        pantryAutoCompleteSelector.setAdapter(  pantriesAdapter );
-
-        mViewModel.getAvailablePantries().observe( getViewLifecycleOwner(), pantries -> {
-            pantriesAdapter.clear();
-            if( pantries != null )
-                pantriesAdapter.addAll( pantries );
-            // needs this to show eventually autocomplete spinner
-            // because we need at least a character even if completion threshold = 0
-            pantryAutoCompleteSelector.setText(pantryAutoCompleteSelector.getText());
-        });
-
-        pantryAutoCompleteSelector.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Pantry selectedPantry = pantriesAdapter.getItem( position );
-                Log.d( TAG, "selected pantry: " + selectedPantry );
-                mViewModel.setPantry(selectedPantry);
+        mSharedViewModel.getProductGroupDetails().observe(getViewLifecycleOwner(), resource -> {
+            if( resource.getStatus() != Status.LOADING ) {
+                getViewModel().setDetails(resource.getData());
             }
         });
+    }
 
-        mViewModel.getPantry().observe( getViewLifecycleOwner(), pantry -> {
-            Log.d( TAG, "updated pantry to: " + pantry );
-            if( pantry != null ) {
-                pantryAutoCompleteSelector.setText( pantry.toString() );
-            }
-            else{
-                pantryAutoCompleteSelector.setText(null);
-            }
+    @Override
+    public void setupSave(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
-           pantryAutoCompleteSelector.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if( !hasFocus ){
+        mSharedViewModel.onSaveInfoDetails().observe(getViewLifecycleOwner(), isSaving -> {
+            if( !isSaving ) return;
+            Log.d(TAG, "force saving");
 
-                        String fieldValue = pantryAutoCompleteSelector.getText().toString();
-                        boolean hasBeenChanged = true;
-                        if( pantry != null ){
-                            hasBeenChanged = !Objects.equals( pantry.toString(), fieldValue );
-                        }
-                        Log.d( TAG, "has been changed:" + hasBeenChanged);
-                        if( hasBeenChanged ){
-                            if( pantryAutoCompleteSelector.getText().length() > 0 )
-                                mViewModel.setPantry( Pantry.creteDummy( pantryAutoCompleteSelector.getText().toString() ) );
-                            else
-                                mViewModel.setPantry( null );
-                        }
-                    }
-                }
-            });
+            // close any open keyboard
+            InputUtil.hideKeyboard(requireActivity());
+
+            // getViewModel().save();
         });
 
-        mViewModel.getProductInstance().observe( getViewLifecycleOwner(), productInstance -> {
-            if( productInstance == null ){
-                // set default values in fields
-                mViewModel.resetProductInstance();
-                return;
-            }
+        getViewModel().canSave().observe(getViewLifecycleOwner(), canSave -> {
+            Log.d(TAG, "trigger autosave");
+            getViewModel().save();
+        });
 
-            Calendar calendar = Calendar.getInstance();
+        getViewModel().onSave().observe( getViewLifecycleOwner(), shouldSave -> {
+            Log.d(TAG, "isSaving=" +shouldSave);
+            if( !shouldSave ) return;
 
-            quantityInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if( !hasFocus ){
-                        int c;
-                        try {
-                            c = Integer.parseInt(quantityInput.getText().toString());
-                        }
-                        catch (NumberFormatException e ){
-                            c = -1;
-                        }
+            getViewModel().saveComplete();
+        });
 
+        getViewModel().onSaved().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "Saved Product group details: " + resource );
+            mSharedViewModel.setInfoDetails(resource);
+        });
+    }
 
-                        if( c <= 0 ){
-                            c = 1;
-                        }
-
-                        productInstance.setQuantity( c );
-                        quantityInput.setText( String.valueOf( c ) );
-                }
-            }});
-
-            View.OnClickListener showDatePickerOnClick = new View.OnClickListener() {
-                @Override
-                public void onClick(View v){
-                    // date picker dialog
-                    DatePickerDialog picker = new DatePickerDialog(getContext(),
-                            new DatePickerDialog.OnDateSetListener() {
-                                @Override
-                                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                                    calendar.set(Calendar.YEAR, year);
-                                    calendar.set(Calendar.MONTH, monthOfYear);
-                                    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                                    calendar.set(Calendar.HOUR_OF_DAY, 0);
-                                    calendar.set(Calendar.MINUTE, 0);
-                                    calendar.set(Calendar.SECOND, 0);
-                                    calendar.set(Calendar.MILLISECOND, 0);
-                                    Date date = calendar.getTime();
-
-                                    productInstance.setExpiryDate(date);
-                                    expireDateInput.setText(dateFormat.format(date));
-                                }
-                            },
-                            calendar.get(Calendar.YEAR),
-                            calendar.get(Calendar.MONTH),
-                            calendar.get(Calendar.DAY_OF_MONTH)
-                    );
-                    picker.show();
-                }
-            };
-            expireDateInputLayout.setStartIconOnClickListener(showDatePickerOnClick);
-            expireDateInput.setOnClickListener(showDatePickerOnClick);
-
-            if( productInstance != null ){
-                expireDateInput.setText( dateFormat.format( productInstance.getExpiryDate() ) );
-                quantityInput.setText( String.valueOf( productInstance.getQuantity() ));
-            }
+    @Override
+    public void setupReset(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedViewModel.onReset().observe(getViewLifecycleOwner(), shouldReset -> {
+            getViewModel().reset();
         });
     }
 }

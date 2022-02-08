@@ -1,10 +1,10 @@
 package com.jjak0b.android.trackingmypantry.ui.util;
 
+import androidx.annotation.NonNull;
+
 import com.hootsuite.nachos.chip.Chip;
 import com.hootsuite.nachos.chip.ChipInfo;
-import com.jjak0b.android.trackingmypantry.data.model.ProductTag;
-
-import androidx.annotation.NonNull;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductTag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class ChipTagUtil {
         for (Chip chip : chips) {
             if( chip != null ){
                 ProductTag data = (ProductTag) chip.getData();
-                if( data == null ) data = new ProductTag(chip.getText().toString() );
+                if( data == null ) data = ProductTag.creteDummy(chip.getText().toString() );
                 tags.add( data );
             }
         }

@@ -5,25 +5,25 @@ import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.jjak0b.android.trackingmypantry.ui.auth.AuthActivity;
-import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
 
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LifecycleService;
+
+import com.jjak0b.android.trackingmypantry.AppExecutors;
+import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.AuthException;
+import com.jjak0b.android.trackingmypantry.data.api.RemoteException;
+import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
+import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.ui.auth.AuthActivity;
 
 import java.io.IOException;
 import java.util.Date;
-
-import retrofit2.HttpException;
 
 
 /*
@@ -34,15 +34,21 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     private static final String TAG = Authenticator.class.getName();
     public static final String ACCOUNT_TYPE = "lam21.modron.network";
+    public static final String ACCOUNT_ID = "userID";
     public static final String TOKEN_TYPE = "Bearer";
     public static final long TOKEN_EXPIRY_TIME = (7 * 24 * 60 * 60 * 1000);
 
-    private Context mContext;
-    private LoginRepository authRepo;
-    public Authenticator(Context context) {
+    private LifecycleService mContext;
+    private AuthRepository authRepo;
+    public Authenticator(LifecycleService context) {
         super(context);
         mContext = context;
-        authRepo = LoginRepository.getInstance(context);
+        authRepo = AuthRepository.getInstance(context);
+    }
+
+    @NonNull
+    public LifecycleOwner getLifecycleOwner() {
+        return mContext;
     }
 
     // Editing properties is not supported
@@ -70,9 +76,8 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
     @Override
     public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
-        Log.d( TAG, "getAuthToken" );
+        Log.d( TAG, "Got request to provide an auth token of type " + authTokenType );
         final Bundle result = new Bundle();
-        Log.e( TAG, "AUTHTYPE: " + authTokenType );
 
         final AccountManager accountManager = AccountManager.get(mContext);
         String authToken = accountManager.peekAuthToken( account, authTokenType );
@@ -83,45 +88,46 @@ public class Authenticator extends AbstractAccountAuthenticator {
             // ...loads the account user credentials to try to authenticate it.
             long expireTime = new Date().getTime() + TOKEN_EXPIRY_TIME;
 
-            ListenableFuture<String> futureAuthToken = authRepo.signIn(new LoginCredentials(account.name, accountManager.getPassword(account)));
-            Futures.addCallback(
-                    futureAuthToken,
-                    new FutureCallback<String>() {
-                        @Override
-                        public void onSuccess(@NullableDecl String authToken ) {
-                            Log.d( TAG, "got authToken successfully: " + authToken );
-                            result.putString( AccountManager.KEY_ACCOUNT_NAME, account.name );
-                            result.putString( AccountManager.KEY_ACCOUNT_TYPE, account.type );
-                            result.putString( AccountManager.KEY_AUTHTOKEN, authToken );
-                            result.putLong( KEY_CUSTOM_TOKEN_EXPIRY, expireTime );
-                            response.onResult( result );
-                        }
 
-                        @Override
-                        public void onFailure(Throwable t) {
-                            if( t instanceof HttpException) {
-                                Log.w( TAG, "Server/Authentication Error", t );
-                                HttpException e = (HttpException) t;
-                                if( e.code() == 401 ){
-                                    response.onError( AccountManager.ERROR_CODE_BAD_AUTHENTICATION, mContext.getResources().getString(R.string.signIn_failed ));
-                                }
-                                else {
-                                    response.onError( AccountManager.ERROR_CODE_REMOTE_EXCEPTION, mContext.getResources().getString(R.string.signIn_failed ));
-                                }
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                authRepo.signIn(new LoginCredentials(account.name, accountManager.getPassword(account)))
+                        .observe(getLifecycleOwner(), resource -> {
+                            switch (resource.getStatus()) {
+                                case ERROR:
+                                    Throwable t = resource.getError();
+                                    if( t instanceof AuthException ) {
+                                        Log.w( TAG, "Authentication Error", t );
+                                        AuthException error = (AuthException) t;
+                                        response.onError(AccountManager.ERROR_CODE_BAD_AUTHENTICATION, mContext.getResources().getString(R.string.signIn_failed ));
+                                    }
+                                    else if( t instanceof RemoteException) {
+                                        Log.w( TAG, "Server Error", t );
+                                        response.onError( AccountManager.ERROR_CODE_REMOTE_EXCEPTION, mContext.getResources().getString(R.string.signIn_failed ));
+                                    }
+                                    else if( t instanceof IOException) {
+                                        IOException e = (IOException) t;
+                                        Log.w( TAG, "Network Error", t );
+                                        response.onError(AccountManager.ERROR_CODE_NETWORK_ERROR, mContext.getResources().getString(R.string.auth_failed_network));
+                                    }
+                                    else {
+                                        Log.e( TAG, "Unexpected Error", t );
+                                        response.onError(AccountManager.ERROR_CODE_BAD_ARGUMENTS, mContext.getResources().getString(R.string.auth_failed_unknown));
+                                    }
+                                    break;
+                                case SUCCESS:
+                                    String mAuthToken = resource.getData();
+                                    Log.d( TAG, "got authToken successfully: " + mAuthToken );
+                                    result.putString( AccountManager.KEY_ACCOUNT_NAME, account.name );
+                                    result.putString( AccountManager.KEY_ACCOUNT_TYPE, account.type );
+                                    result.putString( AccountManager.KEY_AUTHTOKEN, mAuthToken );
+                                    result.putLong( KEY_CUSTOM_TOKEN_EXPIRY, expireTime );
+                                    response.onResult( result );
+                                    break;
+                                default:
+                                    break;
                             }
-                            else if( t instanceof IOException) {
-                                IOException e = (IOException) t;
-                                Log.w( TAG, "Network Error", t );
-                                response.onError(AccountManager.ERROR_CODE_NETWORK_ERROR, mContext.getResources().getString(R.string.auth_failed_network));
-                            }
-                            else {
-                                Log.e( TAG, "Unexpected Error", t );
-                                response.onError(AccountManager.ERROR_CODE_BAD_ARGUMENTS, mContext.getResources().getString(R.string.auth_failed_unknown));
-                            }
-                        }
-                    },
-                    authRepo.getExecutor()
-            );
+                        });
+            });
 
             // Returns null because we use the response parameter. See callbacks above.
             return null;

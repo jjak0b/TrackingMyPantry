@@ -34,4 +34,7 @@
     <dimen name="graph_line_chart_value_text_size">@dimen/text_size</dimen>
     <dimen name="graph_line_chart_axis_text_rotation_degree" format="float">-45.0</dimen>
     <dimen name="graph_line_chart_line_widht">1.5dp</dimen>
+
+    <dimen name="loading_radius"></dimen>
+    <dimen name="loading_stroke_width">3dp</dimen>
 </resources>

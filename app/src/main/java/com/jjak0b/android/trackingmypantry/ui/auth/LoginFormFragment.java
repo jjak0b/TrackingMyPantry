@@ -1,16 +1,8 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.fragment.app.Fragment;
-
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +11,20 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.jjak0b.android.trackingmypantry.R;
 import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
 
 public class LoginFormFragment extends Fragment {
 
-    protected AuthViewModel formViewModel;
-
+    protected AuthFormViewModel formViewModel;
+    protected AuthViewModel authViewModel;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -38,29 +37,9 @@ public class LoginFormFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        formViewModel = new ViewModelProvider(
-                this,
-                ViewModelProvider.AndroidViewModelFactory
-                        .getInstance(getActivity().getApplication())
-        ).get(AuthViewModel.class);
+        formViewModel = new ViewModelProvider(this).get(AuthFormViewModel.class);
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
-        /*
-        Log.d( "LoginFormFragment", "removing observers");
-        // debug
-        formViewModel.getLoginResult().removeObservers( getViewLifecycleOwner() );
-        formViewModel.getLoggedUser().removeObservers( getViewLifecycleOwner() );
-        formViewModel.getLoginFormState().removeObservers( getViewLifecycleOwner() );
-        Log.d( "LoginFormFragment", "registering test observers");
-
-        formViewModel.getLoginResult().observe( getViewLifecycleOwner(), loginResult -> {
-            Log.d( "LoginFormFragment", "Updated loginResult" );
-        });
-        formViewModel.getLoggedUser().observe( getViewLifecycleOwner(), loginResult -> {
-            Log.d( "LoginFormFragment", "Updated logged user" );
-        });
-        formViewModel.getLoginFormState().observe( getViewLifecycleOwner(), loginResult -> {
-            Log.d( "LoginFormFragment", "Updated form state" );
-        });*/
     }
 
     protected void registerFormStateUpdate(
@@ -82,23 +61,15 @@ public class LoginFormFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.d("LoginFormFragment", "->TextWatcher changed");
                 formViewModel.updateFormState(
                         emailEditText.getText().toString(),
                         passwordEditText.getText().toString()
                 );
-                Log.d("LoginFormFragment", "<-TextWatcher changed end");
             }
         };
         emailEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
 
-        formViewModel.onLoggedUser().observe(getViewLifecycleOwner(), credentials -> {
-            Log.d("LoginFormFragment", "LoggedUser changed " + credentials);
-            if( credentials != null ){
-                emailEditText.setText( credentials.getName() );
-            }
-        });
     }
 
     protected void registerFormResultsFeedback(
@@ -111,7 +82,6 @@ public class LoginFormFragment extends Fragment {
         formViewModel.getLoginUIResult().observe(this, new Observer<LoginResult>() {
             @Override
             public void onChanged(@Nullable LoginResult loginResult) {
-                Log.d("LoginFormFragment", "LoginResult changed" );
                 if (loginResult == null) {
                     return;
                 }
@@ -132,7 +102,6 @@ public class LoginFormFragment extends Fragment {
         formViewModel.getLoginFormState().observe( this, new Observer<LoginFormState>() {
             @Override
             public void onChanged(@Nullable LoginFormState loginFormState) {
-                Log.d("LoginFormFragment", "LoginFormState changed " + (loginFormState == null) );
                 if (loginFormState == null) {
                     return;
                 }
@@ -141,7 +110,6 @@ public class LoginFormFragment extends Fragment {
 
                 submitButton.setEnabled( isValid );
                 if (loginFormState.getEmailError() != null) {
-                    Log.d("LoginFormFragment", "LoginFormState changed -> " + "set email error"  );
                     emailEditText.setError(getString(loginFormState.getEmailError()));
                 }
                 else {
@@ -149,7 +117,6 @@ public class LoginFormFragment extends Fragment {
                 }
 
                 if (loginFormState.getPasswordError() != null) {
-                    Log.d("LoginFormFragment", "LoginFormState changed -> " + "set pass error"  );
                     passwordEditText.setError(getString(loginFormState.getPasswordError()));
                 }
                 else {

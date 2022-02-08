@@ -7,6 +7,13 @@ import android.text.Spanned;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
+
+import java.util.Objects;
 
 public class InputUtil {
 
@@ -44,5 +51,23 @@ public class InputUtil {
         public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
         public abstract void afterTextChanged(Editable s);
+    }
+
+    public static void setText(@NonNull EditText view, @Nullable String text) {
+
+        if( Objects.equals(view.getText().toString(), text) ) return;
+
+        int selection = view.getSelectionEnd();
+        int textLength = text == null ? 0 : text.length();
+
+        view.setText(text);
+        view.setSelection(Math.min(selection, textLength));
+    }
+
+    public static void setQuery(@NonNull SearchView view, @Nullable String query, boolean submit) {
+
+        if( Objects.equals(view.getQuery().toString(), query) ) return;
+
+        view.setQuery(query, submit);
     }
 }

@@ -1,5 +1,6 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
+import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -16,8 +18,9 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 
+// Replace the deprecated AccountAuthenticatorActivity
 public class AuthActivity extends AppCompatActivity {
     public static String AUTH_ADD_NEW_ACCOUNT = "new_account";
 
@@ -25,10 +28,11 @@ public class AuthActivity extends AppCompatActivity {
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mResultBundle = null;
 
-    private AuthViewModel viewModel;
+    private AuthViewModel authViewModel;
 
     private AppBarConfiguration mAppBarConfiguration;
 
+    LiveData<Resource<Bundle>> onAuth;
     /**
      * Retrieves the AccountAuthenticatorResponse from either the intent of the icicle, if the
      * icicle is non-zero.
@@ -38,7 +42,6 @@ public class AuthActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(TAG, "onCreate");
         // set UI
         setContentView(R.layout.activity_auth);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -51,36 +54,59 @@ public class AuthActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(toolbar, navController);
 
-        viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         mAccountAuthenticatorResponse =
                 getIntent().getParcelableExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE);
 
         if (mAccountAuthenticatorResponse != null) {
             mAccountAuthenticatorResponse.onRequestContinued();
-            viewModel.setLoggedAccount(null);
+            // authViewModel.logout();
         }
 
-        viewModel.onLoggedUser().observe(this, new Observer<LoggedAccount>() {
+        AccountManager mAccountManager = AccountManager.get(getBaseContext());
+        onAuth = authViewModel.onAuthenticate();
+        onAuth.observe(this, new Observer<Resource<Bundle>>() {
             @Override
-            public void onChanged(LoggedAccount account) {
-                if (account == null ) {
-                    // let user to pick an account or create a new one
-                    Log.d(TAG, "pick");
+            public void onChanged(Resource<Bundle> resource) {
+                switch (resource.getStatus()) {
+                    case LOADING:
+                        break;
+                    case ERROR:
+                        break;
+                    case SUCCESS:
+                        if( mAccountAuthenticatorResponse != null ) {
+                            Bundle data = resource.getData();
+                            Bundle userData = data.getBundle(AccountManager.KEY_USERDATA);
+                            Account account = new Account(
+                                    data.getString(AccountManager.KEY_ACCOUNT_NAME),
+                                    data.getString(AccountManager.KEY_ACCOUNT_TYPE)
+                            );
 
-                }
-                else {
-                    if( mAccountAuthenticatorResponse != null ) {
-                        Log.d(TAG, "set account");
+                            if( mAccountManager.addAccountExplicitly(
+                                    account,
+                                    data.getString(AccountManager.KEY_PASSWORD),
+                                    userData
+                            )) {
+                                Log.d(TAG, "New account added: " + account.name );
+                            }
+                            else {
+                                Log.d(TAG, "Account already exists: " + account.name );
+                                mAccountManager.setPassword(
+                                        account,
+                                        data.getString(AccountManager.KEY_PASSWORD)
+                                );
+                            }
 
-                        Bundle result = new Bundle();
-                        result.putString(AccountManager.KEY_ACCOUNT_NAME, account.getAccount().name);
-                        result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.getAccount().type);
-                        // account has been set
-                        setAccountAuthenticatorResult(result);
-                    }
-                    viewModel.onLoggedUser().removeObserver(this::onChanged);
-                    finish();
+                            Bundle result = new Bundle();
+                            result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+                            result.putString(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+                            // account has been set
+                            setAccountAuthenticatorResult(result);
+                        }
+                        onAuth.removeObserver(this);
+                        finish();
+                        break;
                 }
             }
         });
@@ -114,7 +140,9 @@ public class AuthActivity extends AppCompatActivity {
      */
     @Override
     public void finish() {
-        viewModel.onLoggedUser().removeObservers(this);
+        if( onAuth != null ){
+            onAuth.removeObservers(this);
+        }
 
         if (mAccountAuthenticatorResponse != null) {
             Intent i = new Intent();

@@ -2,12 +2,10 @@ package com.jjak0b.android.trackingmypantry.ui.products.product_overview.section
 
 import android.graphics.Color;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.NumberPicker;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.PopupMenu;
@@ -18,10 +16,11 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupViewModel;
+import com.jjak0b.android.trackingmypantry.ui.util.QuantityPickerBuilder;
 
 
 public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstanceGroupViewModel> {
@@ -104,7 +103,6 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
             slider.setValue(parameters[INDEX_AMOUNT]);
             slider.addOnChangeListener((slider1, value, fromUser) -> {
                 if( fromUser ){
-                    Log.d("set", "value " + value);
                     parameters[INDEX_AMOUNT] = (int) value;
                 }
             });
@@ -131,22 +129,17 @@ public class ProductInstanceGroupViewHolder extends ItemViewHolder<ProductInstan
 
         removeBtn.setClickable(true);
         removeBtn.setOnClickListener(v -> {
-            NumberPicker quantityPicker = new NumberPicker(itemView.getContext());
-            quantityPicker.setMinValue(1);
-            quantityPicker.setMaxValue(group.getQuantity());
-            new MaterialAlertDialogBuilder(itemView.getContext())
-                    .setView(quantityPicker)
+            new QuantityPickerBuilder(itemView.getContext())
+                    .setMin(1)
+                    .setMax(group.getQuantity())
+                    .setPositiveButton(android.R.string.ok, quantity -> listener.onRemove(
+                            getBindingAdapterPosition(),
+                            group,
+                            quantity
+                    ))
+                    .setNegativeButton(android.R.string.cancel , null )
                     .setCancelable(true)
                     .setTitle(R.string.product_quantity)
-                    .setNegativeButton(android.R.string.cancel , null )
-                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
-                        listener.onRemove(
-                                getBindingAdapterPosition(),
-                                group,
-                                quantityPicker.getValue()
-                        );
-                    })
-                    .create()
                     .show();
         });
     }

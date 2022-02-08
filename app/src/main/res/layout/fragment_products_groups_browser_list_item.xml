@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -23,7 +22,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp">
 
-                <LinearLayout
+
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="start|center_vertical"
@@ -31,75 +31,75 @@
                     android:gravity="center"
                     android:orientation="horizontal">
 
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/expireDateLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/product_expire_date"
+                        app:boxStrokeWidth="0dp"
+                        app:boxStrokeWidthFocused="0dp"
+                        app:endIconMode="none"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/divider"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:startIconDrawable="@android:drawable/ic_menu_today">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/expireDateInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:editable="false"
+                            android:imeOptions="actionNext"
+                            android:inputType="none"
+                            android:text="01/01/1970" />
+
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
                     <LinearLayout
+                        android:id="@+id/linearLayout6"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:gravity="center"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/divider"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/expireDateLayout"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        <TextView
+                            android:id="@+id/textView"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:hint="@string/product_expire_date"
-                            app:boxStrokeWidth="0dp"
-                            app:boxStrokeWidthFocused="0dp"
-                            app:endIconMode="none"
-                            app:hintTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-                            app:startIconDrawable="@android:drawable/ic_menu_today">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/expireDateInput"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:editable="false"
-                                android:imeOptions="actionNext"
-                                android:inputType="none"
-                                android:text="01/01/1970" />
-
-
-                        </com.google.android.material.textfield.TextInputLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
-                            android:orientation="horizontal">
+                            android:text="@string/product_groups_quantity_lefts" />
 
-                            <TextView
-                                android:id="@+id/textView"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:gravity="center"
-                                android:text="@string/product_groups_quantity_lefts" />
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/cardTags"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:clickable="false">
 
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/cardTags"
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chipQuantity"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:clickable="false">
-
-                                <com.google.android.material.chip.Chip
-                                    android:id="@+id/chipQuantity"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="1" />
-                            </com.google.android.material.chip.ChipGroup>
-                        </LinearLayout>
-
+                                android:text="1" />
+                        </com.google.android.material.chip.ChipGroup>
                     </LinearLayout>
 
-                </LinearLayout>
+                    <View
+                        android:id="@+id/divider"
+                        android:layout_width="1dp"
+                        android:layout_height="0dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
             </LinearLayout>
 

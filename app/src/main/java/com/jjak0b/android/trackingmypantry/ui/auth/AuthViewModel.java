@@ -1,210 +1,106 @@
 package com.jjak0b.android.trackingmypantry.ui.auth;
 
+import android.accounts.AccountManager;
+import android.app.Application;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
-import android.app.Application;
-import android.util.Log;
-import android.util.Patterns;
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.hadilq.liveevent.LiveEvent;
-import com.jjak0b.android.trackingmypantry.data.LoginRepository;
-import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.auth.LoggedAccount;
-import com.jjak0b.android.trackingmypantry.data.model.LoginCredentials;
-import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.RegisterCredentials;
-import com.jjak0b.android.trackingmypantry.data.model.User;
-
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-
-import java.io.IOException;
-import retrofit2.HttpException;
+import com.jjak0b.android.trackingmypantry.data.auth.LoginResult;
+import com.jjak0b.android.trackingmypantry.data.db.entities.User;
+import com.jjak0b.android.trackingmypantry.data.repositories.AuthRepository;
+import com.jjak0b.android.trackingmypantry.data.services.API.LoginCredentials;
+import com.jjak0b.android.trackingmypantry.data.services.API.RegisterCredentials;
+import com.jjak0b.android.trackingmypantry.services.Authenticator;
 
 public class AuthViewModel extends AndroidViewModel {
 
-    private static final String TAG = "Auth";
+    private static final String TAG = "AuthViewModel";
+    private AuthRepository authRepository;
+    private LiveEvent<LoginResult> mUIResult;
 
-    private LoginRepository loginRepository;
-    protected MutableLiveData<LoginFormState> loginFormState;
-    protected LiveEvent<LoginResult> loginUIResult;
-    private LiveEvent<LoggedAccount> onLoggedAccount;
-    @Override
-    protected void onCleared() {
-        loginFormState = null;
-        loginUIResult = null;
-        onLoggedAccount.removeSource(loginRepository.getLoggedInUser());
-        onLoggedAccount = null;
-        loginRepository = null;
-        super.onCleared();
-    }
+    private LiveEvent<Resource<Bundle>> onAuthenticate;
 
-    public AuthViewModel(Application application) {
+    public AuthViewModel(@NonNull Application application) {
         super(application);
-        Log.d( TAG, "new login vm instance");
-        this.loginRepository = LoginRepository.getInstance(getApplication());
-        this.loginFormState = new MutableLiveData<>( new LoginFormState(false) );
-        this.loginUIResult = new LiveEvent<>();
-        this.onLoggedAccount = new LiveEvent<>();
-        this.onLoggedAccount.addSource(getLoggedUser(), account -> this.onLoggedAccount.postValue(account) );
+        this.authRepository = AuthRepository.getInstance(application);
+        this.mUIResult = new LiveEvent<>();
+        this.onAuthenticate = new LiveEvent<>();
+        this.onAuthenticate.setValue(Resource.loading(null));
     }
 
-    LiveData<LoginFormState> getLoginFormState() { return loginFormState; }
-
-    public LiveData<LoginResult> getLoginUIResult() { return loginUIResult; }
-
-    public LiveData<LoggedAccount> getLoggedUser() {
-        return loginRepository.getLoggedInUser();
-    }
-
-    public LiveEvent<LoggedAccount> onLoggedUser() { return onLoggedAccount; }
-
-    public boolean setLoggedAccount( String name ) {
-        return loginRepository.setLoggedAccount( name );
-    }
-
-    public boolean isAuthDataValid() {
-        return getLoginFormState().getValue().isDataValid();
-    }
-
-    public ListenableFuture login(
+    public LiveData<Resource<User>> login(
             String email,
             String password
     ) {
 
-        LoginCredentials user = new LoginCredentials(email, password);
+        LoginCredentials credentials = new LoginCredentials(email, password);
+        return Transformations.map(authRepository.getUser(credentials), resource -> {
+            Resource<Bundle> result;
+            switch (resource.getStatus()) {
+                case SUCCESS:
+                    User user = resource.getData();
+                    Bundle userData = new Bundle();
+                    userData.putString(Authenticator.ACCOUNT_ID, user.getId());
 
-        ListenableFuture future = loginRepository.signIn(user);
-        Futures.addCallback(
-                future,
-                new FutureCallback<String>() {
-                    @Override
-                    public void onSuccess(@NullableDecl String result) {
-                        loginUIResult.postValue(new LoginResult( new LoggedInUserView( user.getEmail() ) ) );
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        setUIErrorFor( t, true);
-                    }
-                },
-                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
-        );
-        return future;
+                    Bundle bundle = new Bundle();
+                    bundle.putBundle(AccountManager.KEY_USERDATA, userData );
+                    bundle.putString(AccountManager.KEY_ACCOUNT_TYPE, Authenticator.ACCOUNT_TYPE);
+                    bundle.putString(AccountManager.KEY_ACCOUNT_NAME, credentials.getEmail());
+                    bundle.putString(AccountManager.KEY_PASSWORD, credentials.getPassword());
+                    result = Resource.success(bundle);
+                    break;
+                case ERROR:
+                    result = Resource.error(resource.getError(), null);
+                    break;
+                default:
+                    result = Resource.loading(null);
+                    break;
+            }
+            onAuthenticate.setValue(result);
+            return resource;
+        });
     }
 
-    public ListenableFuture<User> authenticate() {
-        return Futures.transformAsync(
-                loginRepository.requireAuthorization(false),
-                loginRepository::getUserInfo,
-                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
-        );
+    public LiveData<Resource<User>> register(
+            String username,
+            String email,
+            String password
+    ) {
+
+        RegisterCredentials credentials = new RegisterCredentials(username,  email, password);
+
+        return Transformations.map(authRepository.addUser(credentials), resource -> {
+            if (resource.getStatus() == Status.SUCCESS) {
+                Bundle result = new Bundle();
+                result.putString(AccountManager.KEY_ACCOUNT_TYPE, Authenticator.ACCOUNT_TYPE);
+                result.putString(AccountManager.KEY_ACCOUNT_NAME, credentials.getEmail());
+                result.putString(AccountManager.KEY_PASSWORD, credentials.getPassword());
+            }
+            return resource;
+        });
     }
 
-    public ListenableFuture register( String username, String email, String password ) {
-
-        RegisterCredentials newUser = new RegisterCredentials( username, email, password );
-
-        ListenableFuture future = loginRepository.signUp(newUser);
-        Futures.addCallback(
-                future,
-                new FutureCallback<RegisterCredentials>() {
-                    @Override
-                    public void onSuccess(@NullableDecl RegisterCredentials result) {
-                        loginUIResult.postValue(new LoginResult( new LoggedInUserView( result.getUsername() ) ) );
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        setUIErrorFor( t, false );
-                    }
-                },
-                MoreExecutors.newSequentialExecutor( MoreExecutors.directExecutor() )
-        );
-        return future;
+    public void logout() {
+        authRepository.setLoggedAccount(null);
     }
 
-    public void setUIErrorFor( Throwable t, boolean isSignIn ) {
-        if( t instanceof HttpException) {
-            Log.w( TAG, "Server/Authentication Error", t );
-            if( isSignIn ) loginUIResult.postValue(new LoginResult( R.string.signIn_failed ) );
-            else loginUIResult.postValue(new LoginResult( R.string.signUp_failed ) );
-        }
-        else if( t instanceof IOException) {
-            Log.w( TAG, "Network Error", t );
-            loginUIResult.postValue(new LoginResult( R.string.auth_failed_network) );
-        }
-        else {
-            Log.e( TAG, "Unexpected Error", t );
-            loginUIResult.postValue(new LoginResult( R.string.auth_failed_unknown ) );
-        }
+    public void setLoggedAccount(String name) {
+        authRepository.setLoggedAccount(name);
     }
 
-    public void updateFormState(String username, String email, String password) {
-
-        LoginFormState state = new LoginFormState(true);
-
-        updateFormStateInternal( state, username, email, password );
-
-        loginFormState.setValue( state );
+    public LiveData<Resource<LoggedAccount>> getLoggedAccount() {
+        return authRepository.getLoggedAccount();
     }
 
-    public void updateFormState(String email, String password) {
-        LoginFormState state = new LoginFormState(true);
-
-        updateFormStateInternal( state, email, password );
-
-        loginFormState.setValue( state );
-    }
-
-    private void updateFormStateInternal( LoginFormState state, String username, String email, String password ) {
-        if (!isUsernameValid(username)) {
-            state.setUsernameError(R.string.invalid_username);
-        }
-
-        updateFormStateInternal( state, email, password );
-    }
-
-    private void updateFormStateInternal( LoginFormState state, String email, String password ) {
-        if (!isEmailValid(email)) {
-            Log.d(TAG, "set email as invalid");
-            state.setEmailError(R.string.invalid_email);
-        }
-
-        if (!isPasswordValid(password)) {
-            Log.d(TAG, "set pass as invalid");
-            state.setPasswordError(R.string.invalid_password);
-        }
-    }
-
-    // A placeholder username validation check
-    private boolean isUsernameValid(String username) {
-        if (username == null) {
-            return false;
-        }
-
-        return !username.trim().isEmpty();
-    }
-
-    // A placeholder email validation check
-    private boolean isEmailValid(String email) {
-        if (email == null) {
-            return false;
-        }
-        if (email.trim().contains("@")) {
-            return Patterns.EMAIL_ADDRESS.matcher(email).matches();
-        }
-        return false;
-    }
-
-    // A placeholder password validation check
-    private boolean isPasswordValid(String password) {
-        Log.d(TAG, "is pw valid: '" + password + "'");
-        return password != null && password.trim().length() > 0;
+    public LiveData<Resource<Bundle>> onAuthenticate() {
+        return onAuthenticate;
     }
 }

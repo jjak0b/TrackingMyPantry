@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="product">
+        <item quantity="zero">nessun prodotto</item>
+        <item quantity="one">prodotto</item>
+        <item quantity="other">prodotti</item>
+    </plurals>
+    <plurals name="product_expire_message">
+        <item quantity="one">Scadenza di un \"%1$s\" situato nella dispensa \"%2$s\"</item>
+        <item quantity="other">Scadenza di %3$d \"%1$s\" situati nella dispensa \"%2$s\"</item>
+    </plurals>
+    <plurals name="matches_found">
+        <item quantity="zero">nessuna corrispondenza trovata</item>
+        <item quantity="one">%1$d corrispondenza trovata</item>
+        <item quantity="other">%1$d corrispondenze trovate</item>
+    </plurals>
+    <plurals name="expire">
+        <item quantity="one">Scade il %1$s</item>
+        <item quantity="other">Scadono il %1$s</item>
+    </plurals>
+</resources>

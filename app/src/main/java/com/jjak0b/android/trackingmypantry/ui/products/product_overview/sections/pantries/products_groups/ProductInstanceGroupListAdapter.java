@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.holder.ProductInstanceGroupViewHolder;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupInteractionsListener;
 import com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups.model.ProductInstanceGroupViewModel;
@@ -49,7 +49,7 @@ public abstract class ProductInstanceGroupListAdapter extends ListAdapter<Produc
     static class ProductDiff extends DiffUtil.ItemCallback<ProductInstanceGroup> {
         @Override
         public boolean areItemsTheSame(@NonNull ProductInstanceGroup oldItem, @NonNull ProductInstanceGroup newItem) {
-            boolean isSame = oldItem.getId() == newItem.getId();
+            boolean isSame = oldItem == newItem;
             return  isSame;
         }
 

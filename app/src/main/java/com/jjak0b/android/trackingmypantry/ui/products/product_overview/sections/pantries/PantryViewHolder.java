@@ -6,14 +6,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import com.google.android.material.chip.Chip;
-import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
-import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-import com.jjak0b.android.trackingmypantry.data.model.relationships.PantryWithProductInstanceGroups;
 
-import java.util.List;
+import com.google.android.material.chip.Chip;
+import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.db.results.PantryDetails;
+import com.jjak0b.android.trackingmypantry.ui.ItemViewHolder;
 
 
 public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
@@ -31,14 +29,12 @@ public class PantryViewHolder extends ItemViewHolder<PantryViewModel> {
     public void bindTo(PantryViewModel viewModel) {
         super.bindTo(viewModel);
 
-        PantryWithProductInstanceGroups pantryWGroups = getViewModel().getItem();
+        PantryDetails pantryWGroups = getViewModel().getItem();
         PantryInteractionsListener listener = getViewModel().getInteractionsListener();
         Pantry pantry = pantryWGroups.pantry;
-        List<ProductInstanceGroup> pantryItems = pantryWGroups.instances;
-
 
         title.setText( pantry.getName() );
-        badge.setText( String.valueOf(pantryItems.size()) );
+        badge.setText( String.valueOf(pantryWGroups.totalQuantity) );
         itemView.setClickable(true);
         itemView.setOnClickListener(v -> {
             listener.onItemClicked(

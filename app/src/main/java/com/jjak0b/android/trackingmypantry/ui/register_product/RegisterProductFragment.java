@@ -1,50 +1,63 @@
 package com.jjak0b.android.trackingmypantry.ui.register_product;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
-import androidx.viewpager2.widget.ViewPager2;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.jjak0b.android.trackingmypantry.R;
-import com.jjak0b.android.trackingmypantry.data.auth.AuthException;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
-
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
-import androidx.annotation.NonNull;
-
-import java.io.IOException;
-
-import retrofit2.HttpException;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductInstanceDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.register_product.tabs.SectionProductPurchaseDetailsFragment;
+import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RegisterProductFragment extends Fragment {
 
-    private RegisterProductViewModel mProductViewModel;
+    private SharedProductViewModel mProductPickerViewModel;
+    private RegisterProductViewModel mSharedViewModel;
     private PageViewModel mPageViewModel;
-    private static final String TAG = RegisterProductFragment.class.getName();
+    private static final String TAG = "RegisterProductFragment";
+    private String productID;
 
     public RegisterProductFragment() {
+        super();
         // Required empty public constructor
     }
 
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mProductPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedProductViewModel.class);
+        mSharedViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
+        mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
+        productID = RegisterProductFragmentArgs.fromBundle(getArguments()).getProductID();
+
+        // clear the currently stuff set
+        if( productID != null )  {
+            mSharedViewModel.setupNew();
+            mProductPickerViewModel.setItemSource(null);
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -57,19 +70,23 @@ public class RegisterProductFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mProductViewModel = new ViewModelProvider(requireActivity()).get(RegisterProductViewModel.class);
-        mPageViewModel = new ViewModelProvider(this).get(PageViewModel.class);
-
         ViewPager2 viewPager = view.findViewById(R.id.view_pager);
         Button nextBtn = view.findViewById( R.id.continueBtn );
         TabLayout tabs = view.findViewById( R.id.tabs );
 
         ProductInfoSectionsPagerAdapter productInfoSectionsPagerAdapter =
-                new ProductInfoSectionsPagerAdapter(getActivity(), mProductViewModel);
+            new ProductInfoSectionsPagerAdapter(this) {
+                @NonNull
+                @Override
+                public Fragment createFragment(int position) {
+                    return createPageFragment(position);
+                }
+            };
 
         // when product is not ready so allow only tab 0
-        mProductViewModel.getProductBuilder().observe( getViewLifecycleOwner(), builder -> {
-            if( builder == null ){
+        mSharedViewModel.onBaseProductSet().observe(getViewLifecycleOwner(), hasBeenSet -> {
+            // Log.d(TAG, "IsBaseProductSet " + hasBeenSet );
+            if( !hasBeenSet ){
                 mPageViewModel.setPageIndex( 0 );
                 mPageViewModel.setMaxNavigableTabCount( 1 );
             }
@@ -78,8 +95,20 @@ public class RegisterProductFragment extends Fragment {
             }
         });
 
-        mPageViewModel.getPageIndex().observe( getViewLifecycleOwner(), index -> {
-            tabs.selectTab( tabs.getTabAt( index ) );
+        mPageViewModel.getPageIndex().observe( getViewLifecycleOwner(), pageIndex -> {
+            if( pageIndex == null ) return;
+
+            int index = pageIndex.first;
+            int prevIndex = pageIndex.second;
+
+            Log.d(TAG, "going from page " + prevIndex + " to " + index );
+
+            if( index != prevIndex ) {
+                // trigger saving on previous page
+                saveOnChangePage(prevIndex);
+            }
+
+            viewPager.setCurrentItem(index, true );
 
             boolean shouldEnableBtn = mPageViewModel.canSelectNextTab();
 
@@ -96,6 +125,11 @@ public class RegisterProductFragment extends Fragment {
 
         mPageViewModel.getMaxNavigableTabCount().observe( getViewLifecycleOwner(), count -> {
             nextBtn.setEnabled( mPageViewModel.canSelectNextTab() );
+
+            // This observer must be triggered due to a post otherwise
+            // the adapter will throw the "FragmentManager is already executing transactions" exception
+            // if doing a transaction and changing the page count at same time.
+            // example: https://stackoverflow.com/a/44116728
             productInfoSectionsPagerAdapter.setMaxEnabledTabs( count );
         });
 
@@ -103,11 +137,11 @@ public class RegisterProductFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if( mPageViewModel.canSelectNextTab() ){
-                    int nextIndex = tabs.getSelectedTabPosition() + 1;
+                    int nextIndex = viewPager.getCurrentItem() + 1;
                     mPageViewModel.setPageIndex( nextIndex );
                 }
-                else if( tabs.getSelectedTabPosition() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
-                    registerProduct( view );
+                else if( viewPager.getCurrentItem() >= productInfoSectionsPagerAdapter.getAbsolutePageCount()-1 ) {
+                    mSharedViewModel.save();
                 }
             }
         });
@@ -132,6 +166,8 @@ public class RegisterProductFragment extends Fragment {
         viewPager.setAdapter(productInfoSectionsPagerAdapter);
 
         // tabs.setupWithViewPager(viewPager);
+        viewPager.setOffscreenPageLimit(productInfoSectionsPagerAdapter.getAbsolutePageCount());
+
         new TabLayoutMediator(tabs, viewPager, new TabLayoutMediator.TabConfigurationStrategy() {
             @Override
             public void onConfigureTab(@NonNull TabLayout.Tab tab, int position) {
@@ -139,46 +175,94 @@ public class RegisterProductFragment extends Fragment {
             }
         }).attach();
 
+
+
+        mSharedViewModel.canSave().observe(getViewLifecycleOwner(), canSave -> {
+            // Log.d(TAG, "canSave="+canSave);
+        });
+
+        mSharedViewModel.onSave().observe(getViewLifecycleOwner(), isSaving ->  {
+            if( !isSaving ) {
+                // Log.d(TAG, "not saving");
+                return;
+            }
+
+            mSharedViewModel.saveProductDetails();
+            mSharedViewModel.saveProductInfoDetails();
+            mSharedViewModel.saveProductPurchaseDetails();
+
+            mSharedViewModel.saveComplete();
+        });
+
+        mSharedViewModel.onSaved().observe(getViewLifecycleOwner(), resource -> {
+            Log.d(TAG, "saved result " + resource );
+            switch (resource.getStatus()) {
+                case LOADING:
+                    break;
+                case SUCCESS:
+                    Snackbar.make(requireView(), R.string.product_register_complete, BaseTransientBottomBar.LENGTH_SHORT)
+                            .show();
+
+                    mSharedViewModel.setupNew();
+                    mSharedViewModel.onReset().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+                        @Override
+                        public void onChanged(Boolean isResetting) {
+                            if( !isResetting ) {
+                                mSharedViewModel.onReset().removeObserver(this::onChanged);
+
+                                Navigation.findNavController(view)
+                                        .navigate(RegisterProductFragmentDirections.onRegisterCompleted());
+                            }
+                        }
+                    });
+
+                    break;
+                case ERROR:
+                    Throwable error = resource.getError();
+                    String errorMsg = ErrorsUtils.getErrorMessage(requireContext(), error, TAG);
+
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(android.R.string.dialog_alert_title)
+                            .setMessage(errorMsg)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setNeutralButton(R.string.action_retry, (dialog, which) -> {
+                                mSharedViewModel.save();
+                            })
+                            .show();
+                    break;
+            }
+        });
     }
 
-    // submit product
-    void registerProduct( View view) {
-        Futures.addCallback(
-                mProductViewModel.registerProduct(),
-                new FutureCallback<ProductInstanceGroup>() {
-                    @Override
-                    public void onSuccess(@NullableDecl ProductInstanceGroup result) {
-                        Toast.makeText(getContext(), "Register product successfully", Toast.LENGTH_LONG ).show();
-                        mProductViewModel.setupNewProduct();
-                        Navigation.findNavController(view)
-                                .popBackStack(R.id.registerProductFragment, true);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        if( t instanceof AuthException){
-                            Log.e( TAG, "Authentication Error", t );
-                            Toast.makeText(getContext(), "Authentication Error: You need to login first", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else if( t instanceof HttpException){
-                            Log.e( TAG, "Server Error", t );
-                            Toast.makeText(getContext(), "Server error: Unable to add to the server", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else if( t instanceof IOException){
-                            Log.e( TAG, "Network Error", t );
-                            Toast.makeText(getContext(), "Network error: Unable to connect to server", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                        else {
-                            Log.e( TAG, "Unexpected Error", t );
-                            Toast.makeText(getContext(), "Unexpected error: Unable to perform operation", Toast.LENGTH_SHORT )
-                                    .show();
-                        }
-                    }
-                },
-                ContextCompat.getMainExecutor( getContext() )
-        );
+    @NonNull
+    public Fragment createPageFragment( int position ) {
+        switch ( position ){
+            case 0:
+                return SectionProductDetailsFragment.newInstance(productID);
+            case 1:
+                return new SectionProductInstanceDetailsFragment();
+            case 2:
+                return new SectionProductPurchaseDetailsFragment();
+            default:
+                throw new IllegalArgumentException("Undefined page at index " + position);
+        }
     }
+
+    public void saveOnChangePage( int previousPage ) {
+        Log.d(TAG, "Trigger saving page " + previousPage);
+        switch (previousPage) {
+            case 0:
+                mSharedViewModel.saveProductDetails();
+                break;
+            case 1:
+                mSharedViewModel.saveProductInfoDetails();
+                break;
+            case 2:
+                mSharedViewModel.saveProductPurchaseDetails();
+                break;
+            default:
+                break;
+        }
+    }
+
 }

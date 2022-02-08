@@ -1,101 +1,101 @@
 package com.jjak0b.android.trackingmypantry.ui.products.product_overview.sections.pantries.products_groups;
 
 import android.app.Application;
+import android.util.Log;
 
-import androidx.lifecycle.AndroidViewModel;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.jjak0b.android.trackingmypantry.data.PantryRepository;
-import com.jjak0b.android.trackingmypantry.data.model.Pantry;
-import com.jjak0b.android.trackingmypantry.data.model.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
+import com.jjak0b.android.trackingmypantry.data.api.Transformations;
+import com.jjak0b.android.trackingmypantry.data.db.entities.Pantry;
+import com.jjak0b.android.trackingmypantry.data.db.entities.ProductInstanceGroup;
+import com.jjak0b.android.trackingmypantry.data.db.entities.UserProduct;
+import com.jjak0b.android.trackingmypantry.data.repositories.PantriesRepository;
+import com.jjak0b.android.trackingmypantry.ui.util.ItemSourceViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
-    private PantryRepository pantryRepository;
-    private MutableLiveData<List<ProductInstanceGroup>> groups;
-    private MutableLiveData<Pantry> pantry;
+public class ProductsGroupsBrowserViewModel extends ItemSourceViewModel<List<ProductInstanceGroup>> {
+    private static final String TAG = "GroupsBrowserViewModel";
 
+    private PantriesRepository pantriesRepository;
+    private LiveData<Resource<List<ProductInstanceGroup>>> mDefaultList;
     public ProductsGroupsBrowserViewModel(Application application) {
         super(application);
-        pantryRepository = PantryRepository.getInstance(application);
-        groups = new MutableLiveData<>(null);
-        pantry = new MutableLiveData<>(null);
+        pantriesRepository = PantriesRepository.getInstance(application);
+        mDefaultList = new MutableLiveData<>(Resource.success(new ArrayList<>(0)));
     }
 
-    public void setGroups(List<ProductInstanceGroup> groups){
-        if( groups == null ){
-            this.groups.postValue(null);
-        }
-        else if( groups instanceof ArrayList ){
-            this.groups.postValue(groups);
-        }
-        else {
-            this.groups.postValue(new ArrayList<>(groups));
-        }
+    @MainThread
+    public void setGroupsOf(
+            @NonNull LiveData<Resource<UserProduct>> mProductSource,
+            @NonNull LiveData<Resource<Pantry>> mPantrySource
+    ) {
+
+        final LiveData<Resource<List<ProductInstanceGroup>>> source = Transformations.forward(mProductSource, productResource -> {
+            return Transformations.forward(mPantrySource, pantryResource -> {
+                if( productResource.getData() != null && pantryResource.getData() != null  ) {
+                    return pantriesRepository.getContent(
+                            productResource.getData().getBarcode(),
+                            pantryResource.getData().getId()
+                    );
+                }
+                else {
+                    return mDefaultList;
+                }
+            });
+        });
+
+        setItemSource(source);
     }
 
-    public LiveData<List<ProductInstanceGroup>> getGroups() {
-        return groups;
-    }
-
-    public LiveData<List<Pantry>> getAvailablePantries() {
-        return pantryRepository.getPantries();
-    }
-
-    public LiveData<Pantry> getPantry() {
-        return pantry;
-    }
-
-    public void setPantry(Pantry pantry) {
-        this.pantry.postValue(pantry);
+    public LiveData<Resource<List<Pantry>>> getAvailablePantries() {
+        return pantriesRepository.getPantries();
     }
 
     @Override
     protected void onCleared() {
-        this.groups.setValue(null);
-        this.groups = null;
-        this.pantry.setValue(null);
-        this.pantry = null;
         super.onCleared();
     }
 
-    public ListenableFuture<Void> deleteProductInstanceGroup(ProductInstanceGroup... entry){
-        return pantryRepository.deleteProductInstanceGroup(entry);
-    }
 
-    public ListenableFuture<Void> moveToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
+    public LiveData<Resource<Long>> moveToPantry(ProductInstanceGroup entry, Pantry destination, int quantity){
         if( quantity < 1 || entry.getPantryId() == destination.getId() ) {
-            return Futures.immediateFuture(null);
+            return new MutableLiveData<>(Resource.error(null, null));
         }
 
-        return pantryRepository.moveProductInstanceGroupToPantry(entry, destination, quantity);
+        Log.d(TAG, "Moving " + quantity + " of " + entry + " to " + destination);
+        return pantriesRepository.moveGroupToPantry(entry, destination, quantity);
     }
 
-    public ListenableFuture<Void> delete( ProductInstanceGroup entry, int quantity){
-
+    public LiveData<Resource<Void>> delete( ProductInstanceGroup entry, int quantity){
+        Log.d(TAG, "Deleting " + quantity + " of " + entry );
         // remove the item on adapter
         if( entry.getQuantity() <= quantity){
-            return pantryRepository.deleteProductInstanceGroup(entry);
+            return pantriesRepository.deleteGroup(entry);
         }
         else {
             ProductInstanceGroup updatedGroup = ProductInstanceGroup.from(entry);
             updatedGroup.setQuantity( updatedGroup.getQuantity() - quantity );
-            return pantryRepository.updateProductInstanceGroup(updatedGroup);
+            return androidx.lifecycle.Transformations.map(
+                    pantriesRepository.updateGroup(updatedGroup),
+                    voidMapFunc::apply
+            );
         }
     }
 
-    public ListenableFuture<Void> consume(ProductInstanceGroup entry, int amountPercent){
+    public LiveData<Resource<Void>> consume(ProductInstanceGroup entry, int amountPercent){
 
+        Log.d(TAG, "Consuming by " + amountPercent + "% of " + entry );
         ProductInstanceGroup updatedEntry = ProductInstanceGroup.from(entry);
 
         if( amountPercent <= 0 ){
-            return Futures.immediateFuture(null);
+            return new MutableLiveData<>(Resource.error(null, null));
         }
 
         // add the consumed entry as new entry and update quantity of old one
@@ -108,29 +108,40 @@ public class ProductsGroupsBrowserViewModel extends AndroidViewModel {
 
             updatedEntry.setQuantity(updatedEntry.getQuantity()-consumedEntry.getQuantity());
 
-            return Futures.transform(
-                    Futures.allAsList(
-                            pantryRepository.updateProductInstanceGroup(updatedEntry),
-                            pantryRepository.addProductInstanceGroup(
-                                    consumedEntry,
-                                    null,
-                                    Pantry.creteDummy(updatedEntry.getPantryId())
-                            )
-                    ),
-                    input -> null,
-                    MoreExecutors.directExecutor()
-            );
+
+            LiveData<Resource<Long>> onConsume = Transformations.forwardOnce( pantriesRepository.updateGroup(updatedEntry), input -> {
+                return pantriesRepository.addGroup(consumedEntry, null, Pantry.creteDummy(updatedEntry.getPantryId()) );
+            });
+
+            return androidx.lifecycle.Transformations.map(onConsume, voidMapFunc::apply );
         }
         // we have only 1 entry so just update it
         else {
             updatedEntry.setCurrentAmountPercent(entry.getCurrentAmountPercent()-amountPercent);
 
             if( updatedEntry.getCurrentAmountPercent() > 0 ){
-                return pantryRepository.updateAndMergeProductInstanceGroup(updatedEntry);
+                return androidx.lifecycle.Transformations.map(
+                        pantriesRepository.updateAndMergeGroups(updatedEntry),
+                        voidMapFunc::apply
+                );
             }
             else {
-                return pantryRepository.deleteProductInstanceGroup(updatedEntry);
+                return androidx.lifecycle.Transformations.map(
+                        pantriesRepository.deleteGroup(updatedEntry),
+                        voidMapFunc::apply
+                );
             }
         }
     }
+
+    private final Function<Resource<?>, Resource<Void>> voidMapFunc = input -> {
+        switch (input.getStatus()) {
+            case SUCCESS:
+                return Resource.success(null);
+            case ERROR:
+                return Resource.error(input.getError(), null);
+            default:
+                return Resource.loading(null);
+        }
+    };
 }
