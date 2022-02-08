@@ -138,6 +138,7 @@
     <string name="product_section_purchase_places_overview">Purchases history overview</string>
 
     <string name="setup_filter_options">Setup the filter options</string>
+    <string name="filter_no_options_available">There is no tag available yet</string>
 
     <string name="register_product_pick_product">Pick a product</string>
     <string name="field_error_empty">Field can\'t be empty</string>

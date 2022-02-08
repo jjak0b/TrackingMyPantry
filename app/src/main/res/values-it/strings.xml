@@ -138,6 +138,7 @@
     <string name="product_section_purchase_places_overview">Panoramica della cronologia degli acquisti</string>
 
     <string name="setup_filter_options">Imposta i parametri di filtro</string>
+    <string name="filter_no_options_available">"Non c'è alcun tag disponibile"</string>
 
     <string name="register_product_pick_product">Seleziona un prodotto</string>
     <string name="field_error_empty">"Il campo non può essere vuoto"</string>
