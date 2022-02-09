@@ -140,20 +140,23 @@ public abstract class ProductDao {
         // return toListOfProductWithTags(getMapOfProductWithTags(ownerID, null, null, null, new ArrayList<>(0), 0 ));
     }
 
-    @Query( " SELECT * " +
-            " FROM (" + getProductsWithTagsOfOwner +  ") AS P " +
-            " INNER JOIN " +
-            "   ( SELECT DISTINCT AT.product_id FROM ( " + getProductsWithTagsOfOwner +" ) AS AT " +
-                " WHERE (" +
-                " ((:barcode IS NULL AND :name IS NULL AND :description IS NULL ) " +
-                    " OR (AT.product_id LIKE :barcode OR AT.p_name LIKE :name OR AT.description LIKE :description ))" +
-                " ) " +
-               " GROUP BY AT.product_id, AT.tag_id" +
-                " HAVING :tagsCount = 0 OR ( :tagsCount > 0 AND COUNT( DISTINCT AT.tag_id) >= :tagsCount AND AT.tag_id IN (:tagsIds))" +
-            " ) AS AT" +
-            " ON P.product_id = AT.product_id" +
-            " WHERE P.owner_id = :ownerID " +
-            " ORDER BY P.p_name"
+    final static String productIDAndTagsCount =
+            "SELECT AT.product_id, COUNT(AT.tag_id) AS tags_count" +
+            " FROM ( " +  getProductsWithTagsOfOwner + " ) AS AT" +
+            " GROUP BY AT.product_id, AT.product_id ";
+    final static String productsIDSMatchingConditions =
+            "SELECT DISTINCT AT.product_id" +
+            " FROM (" + productIDAndTagsCount + ") AS TC INNER JOIN ("+getProductsWithTagsOfOwner+") AS AT " +
+            " ON TC.product_id = AT.product_id " +
+            " WHERE " +
+            "   ( :tagsCount = 0 OR " +
+            "   (TC.tags_count >= :tagsCount AND AT.tag_id IN (:tagsIds) ) )" +
+            "   AND ((:barcode IS NULL AND :name IS NULL AND :description IS NULL ) " +
+            "       OR (AT.product_id LIKE :barcode OR AT.p_name LIKE :name OR AT.description LIKE :description ))";
+    @Query( "SELECT AT.* " +
+            " FROM (" +productsIDSMatchingConditions +") AS P INNER JOIN (" + getProductsWithTagsOfOwner + ") AS AT" +
+            " ON P.product_id = AT.product_id " +
+            " ORDER BY AT.p_name "
     )
     @MapInfo(keyColumn = "product_id", valueColumn = "tag_id")
     public abstract LiveData<Map<UserProduct, List<ProductTag>>> getMapOfProductWithTags(String ownerID, String barcode, String name, String description, List<Long> tagsIds, int tagsCount );
