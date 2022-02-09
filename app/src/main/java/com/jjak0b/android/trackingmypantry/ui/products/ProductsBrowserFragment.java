@@ -2,6 +2,7 @@ package com.jjak0b.android.trackingmypantry.ui.products;
 
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,8 +23,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.jjak0b.android.trackingmypantry.R;
+import com.jjak0b.android.trackingmypantry.data.api.Status;
 import com.jjak0b.android.trackingmypantry.data.db.relationships.ProductWithTags;
 import com.jjak0b.android.trackingmypantry.ui.util.ErrorsUtils;
+import com.jjak0b.android.trackingmypantry.ui.util.InputUtil;
+import com.jjak0b.android.trackingmypantry.ui.util.TagsPicker.SharedTagsViewModel;
 
 import java.util.List;
 
@@ -33,10 +37,13 @@ public class ProductsBrowserFragment extends Fragment {
     private ProductsBrowserViewModel viewModel;
     private ProductsSearchFilterViewModel searchViewModel;
     private ProductListAdapter listAdapter;
+    private SharedTagsViewModel mTagsPickerViewModel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mTagsPickerViewModel = new ViewModelProvider(requireActivity()).get(SharedTagsViewModel.class);
+
         setHasOptionsMenu(true);
     }
 
@@ -98,7 +105,22 @@ public class ProductsBrowserFragment extends Fragment {
             }
         });
 
+        // From tags picker to search ViewModel
+        mTagsPickerViewModel.getItem().observe(getViewLifecycleOwner(), resource -> {
+            if( resource.getStatus() != Status.LOADING ) {
+                Log.d(TAG, "Updating filter tags" + resource );
+                searchViewModel.setSearchTags(resource.getData());
+            }
+        });
+
+        // search trigger logic
+        searchViewModel.getSearchTags().observe(getViewLifecycleOwner(), productTags -> {
+            searchViewModel.search();
+        });
+
+        // on search trigger, then update the filter on main ViewMdel
         searchViewModel.onSearch().observe(getViewLifecycleOwner(), searchState -> {
+            Log.d(TAG, "got request for a new search ... " + searchState );
             viewModel.setFilterState(searchState);
         });
 
@@ -144,12 +166,8 @@ public class ProductsBrowserFragment extends Fragment {
         SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
         searchViewModel.getSearchQuery().observe(getViewLifecycleOwner(), s -> {
             searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
-                searchView.setQuery(s, !hasFocus );
+                InputUtil.setQuery(searchView, s, !hasFocus);
             });
-        });
-
-        searchViewModel.getSearchTags().observe(getViewLifecycleOwner(), productTags -> {
-            searchViewModel.search();
         });
 
         searchView.setOnQueryTextListener(onQueryTextListener);

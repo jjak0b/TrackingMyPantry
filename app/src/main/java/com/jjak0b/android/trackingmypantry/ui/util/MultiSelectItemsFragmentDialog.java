@@ -13,8 +13,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.LiveData;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.jjak0b.android.trackingmypantry.data.api.Resource;
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ public abstract class MultiSelectItemsFragmentDialog<T> extends DialogFragment {
 
     private MultiSelectItemsViewModel<T> mViewModel;
     private ArrayAdapter<T> adapter;
+    private AlertDialog dialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,7 +44,14 @@ public abstract class MultiSelectItemsFragmentDialog<T> extends DialogFragment {
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
         newDialog.getListView().setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+        this.dialog = newDialog;
         return newDialog;
+    }
+
+    @NonNull
+    @Override
+    public AlertDialog getDialog() {
+        return dialog;
     }
 
     @Override
@@ -78,10 +88,14 @@ public abstract class MultiSelectItemsFragmentDialog<T> extends DialogFragment {
         });
     }
 
-    public void onSubmit(DialogInterface dialog, int which) {
+    protected void onSubmit(DialogInterface dialog, int which) {
         SparseBooleanArray checkedItems = ((AlertDialog)dialog).getListView().getCheckedItemPositions();
         mViewModel.setItems(checkedItems);
+
+        this.onSubmit(mViewModel.getListItems());
     }
+
+    public abstract void onSubmit(LiveData<Resource<List<T>>> source);
 
     public void unselectAll() {
         final AlertDialog dialog = (AlertDialog) getDialog();
