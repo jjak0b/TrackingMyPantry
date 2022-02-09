@@ -5,4 +5,12 @@ import java.util.List;
 public class SearchFilterState {
     public String query;
     public List<Long> searchTags;
+
+    @Override
+    public String toString() {
+        return "SearchFilterState{" +
+                "query='" + query + '\'' +
+                ", searchTags=" + searchTags +
+                '}';
+    }
 }
